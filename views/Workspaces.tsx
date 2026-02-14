@@ -16,7 +16,7 @@ const WorkspaceCard: React.FC<{ workspace: Workspace }> = ({ workspace }) => {
   return (
     <>
       <div
-        className={`group bg-gh-bg-secondary border border-gh-border rounded-xl overflow-hidden hover:border-primary/50 transition-all flex flex-col ${!isActive ? "opacity-75" : ""}`}
+        className={`card-hover-glow group bg-gh-bg-secondary border border-gh-border rounded-xl overflow-hidden transition-all flex flex-col ${!isActive ? "opacity-75" : ""}`}
       >
         <div className="p-5 flex-1">
           <div className="flex items-start justify-between mb-4">
@@ -157,7 +157,7 @@ const Workspaces = () => {
         </div>
         <button
           onClick={() => navigate("/workspace/new")}
-          className="bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+          className="btn-glow bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-lg"
         >
           <span className="material-symbols-outlined text-lg">add</span>
           Create New Workspace

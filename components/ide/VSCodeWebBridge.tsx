@@ -3,22 +3,18 @@ import React, { useEffect, useRef, useState } from "react";
 interface VSCodeWebBridgeProps {
   workspaceId?: string;
   workspacePath?: string;
+  src?: string; // Allow direct URL override
   onReady?: () => void;
   onError?: (error: Error) => void;
 }
 
 /**
  * VSCodeWebBridge - Embeds VS Code Web into TrackCodex
- *
- * This component:
- * - Renders VS Code Web in an iframe
- * - Bridges authentication between TrackCodex and VS Code
- * - Handles workspace mounting and switching
- * - Manages postMessage communication
  */
 const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
   workspaceId,
   workspacePath = "/workspace",
+  src,
   onReady,
   onError,
 }) => {
@@ -30,19 +26,24 @@ const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
     const iframe = iframeRef.current;
     if (!iframe) return;
 
-    // VS Code Web URL with workspace configuration
-    const vscodeUrl = new URL("http://localhost:8080");
+    let targetUrl = src;
 
-    // Pass workspace configuration via URL parameters
-    if (workspaceId) {
-      vscodeUrl.searchParams.set("workspaceId", workspaceId);
-    }
-    if (workspacePath) {
-      vscodeUrl.searchParams.set("folder", workspacePath);
+    if (!targetUrl) {
+      // Fallback: Construct URL manually if no src provided
+      const vscodeUrl = new URL("http://localhost:8080");
+
+      // Pass workspace configuration via URL parameters
+      if (workspaceId) {
+        vscodeUrl.searchParams.set("workspaceId", workspaceId);
+      }
+      if (workspacePath) {
+        vscodeUrl.searchParams.set("folder", workspacePath);
+      }
+      targetUrl = vscodeUrl.toString();
     }
 
     // Set iframe source
-    iframe.src = vscodeUrl.toString();
+    iframe.src = targetUrl;
 
     // Handle iframe load
     const handleLoad = () => {

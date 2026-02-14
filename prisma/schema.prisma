@@ -18,6 +18,7 @@ model User {
   avatar           String?
   role             String    @default("user") // 'user', 'admin', 'super_admin'
   profileCompleted Boolean   @default(false)
+  orcidId          String?   @unique
   emailVerified    Boolean   @default(false)
   emailVerifiedAt  DateTime?
   twoFactorEnabled Boolean   @default(false)

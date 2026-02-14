@@ -46,7 +46,7 @@ const OfferEditorView = () => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setOffer({ ...offer, [e.target.name]: e.target.value });
     };
-    
+
     const handleToggle = (name: 'includeRelocation' | 'customNda') => {
         setOffer({ ...offer, [name]: !offer[name] });
     };
@@ -55,7 +55,7 @@ const OfferEditorView = () => {
         const num = parseInt(value, 10);
         return isNaN(num) ? '$0' : `$${num.toLocaleString()}`;
     };
-    
+
     const formatNumber = (value: string) => {
         const num = parseInt(value, 10);
         return isNaN(num) ? '0' : num.toLocaleString();
@@ -71,15 +71,15 @@ const OfferEditorView = () => {
 
 
     return (
-        <div className="h-full flex flex-col bg-[#0d1117] text-slate-300 font-display -m-8">
-            <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 bg-[#161b22] border-b border-gh-border">
+        <div className="h-full flex flex-col bg-gh-bg text-gh-text-secondary font-display -m-8">
+            <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 bg-gh-bg-secondary border-b border-gh-border">
                 <h1 className="text-lg font-bold text-white">TrackCodex Offer Editor</h1>
                 <div className="flex items-center gap-3">
                     <button className="text-sm font-medium text-slate-400 hover:text-white">Candidates</button>
                     <button className="text-sm font-medium text-slate-400 hover:text-white">Templates</button>
                     <div className="w-px h-6 bg-gh-border mx-2"></div>
                     <button className="px-4 py-1.5 text-sm font-bold bg-gh-bg-secondary border border-gh-border rounded-lg text-white hover:bg-slate-700">Save Draft</button>
-                    <button 
+                    <button
                         onClick={() => navigate(`/offer/${id}/accept`)}
                         className="px-4 py-1.5 text-sm font-bold bg-primary text-white rounded-lg hover:bg-blue-600">Send Offer</button>
                 </div>
@@ -115,7 +115,7 @@ const OfferEditorView = () => {
                 <main className="flex-1 p-8 overflow-y-auto custom-scrollbar">
                     <h2 className="text-2xl font-bold text-white mb-2">Offer Details & Terms</h2>
                     <p className="text-slate-400 mb-8">Configure the compensation and logistics for the candidate.</p>
-                    
+
                     <div className="space-y-8 max-w-xl">
                         {/* Compensation */}
                         <section>
@@ -125,17 +125,17 @@ const OfferEditorView = () => {
                                     <label className="block text-sm font-medium mb-1 text-slate-300">Base Salary</label>
                                     <div className="flex items-center">
                                         <span className="px-3 py-2 bg-gh-bg-secondary border border-r-0 border-gh-border rounded-l-lg text-sm">USD</span>
-                                        <input type="text" name="baseSalary" value={offer.baseSalary} onChange={handleChange} className="w-full bg-[#0d1117] border border-gh-border rounded-r-lg px-3 py-2 text-sm text-white focus:ring-primary focus:border-primary" />
+                                        <input type="text" name="baseSalary" value={offer.baseSalary} onChange={handleChange} className="w-full bg-gh-bg border border-gh-border rounded-r-lg px-3 py-2 text-sm text-gh-text focus:ring-primary focus:border-primary" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 text-slate-300">Equity (Options)</label>
-                                        <input type="text" name="equity" value={offer.equity} onChange={handleChange} className="w-full bg-[#0d1117] border border-gh-border rounded-lg px-3 py-2 text-sm text-white focus:ring-primary focus:border-primary" />
+                                        <label className="block text-sm font-medium mb-1 text-gh-text-secondary">Equity (Options)</label>
+                                        <input type="text" name="equity" value={offer.equity} onChange={handleChange} className="w-full bg-gh-bg border border-gh-border rounded-lg px-3 py-2 text-sm text-gh-text focus:ring-primary focus:border-primary" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 text-slate-300">Sign-on Bonus</label>
-                                        <input type="text" name="signOnBonus" value={offer.signOnBonus} onChange={handleChange} className="w-full bg-[#0d1117] border border-gh-border rounded-lg px-3 py-2 text-sm text-white focus:ring-primary focus:border-primary" />
+                                        <label className="block text-sm font-medium mb-1 text-gh-text-secondary">Sign-on Bonus</label>
+                                        <input type="text" name="signOnBonus" value={offer.signOnBonus} onChange={handleChange} className="w-full bg-gh-bg border border-gh-border rounded-lg px-3 py-2 text-sm text-gh-text focus:ring-primary focus:border-primary" />
                                     </div>
                                 </div>
                             </div>
@@ -145,19 +145,19 @@ const OfferEditorView = () => {
                             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Logistics</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-slate-300">Start Date</label>
-                                    <input type="date" name="startDate" value={offer.startDate} onChange={handleChange} className="w-full bg-[#0d1117] border border-gh-border rounded-lg px-3 py-2 text-sm text-white focus:ring-primary focus:border-primary" />
+                                    <label className="block text-sm font-medium mb-1 text-gh-text-secondary">Start Date</label>
+                                    <input type="date" name="startDate" value={offer.startDate} onChange={handleChange} className="w-full bg-gh-bg border border-gh-border rounded-lg px-3 py-2 text-sm text-gh-text focus:ring-primary focus:border-primary" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-slate-300">Reporting Manager</label>
-                                    <select name="reportingManager" value={offer.reportingManager} onChange={handleChange} className="w-full bg-[#0d1117] border border-gh-border rounded-lg px-3 py-2 text-sm text-white focus:ring-primary focus:border-primary">
+                                    <label className="block text-sm font-medium mb-1 text-gh-text-secondary">Reporting Manager</label>
+                                    <select name="reportingManager" value={offer.reportingManager} onChange={handleChange} className="w-full bg-gh-bg border border-gh-border rounded-lg px-3 py-2 text-sm text-gh-text focus:ring-primary focus:border-primary">
                                         <option>Alex Rivera</option>
                                         <option>Sarah Chen</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-slate-300">Office Location</label>
-                                    <input type="text" name="officeLocation" value={offer.officeLocation} onChange={handleChange} className="w-full bg-[#0d1117] border border-gh-border rounded-lg px-3 py-2 text-sm text-white focus:ring-primary focus:border-primary" />
+                                    <label className="block text-sm font-medium mb-1 text-gh-text-secondary">Office Location</label>
+                                    <input type="text" name="officeLocation" value={offer.officeLocation} onChange={handleChange} className="w-full bg-gh-bg border border-gh-border rounded-lg px-3 py-2 text-sm text-gh-text focus:ring-primary focus:border-primary" />
                                 </div>
                             </div>
                         </section>

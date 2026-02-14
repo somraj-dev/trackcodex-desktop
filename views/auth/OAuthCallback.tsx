@@ -112,25 +112,25 @@ const OAuthCallback: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0d1117] text-[#c9d1d9]">
-        <div className="bg-[#161b22] border border-red-500 rounded-lg p-8 max-w-md text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gh-bg text-gh-text-secondary">
+        <div className="bg-gh-bg-secondary border border-red-500 rounded-lg p-8 max-w-md text-center">
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
           <h1 className="text-xl font-bold mb-2 text-red-400">
             Authentication Failed
           </h1>
-          <p className="text-[#8b949e] mb-4">{error}</p>
-          <p className="text-sm text-[#8b949e]">Redirecting to login...</p>
+          <p className="text-gh-text-secondary mb-4">{error}</p>
+          <p className="text-sm text-gh-text-secondary">Redirecting to login...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0d1117] text-[#c9d1d9]">
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-8 max-w-md text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gh-bg text-gh-text-secondary">
+      <div className="bg-gh-bg-secondary border border-gh-border rounded-lg p-8 max-w-md text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-500 mx-auto mb-4"></div>
         <h1 className="text-xl font-bold mb-2">Completing Sign In</h1>
-        <p className="text-[#8b949e]">
+        <p className="text-gh-text-secondary">
           Authenticating with {provider === "google" ? "Google" : "GitHub"}...
         </p>
       </div>

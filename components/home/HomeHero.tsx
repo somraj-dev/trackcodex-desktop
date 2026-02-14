@@ -41,7 +41,7 @@ const HomeHero = () => {
   };
 
   return (
-    <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl p-6 shadow-xl relative overflow-hidden group animate-fade-in">
+    <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl p-6 shadow-sm relative overflow-hidden group animate-fade-in">
       <div className="absolute top-0 right-0 p-8 opacity-5">
         <TrackCodexLogo
           size="splash"

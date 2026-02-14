@@ -1,0 +1,47 @@
+version: "3.8"
+
+# Optional self-hosted Open VSX Registry
+# Default: TrackCodex uses public open-vsx.org
+# Enterprise: Use this for air-gapped deployments
+#
+# Usage: docker compose -f docker-compose.openvsx.yml up -d
+# Set OPENVSX_URL=http://localhost:9000 in .env to use this instance
+
+services:
+  openvsx-server:
+    image: ghcr.io/eclipse/openvsx-server:latest
+    ports:
+      - "9000:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://openvsx-db:5432/openvsx
+      - SPRING_DATASOURCE_USERNAME=openvsx
+      - SPRING_DATASOURCE_PASSWORD=openvsx
+      - OVSX_ELASTICSEARCH_HOST=openvsx-elasticsearch:9200
+    depends_on:
+      - openvsx-db
+      - openvsx-elasticsearch
+    restart: unless-stopped
+
+  openvsx-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=openvsx
+      - POSTGRES_USER=openvsx
+      - POSTGRES_PASSWORD=openvsx
+    volumes:
+      - openvsx_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  openvsx-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - openvsx_esdata:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+volumes:
+  openvsx_pgdata:
+  openvsx_esdata:

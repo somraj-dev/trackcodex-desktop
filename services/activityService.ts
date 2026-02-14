@@ -9,6 +9,12 @@ export interface Activity {
   targetId?: string;
   metadata?: Record<string, any>;
   createdAt: string;
+  user?: {
+    name: string;
+    username: string;
+    avatar?: string;
+  };
+  workspaceId?: string;
 }
 
 export interface ActivityStats {

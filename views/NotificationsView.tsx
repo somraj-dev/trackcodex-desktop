@@ -36,9 +36,9 @@ const NotificationsView = () => {
   }, [notifications]);
 
   return (
-    <div className="flex h-full bg-[#0d1117] text-[#c9d1d9] font-sans">
+    <div className="flex h-full bg-gh-bg text-gh-text font-sans">
       {/* Sidebar Filter */}
-      <div className="w-[296px] border-r border-[#30363d] p-0 flex flex-col hidden md:flex shrink-0 h-full">
+      <div className="w-[296px] border-r border-gh-border p-0 flex flex-col hidden md:flex shrink-0 h-full">
         <div className="flex flex-col gap-0.5 py-2">
           {["Inbox", "Saved", "Done"].map((f) => (
             <div key={f} className="px-2">
@@ -70,7 +70,7 @@ const NotificationsView = () => {
           ))}
         </div>
 
-        <div className="h-px bg-[#30363d] my-2 mx-0"></div>
+        <div className="h-px bg-gh-border my-2 mx-0"></div>
 
         {/* Filters Section */}
         <div className="px-2 py-2">
@@ -126,7 +126,7 @@ const NotificationsView = () => {
           </div>
         </div>
 
-        <div className="h-px bg-[#30363d] my-2 mx-0"></div>
+        <div className="h-px bg-gh-border my-2 mx-0"></div>
 
         {/* Repositories Section */}
         <div className="px-2 py-2 flex-1 overflow-y-auto custom-scrollbar">
@@ -162,26 +162,26 @@ const NotificationsView = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#0d1117]">
+      <div className="flex-1 flex flex-col min-w-0 bg-gh-bg">
         {/* Header with Search and Actions */}
-        <header className="h-[60px] border-b border-[#30363d] flex items-center justify-between px-6 bg-[#0d1117] sticky top-0 z-10 shrink-0">
+        <header className="h-[60px] border-b border-gh-border flex items-center justify-between px-6 bg-gh-bg sticky top-0 z-10 shrink-0">
           {/* Search Bar Area */}
           <div className="flex items-center gap-2 flex-1 max-w-4xl">
-            <div className="flex items-center gap-1 bg-[#21262d] border border-[#30363d] rounded-md overflow-hidden">
+            <div className="flex items-center gap-1 bg-gh-bg-secondary border border-gh-border rounded-md overflow-hidden">
               <button
                 onClick={() => { setFilter("Inbox"); setSearchQuery(""); }}
-                className={`px-3 py-1.5 text-[13px] font-medium text-[#c9d1d9] hover:bg-[#30363d] border-r border-[#30363d] ${filter === "Inbox" && !searchQuery.includes("is:unread") ? "bg-[#30363d]" : ""}`}>
+                className={`px-3 py-1.5 text-[13px] font-medium text-gh-text hover:bg-gh-border border-r border-gh-border ${filter === "Inbox" && !searchQuery.includes("is:unread") ? "bg-gh-border" : ""}`}>
                 All
               </button>
               <button
                 onClick={() => setSearchQuery("is:unread")}
-                className={`px-3 py-1.5 text-[13px] font-medium text-[#c9d1d9] ${searchQuery.includes("is:unread") ? "bg-[#1f6feb] text-white" : "hover:bg-[#30363d]"}`}>
+                className={`px-3 py-1.5 text-[13px] font-medium text-gh-text ${searchQuery.includes("is:unread") ? "bg-primary text-white" : "hover:bg-gh-border"}`}>
                 Unread
               </button>
             </div>
 
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined !text-[18px] text-[#8b949e]">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined !text-[18px] text-gh-text-secondary">
                 search
               </span>
               <label htmlFor="notifications-search" className="sr-only">
@@ -190,7 +190,7 @@ const NotificationsView = () => {
               <input
                 id="notifications-search"
                 type="text"
-                className="w-full bg-[#0d1117] border border-[#30363d] rounded-md py-1.5 pl-9 pr-8 text-[14px] text-[#c9d1d9] placeholder-[#8b949e] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
+                className="w-full bg-gh-bg border border-gh-border rounded-md py-1.5 pl-9 pr-8 text-[14px] text-gh-text placeholder-gh-text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 aria-label="Search notifications"
@@ -198,7 +198,7 @@ const NotificationsView = () => {
               />
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8b949e] hover:text-[#c9d1d9]">
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gh-text-secondary hover:text-gh-text">
                 <span className="material-symbols-outlined !text-[16px]">
                   close
                 </span>
@@ -255,22 +255,22 @@ const NotificationsView = () => {
               <EmptyState />
             </div>
           ) : (
-            <div className="bg-[#161b22] border border-[#30363d] rounded-md overflow-hidden shadow-sm">
-              <div className="bg-[#161b22] p-3 border-b border-[#30363d] flex items-center justify-between">
+            <div className="bg-gh-bg-secondary border border-gh-border rounded-md overflow-hidden shadow-sm">
+              <div className="bg-gh-bg-secondary p-3 border-b border-gh-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined !text-[20px] text-[#8b949e]">
+                  <span className="material-symbols-outlined !text-[20px] text-gh-text-secondary">
                     check_box_outline_blank
                   </span>
-                  <span className="text-[13px] font-semibold text-[#c9d1d9]">
+                  <span className="text-[13px] font-semibold text-gh-text">
                     Select all
                   </span>
                 </div>
               </div>
-              <div className="divide-y divide-[#30363d]">
+              <div className="divide-y divide-gh-border">
                 {filteredNotifications.map((notif) => (
                   <div
                     key={notif.id}
-                    className={`p-3 flex gap-3 hover:bg-[#21262d] transition-colors group cursor-pointer ${!notif.read ? "bg-[#1f2428]" : "bg-[#0d1117]"}`}
+                    className={`p-3 flex gap-3 hover:bg-gh-bg-tertiary transition-colors group cursor-pointer ${!notif.read ? "bg-gh-bg-secondary" : "bg-gh-bg"}`}
                     onClick={() => {
                       if (!notif.read) markAsRead(notif.id);
                       if (notif.link) navigate(notif.link);

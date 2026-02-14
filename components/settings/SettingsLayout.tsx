@@ -94,10 +94,10 @@ import SettingsContextSwitcher from "./SettingsContextSwitcher";
 // and it's used as a layout route element without children being passed directly.
 const SettingsLayout: React.FC = () => {
   return (
-    <div className="flex-1 flex flex-col bg-gh-bg font-display overflow-hidden">
-      <div className="max-w-[1200px] w-full mx-auto flex flex-col lg:flex-row min-h-0 h-full p-8 gap-8">
+    <div className="flex-1 flex flex-col bg-gh-bg font-display">
+      <div className="max-w-[1200px] w-full mx-auto flex flex-col lg:flex-row p-8 gap-8">
         {/* Settings Navigation */}
-        <aside className="w-full lg:w-[260px] shrink-0 space-y-8 overflow-y-auto no-scrollbar pb-8">
+        <aside className="w-full lg:w-[260px] shrink-0 space-y-8 pb-8 sticky top-0 self-start">
           <SettingsContextSwitcher currentContext="personal" />
           <section>
             <h3 className="px-3 text-[11px] font-black uppercase text-gh-text-secondary tracking-widest mb-3">
@@ -242,7 +242,7 @@ const SettingsLayout: React.FC = () => {
         </aside>
 
         {/* Dynamic Content Area */}
-        <main className="flex-1 min-w-0 overflow-y-auto custom-scrollbar pr-4 pb-20">
+        <main className="flex-1 min-w-0 pr-4">
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <Outlet />
           </div>

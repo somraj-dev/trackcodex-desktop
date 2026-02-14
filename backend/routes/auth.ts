@@ -318,7 +318,7 @@ export async function authRoutes(fastify: FastifyInstance) {
             );
             throw Forbidden(
               "Account Locked: " +
-                (securityCheck.reason || "Too many failed attempts"),
+              (securityCheck.reason || "Too many failed attempts"),
             );
           }
         }
@@ -1165,4 +1165,16 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
     },
   );
+  // --- ORCID OAuth (Mocked for Demo) ---
+  fastify.get("/auth/orcid", async (request, reply) => {
+    // In production, this would redirect to ORCID OAuth
+    const mockCode = "mock_auth_code_123";
+    return reply.redirect(`/api/v1/auth/orcid/callback?code=${mockCode}`);
+  });
+
+  fastify.get("/auth/orcid/callback", async (request, reply) => {
+    const mockOrcidId = "0000-0002-1825-0097"; // Example valid format
+    // Redirect back to frontend settings with the ID
+    return reply.redirect(`http://localhost:5173/settings/profile?orcid_id=${mockOrcidId}`);
+  });
 }

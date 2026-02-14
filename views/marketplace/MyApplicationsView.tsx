@@ -23,16 +23,16 @@ const MyApplicationsView = () => {
     }, []);
 
     return (
-        <div className="p-10 max-w-[1200px] mx-auto text-white">
+        <div className="p-10 max-w-[1200px] mx-auto text-gh-text">
             <h1 className="text-3xl font-black mb-2 tracking-tight">My Applications</h1>
             <p className="text-slate-500 font-medium mb-10">Track the status of your active proposals.</p>
 
             {loading ? (
-                <div className="text-slate-500">Loading...</div>
+                <div className="text-gh-text-secondary">Loading...</div>
             ) : (
-                <div className="bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden">
+                <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl overflow-hidden">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-[#0d1117] text-slate-400 font-medium uppercase text-xs">
+                        <thead className="bg-gh-bg text-gh-text-secondary font-medium uppercase text-xs">
                             <tr>
                                 <th className="p-4 pl-6">Mission</th>
                                 <th className="p-4">Applied</th>
@@ -41,18 +41,18 @@ const MyApplicationsView = () => {
                                 <th className="p-4 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#30363d]">
+                        <tbody className="divide-y divide-gh-border">
                             {applications.map(app => (
-                                <tr key={app.id} className="hover:bg-[#1f242c] transition-colors group">
-                                    <td className="p-4 pl-6 font-bold text-white group-hover:text-blue-400 cursor-pointer" onClick={() => navigate(`/marketplace/missions/${app.job.id}`)}>
+                                <tr key={app.id} className="hover:bg-gh-bg-tertiary transition-colors group">
+                                    <td className="p-4 pl-6 font-bold text-gh-text group-hover:text-blue-400 cursor-pointer" onClick={() => navigate(`/marketplace/missions/${app.job.id}`)}>
                                         {app.job.title}
                                     </td>
                                     <td className="p-4 text-slate-400">{app.date}</td>
                                     <td className="p-4 font-mono text-slate-300">{app.job.budget}</td>
                                     <td className="p-4">
                                         <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${app.status === 'Interview' ? 'bg-amber-500/20 text-amber-500' :
-                                                app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-500' :
-                                                    'bg-slate-500/20 text-slate-400'
+                                            app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-500' :
+                                                'bg-slate-500/20 text-slate-400'
                                             }`}>
                                             {app.status}
                                         </span>

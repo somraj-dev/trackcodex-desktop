@@ -21,156 +21,108 @@ const Leaderboard = () => {
     const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 6, mins: 42 });
     const [currentUser, setCurrentUser] = useState<LeaderboardUser | null>(null);
 
+    // Fetched api data
+    const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchLeaderboard = async () => {
+            // Fetch current user profile first (already existing logic)
             try {
                 const profile = await profileService.getProfile();
-                // Mock stats for the current user since we don't have a backend yet
+                // We will update current user stats from the leaderboard data if found, or keep default
                 setCurrentUser({
-                    id: "current-user-id",
-                    rank: 42,
+                    id: "current-user-id", // Will be overwritten if found in leaderboard
+                    rank: 0,
                     name: profile.name,
                     handle: profile.username || "@me",
                     avatar: profile.avatar,
-                    wins: 156,
-                    matches: 342,
-                    points: 12450,
-                    gems: "5,200",
-                    diamonds: "2,100",
-                    bestWin: "1:45",
+                    wins: 0,
+                    matches: 0,
+                    points: 0,
+                    gems: "0",
+                    diamonds: "0",
+                    bestWin: "--",
                 });
+
+                // Fetch Leaderboard API
+                const response = await fetch("http://localhost:5000/api/v1/leaderboard");
+                if (response.ok) {
+                    const data = await response.json();
+                    setLeaderboardData(data);
+
+                    // Find current user in leaderboard to update their specific stats
+                    // In a real app we'd use the real user ID from auth context
+                    // For now, let's assume if we find a matching name/handle we update
+                    // or just leave it as is for the "Your Rank" card which might need a specific /me endpoint
+                } else {
+                    console.error("Failed to fetch leaderboard data");
+                }
             } catch (e) {
-                console.error("Failed to fetch profile", e);
+                console.error("Failed to fetch data", e);
+            } finally {
+                setLoading(false);
             }
         };
-        fetchUser();
+        fetchLeaderboard();
     }, []);
 
     const handleUserClick = (userId: string) => {
         navigate(`/portfolio/${userId}`);
     };
 
-    // Mock Data
-    const topUsers: LeaderboardUser[] = [
-        {
-            id: "1",
-            rank: 1,
-            name: "Blademir Malina Tori",
-            handle: "@popy_bob",
-            avatar: "https://i.pravatar.cc/150?u=1",
-            wins: 443,
-            matches: 778,
-            points: 44872,
-            gems: "32,421",
-            diamonds: "17,500",
-            bestWin: "1:05",
-        },
-        {
-            id: "2",
-            rank: 2,
-            name: "Robert Fox",
-            handle: "@robert_fox",
-            avatar: "https://i.pravatar.cc/150?u=2",
-            wins: 440,
-            matches: 887,
-            points: 42515,
-            gems: "31,001",
-            diamonds: "17,421",
-            bestWin: "1:03",
-        },
-        {
-            id: "3",
-            rank: 3,
-            name: "Molida Glinda",
-            handle: "@molida_glinda",
-            avatar: "https://i.pravatar.cc/150?u=3",
-            wins: 412,
-            matches: 756,
-            points: 40550,
-            gems: "30,987",
-            diamonds: "17,224",
-            bestWin: "1:15",
-        },
-    ];
-
-    const upcomingUsers: LeaderboardUser[] = [
-        {
-            id: "4",
-            rank: 4,
-            name: "Jenny Wilson",
-            handle: "@jenny_wilson",
-            avatar: "https://i.pravatar.cc/150?u=4",
-            wins: 398,
-            matches: 720,
-            points: 38200,
-            gems: "28,500",
-            diamonds: "15,800",
-            bestWin: "1:20",
-        },
-        {
-            id: "5",
-            rank: 5,
-            name: "Guy Hawkins",
-            handle: "@guy_hawkins",
-            avatar: "https://i.pravatar.cc/150?u=5",
-            wins: 385,
-            matches: 690,
-            points: 36750,
-            gems: "27,100",
-            diamonds: "14,900",
-            bestWin: "1:25",
-            bestWin: "1:25",
-        },
-    ];
+    // Split data for UI (Top 3 vs Rest)
+    const topUsers = leaderboardData.slice(0, 3);
+    const upcomingUsers = leaderboardData.slice(3);
 
     return (
-        <div className="min-h-screen bg-[#0d1117] text-white p-8 pb-32 overflow-y-auto custom-scrollbar">
+        <div className="min-h-screen bg-gh-bg text-gh-text p-4 md:p-8 pb-32 overflow-y-auto custom-scrollbar">
             <div className="max-w-7xl mx-auto">
-                <h1 className="text-3xl font-bold mb-8">Leaderboard</h1>
+                <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Leaderboard</h1>
 
                 {/* Stats Row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
                     {/* Total Registered */}
-                    <div className="bg-[#161b22] p-6 rounded-2xl border border-[#30363d] flex items-center justify-between">
+                    <div className="bg-gh-bg-secondary p-4 md:p-6 rounded-2xl border border-gh-border flex items-center justify-between">
                         <div>
-                            <div className="text-4xl font-bold mb-1">1277</div>
-                            <div className="text-[#8b949e] text-sm">Total Registered</div>
+                            <div className="text-3xl md:text-4xl font-bold mb-1">1277</div>
+                            <div className="text-gh-text-secondary text-xs md:text-sm">Total Registered</div>
                         </div>
-                        <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
                             <span className="material-symbols-outlined">group</span>
                         </div>
                     </div>
 
                     {/* Total Participated */}
-                    <div className="bg-[#161b22] p-6 rounded-2xl border border-[#30363d] flex items-center justify-between">
+                    <div className="bg-gh-bg-secondary p-4 md:p-6 rounded-2xl border border-gh-border flex items-center justify-between">
                         <div>
-                            <div className="text-4xl font-bold mb-1">255</div>
-                            <div className="text-[#8b949e] text-sm">Total Participated</div>
+                            <div className="text-3xl md:text-4xl font-bold mb-1">255</div>
+                            <div className="text-gh-text-secondary text-xs md:text-sm">Total Participated</div>
                         </div>
-                        <div className="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center">
                             <span className="material-symbols-outlined">emoji_events</span>
                         </div>
                     </div>
 
                     {/* Countdown Timer */}
-                    <div className="bg-[#161b22] p-6 rounded-2xl border border-[#30363d] flex flex-col justify-center">
+                    <div className="bg-gh-bg-secondary p-4 md:p-6 rounded-2xl border border-gh-border flex flex-col justify-center">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-[#8b949e]">Remaining time for completion🔥</span>
+                            <span className="text-gh-text-secondary text-sm">Remaining time for completion🔥</span>
                         </div>
-                        <div className="flex items-center gap-4 text-3xl font-mono font-bold">
+                        <div className="flex items-center gap-2 md:gap-4 text-2xl md:text-3xl font-mono font-bold">
                             <div>
-                                {timeLeft.days} <span className="text-xs text-[#8b949e] font-sans block text-center">DAYS</span>
+                                {timeLeft.days} <span className="text-[10px] md:text-xs text-gh-text-secondary font-sans block text-center">DAYS</span>
                             </div>
-                            <span className="text-[#8b949e]">:</span>
+                            <span className="text-gh-text-secondary">:</span>
                             <div>
-                                {timeLeft.hours} <span className="text-xs text-[#8b949e] font-sans block text-center">HRS</span>
+                                {timeLeft.hours} <span className="text-[10px] md:text-xs text-gh-text-secondary font-sans block text-center">HRS</span>
                             </div>
-                            <span className="text-[#8b949e]">:</span>
+                            <span className="text-gh-text-secondary">:</span>
                             <div>
-                                {timeLeft.mins} <span className="text-xs text-[#8b949e] font-sans block text-center">MINS</span>
+                                {timeLeft.mins} <span className="text-[10px] md:text-xs text-gh-text-secondary font-sans block text-center">MINS</span>
                             </div>
                         </div>
-                        <div className="text-xs text-[#8b949e] mt-2">Only the first three positions will be awarded prizes</div>
+                        <div className="text-[10px] md:text-xs text-gh-text-secondary mt-2">Only the first three positions will be awarded prizes</div>
                     </div>
                 </div>
 
@@ -179,7 +131,7 @@ const Leaderboard = () => {
                     {topUsers.map((user) => (
                         <div
                             key={user.id}
-                            className={`bg-[#161b22] rounded-2xl p-6 border relative ${user.rank === 1 ? "border-yellow-500/50" : "border-[#30363d]"
+                            className={`bg-gh-bg-secondary rounded-2xl p-6 border relative ${user.rank === 1 ? "border-yellow-500/50" : "border-gh-border"
                                 }`}
                         >
                             {/* Rank Badge */}
@@ -211,34 +163,34 @@ const Leaderboard = () => {
                                         }`}
                                 />
                                 <div>
-                                    <h3 className="font-bold text-lg leading-tight hover:text-blue-400 transition-colors">{user.name}</h3>
-                                    <p className="text-[#8b949e] text-sm">{user.handle}</p>
+                                    <h3 className="font-bold text-lg leading-tight hover:text-blue-400 transition-colors text-gh-text">{user.name}</h3>
+                                    <p className="text-gh-text-secondary text-sm">{user.handle}</p>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-3 gap-4 mb-6 text-center">
                                 <div>
-                                    <div className="text-[#8b949e] text-xs uppercase tracking-wider mb-1">Wins</div>
-                                    <div className="font-bold text-lg">{user.wins}</div>
+                                    <div className="text-gh-text-secondary text-xs uppercase tracking-wider mb-1">Wins</div>
+                                    <div className="font-bold text-lg text-gh-text">{user.wins}</div>
                                 </div>
                                 <div>
-                                    <div className="text-[#8b949e] text-xs uppercase tracking-wider mb-1">Matches</div>
-                                    <div className="font-bold text-lg">{user.matches}</div>
+                                    <div className="text-gh-text-secondary text-xs uppercase tracking-wider mb-1">Matches</div>
+                                    <div className="font-bold text-lg text-gh-text">{user.matches}</div>
                                 </div>
                                 <div>
-                                    <div className="text-[#8b949e] text-xs uppercase tracking-wider mb-1">Points</div>
-                                    <div className="font-bold text-lg">{user.points.toLocaleString()}</div>
+                                    <div className="text-gh-text-secondary text-xs uppercase tracking-wider mb-1">Points</div>
+                                    <div className="font-bold text-lg text-gh-text">{user.points.toLocaleString()}</div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4 pt-4 border-t border-[#30363d]">
+                            <div className="flex items-center gap-4 pt-4 border-t border-gh-border">
                                 <div className="flex items-center gap-2">
                                     <span className="material-symbols-outlined text-yellow-500 text-sm">inventory_2</span>
-                                    <span className="font-bold">{user.gems}</span>
+                                    <span className="font-bold text-gh-text">{user.gems}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="material-symbols-outlined text-blue-400 text-sm">diamond</span>
-                                    <span className="font-bold">{user.diamonds}</span>
+                                    <span className="font-bold text-gh-text">{user.diamonds}</span>
                                 </div>
                             </div>
                         </div>
@@ -247,45 +199,45 @@ const Leaderboard = () => {
 
                 {/* User Stats Card */}
                 {currentUser && (
-                    <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6 mb-8 flex items-center justify-between relative overflow-hidden">
+                    <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl p-4 md:p-6 mb-8 flex flex-col md:flex-row items-center justify-between relative overflow-hidden gap-4 md:gap-0">
                         {/* Decorative background glow */}
                         <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-purple-500"></div>
 
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-4 md:gap-8 w-full md:w-auto">
                             <div className="flex flex-col items-center px-4">
-                                <span className="text-[10px] text-[#8b949e] uppercase tracking-wider mb-1">Your Rank</span>
-                                <div className="text-3xl font-bold text-white">#{currentUser.rank}</div>
+                                <span className="text-[10px] text-gh-text-secondary uppercase tracking-wider mb-1">Your Rank</span>
+                                <div className="text-3xl font-bold text-gh-text">#{currentUser.rank}</div>
                             </div>
 
-                            <div className="h-10 w-px bg-[#30363d]"></div>
+                            <div className="h-10 w-px bg-gh-border"></div>
 
                             <div
-                                className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity"
+                                className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity flex-1 md:flex-none"
                                 onClick={() => handleUserClick(currentUser.id)}
                             >
                                 <img
                                     src={currentUser.avatar}
                                     alt={currentUser.name}
-                                    className="w-12 h-12 rounded-full border-2 border-[#30363d]"
+                                    className="w-12 h-12 rounded-full border-2 border-gh-border"
                                 />
                                 <div>
-                                    <div className="font-bold text-xl text-white leading-tight hover:text-blue-400 transition-colors">{currentUser.name}</div>
-                                    <div className="text-sm text-[#8b949e]">{currentUser.points.toLocaleString()} Points</div>
+                                    <div className="font-bold text-lg md:text-xl text-gh-text leading-tight hover:text-blue-400 transition-colors">{currentUser.name}</div>
+                                    <div className="text-sm text-gh-text-secondary">{currentUser.points.toLocaleString()} Points</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-10 hidden sm:flex pr-4">
+                        <div className="flex items-center gap-6 md:gap-10 w-full md:w-auto justify-around md:justify-end pr-4">
                             <div className="text-center">
-                                <div className="text-[10px] text-[#8b949e] uppercase font-bold mb-1">Wins</div>
+                                <div className="text-[10px] text-gh-text-secondary uppercase font-bold mb-1">Wins</div>
                                 <div className="font-mono text-xl">{currentUser.wins}</div>
                             </div>
                             <div className="text-center">
-                                <div className="text-[10px] text-[#8b949e] uppercase font-bold mb-1">Matches</div>
+                                <div className="text-[10px] text-gh-text-secondary uppercase font-bold mb-1">Matches</div>
                                 <div className="font-mono text-xl">{currentUser.matches}</div>
                             </div>
-                            <div className="text-center hidden md:block">
-                                <div className="text-[10px] text-[#8b949e] uppercase font-bold mb-1">Best Win</div>
+                            <div className="text-center">
+                                <div className="text-[10px] text-gh-text-secondary uppercase font-bold mb-1">Best Win</div>
                                 <div className="font-mono text-xl text-emerald-400">{currentUser.bestWin}</div>
                             </div>
                         </div>
@@ -293,28 +245,28 @@ const Leaderboard = () => {
                 )}
 
                 {/* Global Ranking Table */}
-                <div className="bg-[#161b22] rounded-2xl border border-[#30363d] overflow-hidden">
-                    <div className="p-6 border-b border-[#30363d]">
+                <div className="bg-gh-bg-secondary rounded-2xl border border-gh-border overflow-hidden">
+                    <div className="p-4 md:p-6 border-b border-gh-border">
                         <h2 className="text-xl font-bold">Global Ranking</h2>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-[#0d1117] text-[#8b949e] text-sm border-b border-[#30363d]">
+                                <tr className="bg-gh-bg text-gh-text-secondary text-sm border-b border-gh-border">
                                     <th className="p-4 pl-6 font-medium">Rank</th>
                                     <th className="p-4 font-medium">User name</th>
                                     <th className="p-4 font-medium text-center">Match Wins</th>
-                                    <th className="p-4 font-medium text-center">Spent time</th>
-                                    <th className="p-4 font-medium text-center">Victories</th>
-                                    <th className="p-4 font-medium text-center">Best Win (mins)</th>
+                                    <th className="p-4 font-medium text-center hidden md:table-cell">Spent time</th>
+                                    <th className="p-4 font-medium text-center hidden lg:table-cell">Victories</th>
+                                    <th className="p-4 font-medium text-center hidden lg:table-cell">Best Win (mins)</th>
                                     <th className="p-4 pr-6 font-medium text-right">Points</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {[...topUsers, ...upcomingUsers].map((user) => (
-                                    <tr key={user.id} className="border-b last:border-0 border-[#30363d] hover:bg-[#21262d] transition-colors">
+                                    <tr key={user.id} className="border-b last:border-0 border-gh-border hover:bg-gh-bg-tertiary transition-colors">
                                         <td className="p-4 pl-6">
-                                            <div className="w-8 h-8 rounded-full bg-[#21262d] flex items-center justify-center font-mono text-sm">
+                                            <div className="w-8 h-8 rounded-full bg-gh-bg-tertiary flex items-center justify-center font-mono text-sm">
                                                 {user.rank}
                                             </div>
                                         </td>
@@ -325,16 +277,16 @@ const Leaderboard = () => {
                                             >
                                                 <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full group-hover:opacity-80 transition-opacity" />
                                                 <div>
-                                                    <div className="font-semibold text-white group-hover:text-blue-400 transition-colors">{user.name}</div>
-                                                    <div className="text-xs text-[#8b949e]">ID 15876{user.id}</div>
+                                                    <div className="font-semibold text-gh-text group-hover:text-blue-400 transition-colors whitespace-nowrap">{user.name}</div>
+                                                    <div className="text-xs text-gh-text-secondary">ID 15876{user.id}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4 text-center text-[#8b949e]">{user.wins}</td>
-                                        <td className="p-4 text-center text-[#8b949e]">{user.matches}</td>
-                                        <td className="p-4 text-center text-[#8b949e]">{Math.floor(user.wins / 10)}</td>
-                                        <td className="p-4 text-center text-[#8b949e]">{user.bestWin}</td>
-                                        <td className="p-4 pr-6 text-right font-mono font-bold text-white">
+                                        <td className="p-4 text-center text-gh-text-secondary">{user.wins}</td>
+                                        <td className="p-4 text-center text-gh-text-secondary hidden md:table-cell">{user.matches}</td>
+                                        <td className="p-4 text-center text-gh-text-secondary hidden lg:table-cell">{Math.floor(user.wins / 10)}</td>
+                                        <td className="p-4 text-center text-gh-text-secondary hidden lg:table-cell">{user.bestWin}</td>
+                                        <td className="p-4 pr-6 text-right font-mono font-bold text-gh-text">
                                             {user.points.toLocaleString()}
                                         </td>
                                     </tr>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { githubService } from "../../services/github";
 import { gitlabService } from "../../services/gitlab";
+import IntegrationPermissionModal from "../../components/settings/IntegrationPermissionModal";
 
-// Reusable Section Component (matching ProfileSettings)
 // Reusable Section Component (matching ProfileSettings)
 const SettingsSection: React.FC<{
   title: string;
@@ -156,16 +156,48 @@ const IntegrationsSettings = () => {
     }
   };
 
-  // ... existing imports
 
-  // ... inside component
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [pendingIntegration, setPendingIntegration] = useState<Integration | null>(null);
+
+  // Manual Token flow state (Fallback)
   const [showTokenModal, setShowTokenModal] = useState(false);
-  const [activeIntegrationId, setActiveIntegrationId] = useState<string | null>(
-    null,
-  );
+  const [activeIntegrationId, setActiveIntegrationId] = useState<string | null>(null);
   const [tokenInput, setTokenInput] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // OAuth Handler
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const service = params.get("service");
+    const token = params.get("token");
+    const username = params.get("username");
+
+    if (service && token) {
+      if (service === "github") {
+        localStorage.setItem("trackcodex_github_token", token);
+        if (username) localStorage.setItem("trackcodex_github_username", username);
+        toggleConnection("github");
+      } else if (service === "gitlab") {
+        localStorage.setItem("trackcodex_gitlab_token", token);
+        toggleConnection("gitlab");
+      }
+
+      // Clear URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      window.dispatchEvent(
+        new CustomEvent("trackcodex-notification", {
+          detail: {
+            title: "Integration Successful",
+            message: `Successfully connected to ${service === 'github' ? 'GitHub' : 'GitLab'}.`,
+            type: "success",
+          },
+        }),
+      );
+    }
+  }, [integrations]);
 
   const handleConnectClick = (integration: Integration) => {
     if (integration.connected) {
@@ -176,13 +208,57 @@ const IntegrationsSettings = () => {
       if (integration.id === "gitlab")
         localStorage.removeItem("trackcodex_gitlab_token");
     } else {
-      if (integration.id === "github" || integration.id === "gitlab") {
-        setActiveIntegrationId(integration.id);
-        setShowTokenModal(true);
-      } else {
-        toggleConnection(integration.id);
-      }
+      // Open Permission Modal first
+      setPendingIntegration(integration);
+      setShowPermissionModal(true);
     }
+  };
+
+  const handlePermissionConfirm = () => {
+    setShowPermissionModal(false);
+    if (!pendingIntegration) return;
+
+    // Check for valid Client ID
+    const ghClientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    const glClientId = import.meta.env.VITE_GITLAB_CLIENT_ID;
+
+    // Determine if we can do OAuth or fallback to manual token
+    let canDoOAuth = false;
+    // Check if client ID is valid (not undefined, empty, or placeholder)
+    if (pendingIntegration.id === "github" && ghClientId && ghClientId !== "Iv1.8a61f9b3a7c42c2e" && ghClientId !== "YOUR_GITHUB_CLIENT_ID") canDoOAuth = true;
+    if (pendingIntegration.id === "gitlab" && glClientId && glClientId !== "APP_ID") canDoOAuth = true;
+
+    if (canDoOAuth) {
+      // Initiate OAuth Flow
+      const state = Math.random().toString(36).substring(7);
+      localStorage.setItem("oauth_state", state);
+      localStorage.setItem("integration_return_path", window.location.pathname);
+
+      if (pendingIntegration.id === "github") {
+        const params = new URLSearchParams({
+          client_id: ghClientId,
+          redirect_uri: "http://localhost:3000/auth/callback/integration/github",
+          scope: "repo read:user",
+          state,
+          allow_signup: "true"
+        });
+        window.location.href = `https://github.com/login/oauth/authorize?${params.toString()}`;
+      } else if (pendingIntegration.id === "gitlab") {
+        const params = new URLSearchParams({
+          client_id: glClientId,
+          redirect_uri: "http://localhost:3000/auth/callback/integration/gitlab",
+          response_type: "code",
+          scope: "api",
+          state,
+        });
+        window.location.href = `https://gitlab.com/oauth/authorize?${params.toString()}`;
+      }
+    } else {
+      // FALLBACK: Show Manual Token Entry
+      setActiveIntegrationId(pendingIntegration.id);
+      setShowTokenModal(true);
+    }
+    setPendingIntegration(null);
   };
 
   const submitToken = async () => {
@@ -223,7 +299,15 @@ const IntegrationsSettings = () => {
 
   return (
     <div className="space-y-10 relative">
-      {/* Modal */}
+      {/* Permission Modal */}
+      <IntegrationPermissionModal
+        isOpen={showPermissionModal}
+        onClose={() => setShowPermissionModal(false)}
+        onConfirm={handlePermissionConfirm}
+        integration={pendingIntegration}
+      />
+
+      {/* Token Modal - Fallback for when OAuth is not configured */}
       {showTokenModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-gh-bg-secondary border border-gh-border p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
@@ -236,10 +320,8 @@ const IntegrationsSettings = () => {
             <h3 className="text-xl font-bold text-white mb-2">
               Connect {activeIntegrationId === "github" ? "GitHub" : "GitLab"}
             </h3>
-            <p className="text-sm text-slate-400 mb-6">
-              Enter a Personal Access Token with{" "}
-              <code>{activeIntegrationId === "github" ? "repo" : "api"}</code>{" "}
-              scope to enable real sync.
+            <p className="text-sm text-yellow-500/80 mb-6 bg-yellow-500/10 p-2 rounded-lg border border-yellow-500/20">
+              <strong>Development Mode:</strong> OAuth Client ID not configured. Please enter a Personal Access Token manually.
             </p>
 
             <div className="space-y-4">

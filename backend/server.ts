@@ -262,6 +262,15 @@ async function bootstrap() {
     // Register API Routes
     await server.register(routes, { prefix: "/api/v1" });
 
+    // Register CSS (Code Security System) Routes
+    try {
+        const cssModule = await import("./routes/css");
+        await server.register(cssModule.default || cssModule);
+        console.log("🛡️ [CSS] Code Security System routes registered");
+    } catch (err: any) {
+        console.warn("[WARN] CSS routes failed to load:", err.message);
+    }
+
     // Serve Frontend in Production
     if (process.env.NODE_ENV === "production") {
         const path = await import("path");

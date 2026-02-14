@@ -25,7 +25,7 @@ const activityData = [
 ];
 
 const StatCard = ({ title, value, change, color }: any) => (
-  <div className="p-4 rounded-xl bg-gh-bg-secondary border border-gh-border flex flex-col group hover:border-gh-text-secondary transition-all">
+  <div className="card-hover-glow p-4 rounded-xl bg-gh-bg-secondary border border-gh-border flex flex-col group transition-all">
     <div className="flex items-center justify-between mb-2">
       <span className="text-[11px] font-bold uppercase tracking-wider text-gh-text-secondary">
         {title}
@@ -102,8 +102,9 @@ const Overview = () => {
             </button>
             <button
               onClick={() => navigate("/workspace/new")}
-              className="px-4 py-1.5 bg-[#238636] hover:bg-[#2ea043] text-white rounded-md text-xs font-bold transition-all shadow-sm"
+              className="btn-glow px-4 py-1.5 rounded-md text-xs font-bold shadow-sm flex items-center gap-2"
             >
+              <span className="material-symbols-outlined !text-[16px]">add</span>
               Provision Workspace
             </button>
           </div>
@@ -160,7 +161,7 @@ const Overview = () => {
                   <AreaChart data={activityData}>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="#30363d"
+                      stroke="var(--gh-border)"
                       vertical={false}
                     />
                     <XAxis
@@ -180,11 +181,14 @@ const Overview = () => {
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#161b22",
-                        borderColor: "#30363d",
+                        backgroundColor: "var(--gh-bg-secondary)",
+                        borderColor: "var(--gh-border)",
                         borderRadius: "6px",
                         fontSize: "12px",
+                        color: "var(--gh-text)"
                       }}
+                      itemStyle={{ color: "var(--gh-text)" }}
+                      labelStyle={{ color: "var(--gh-text-secondary)" }}
                     />
                     <Area
                       type="monotone"

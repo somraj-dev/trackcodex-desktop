@@ -101,7 +101,7 @@ const Sidebar = () => {
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
       className={`
-        glass-panel border-r border-gh-border flex flex-col shrink-0 h-full 
+        bg-gh-bg/80 backdrop-blur-xl border-r border-gh-border flex flex-col shrink-0 h-full 
         transition-all duration-300 ease-in-out font-display relative z-50
         ${isExpanded ? "w-[240px]" : "w-[64px]"}
       `}
@@ -121,7 +121,7 @@ const Sidebar = () => {
         {/* Toggle Button */}
         <button
           onClick={toggleSidebar}
-          className={`absolute -right-3 top-4 size-6 bg-gh-bg border border-gh-border rounded-full flex items-center justify-center text-gh-text-secondary hover:text-gh-text transition-all shadow-xl z-[60] hover:scale-110 ${isExpanded ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}
+          className={`absolute -right-3 top-4 size-6 bg-gh-bg border border-gh-border rounded-full flex items-center justify-center text-gh-text-secondary hover:text-gh-text transition-all z-[60] hover:scale-110 ${isExpanded ? "opacity-0 group-hover:opacity-100" : "opacity-100"}`}
         >
           <span
             className={`material-symbols-outlined !text-[16px] transition-transform duration-300 ${isExpanded ? "" : "rotate-180"}`}

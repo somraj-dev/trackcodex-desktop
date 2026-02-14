@@ -37,7 +37,7 @@ const AcceptInvite: React.FC = () => {
         setStatus("error");
         setMessage(
           error.message ||
-            "Failed to accept invitation. It may have expired or already been accepted.",
+          "Failed to accept invitation. It may have expired or already been accepted.",
         );
       }
     };
@@ -46,15 +46,15 @@ const AcceptInvite: React.FC = () => {
   }, [token, navigate]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0d1117] text-[#c9d1d9] p-4">
-      <div className="w-full max-w-md bg-[#161b22] border border-[#30363d] rounded-xl p-8 text-center shadow-xl">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gh-bg text-gh-text p-4">
+      <div className="w-full max-w-md bg-gh-bg-secondary border border-gh-border rounded-xl p-8 text-center shadow-xl">
         {status === "loading" && (
           <div className="flex flex-col items-center">
             <Spinner size="lg" />
             <h2 className="text-xl font-bold mt-6 mb-2 text-white">
               Accepting Invitation
             </h2>
-            <p className="text-[#8b949e]">{message}</p>
+            <p className="text-gh-text-secondary">{message}</p>
           </div>
         )}
 
@@ -66,7 +66,7 @@ const AcceptInvite: React.FC = () => {
               </span>
             </div>
             <h2 className="text-xl font-bold mb-2 text-white">Success!</h2>
-            <p className="text-[#8b949e] mb-6">{message}</p>
+            <p className="text-gh-text-secondary mb-6">{message}</p>
             <button
               onClick={() => navigate("/")}
               className="bg-[#238636] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#2ea043] transition-colors"
@@ -86,10 +86,10 @@ const AcceptInvite: React.FC = () => {
             <h2 className="text-xl font-bold mb-2 text-white">
               Unable to Join
             </h2>
-            <p className="text-[#8b949e] mb-6">{message}</p>
+            <p className="text-gh-text-secondary mb-6">{message}</p>
             <button
               onClick={() => navigate("/")}
-              className="bg-[#21262d] text-[#c9d1d9] border border-[#30363d] px-6 py-2 rounded-lg font-medium hover:bg-[#30363d] transition-colors"
+              className="bg-gh-bg-tertiary text-gh-text-secondary border border-gh-border px-6 py-2 rounded-lg font-medium hover:bg-gh-border transition-colors"
             >
               Back to Home
             </button>

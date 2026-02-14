@@ -1,4 +1,5 @@
 import React from 'react';
+import './SkillBreakdown.css';
 
 interface SkillData {
     coding: number;
@@ -37,8 +38,8 @@ const SkillBreakdown: React.FC<SkillBreakdownProps> = ({ data }) => {
                     </div>
                     <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                         <div
-                            className={`h-full ${metric.bar}`}
-                            style={{ width: `${Math.min(metric.value, 100)}%` }}
+                            className={`h-full ${metric.bar} skill-bar-fill`}
+                            style={{ '--skill-width': `${Math.min(metric.value, 100)}%` } as React.CSSProperties}
                         />
                     </div>
                 </div>

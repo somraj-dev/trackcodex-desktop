@@ -127,43 +127,43 @@ const CommunityView = () => {
         <div className="max-w-2xl mx-auto py-8 px-4">
           {/* Create Post */}
           {/* Create Post Widget - New Design */}
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 mb-6 shadow-sm">
+          <div className="bg-gh-bg-secondary border border-gh-border rounded-xl p-4 mb-6 shadow-sm">
             <div className="flex gap-3">
               <div className="shrink-0">
                 <img
                   src="https://i.pravatar.cc/150?u=arivera"
                   alt="Current User"
-                  className="size-10 rounded-full object-cover border border-[#30363d]"
+                  className="size-10 rounded-full object-cover border border-gh-border"
                 />
               </div>
               <div
                 className="flex-1"
                 onClick={() => setShowCreateModal(true)}
               >
-                <div className="w-full bg-[#0d1117] border border-[#30363d] rounded-xl px-4 py-3 text-sm text-[#c9d1d9] placeholder-[#8b949e] cursor-pointer hover:bg-[#161b22] hover:border-[#8b949e] transition-all">
+                <div className="w-full bg-gh-bg border border-gh-border rounded-xl px-4 py-3 text-sm text-gh-text placeholder-gh-text-secondary cursor-pointer hover:bg-gh-bg-secondary hover:border-gh-text-secondary transition-all">
                   What are you building today?
                 </div>
                 <div className="flex justify-between items-center mt-3 px-1">
                   <div className="flex gap-2">
-                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[#8b949e] hover:text-[#58a6ff] hover:bg-[#58a6ff]/10 transition-colors">
+                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gh-text-secondary hover:text-[#58a6ff] hover:bg-[#58a6ff]/10 transition-colors">
                       <span className="material-symbols-outlined !text-[18px]">
                         image
                       </span>
                       <span className="text-xs font-bold">Photo</span>
                     </button>
-                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[#8b949e] hover:text-[#58a6ff] hover:bg-[#58a6ff]/10 transition-colors">
+                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gh-text-secondary hover:text-[#58a6ff] hover:bg-[#58a6ff]/10 transition-colors">
                       <span className="material-symbols-outlined !text-[18px]">
                         videocam
                       </span>
                       <span className="text-xs font-bold">Video</span>
                     </button>
-                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[#8b949e] hover:text-[#58a6ff] hover:bg-[#58a6ff]/10 transition-colors">
+                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gh-text-secondary hover:text-[#58a6ff] hover:bg-[#58a6ff]/10 transition-colors">
                       <span className="material-symbols-outlined !text-[18px]">
                         poll
                       </span>
                       <span className="text-xs font-bold">Poll</span>
                     </button>
-                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[#8b949e] hover:text-[#58a6ff] hover:bg-[#58a6ff]/10 transition-colors">
+                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-gh-text-secondary hover:text-[#58a6ff] hover:bg-[#58a6ff]/10 transition-colors">
                       <span className="material-symbols-outlined !text-[18px]">
                         calendar_month
                       </span>
@@ -191,7 +191,7 @@ const CommunityView = () => {
           {/* Feed */}
           <div className="space-y-4">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-[#8b949e]">
+              <div className="flex flex-col items-center justify-center py-20 text-gh-text-secondary">
                 <span className="material-symbols-outlined !text-4xl animate-spin mb-4">
                   progress_activity
                 </span>
@@ -201,7 +201,7 @@ const CommunityView = () => {
               posts.map((post) => (
                 <div
                   key={post.id}
-                  className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 hover:border-[#8b949e]/50 transition-colors group cursor-pointer"
+                  className="bg-gh-bg-secondary border border-gh-border rounded-xl p-5 hover:border-gh-text-secondary/50 transition-colors group cursor-pointer"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
@@ -210,7 +210,7 @@ const CommunityView = () => {
                         <img
                           src={post.author.avatar}
                           alt={post.author.name}
-                          className="size-10 rounded-full border border-[#30363d] cursor-pointer"
+                          className="size-10 rounded-full border border-gh-border cursor-pointer"
                           onClick={() => navigate(`/profile/${post.author.id}`)}
                         />
                         {/* Hover Card */}
@@ -221,7 +221,7 @@ const CommunityView = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <span
-                            className="text-[15px] font-bold text-[#c9d1d9] hover:underline cursor-pointer"
+                            className="text-[15px] font-bold text-gh-text hover:underline cursor-pointer"
                             onClick={() => navigate(`/profile/${post.author.id}`)}
                           >
                             {post.author.name}
@@ -231,35 +231,35 @@ const CommunityView = () => {
                           )}
 
                         </div>
-                        <div className="text-[12px] text-[#8b949e] flex items-center gap-1">
+                        <div className="text-[12px] text-gh-text-secondary flex items-center gap-1">
                           {new Date(post.createdAt).toLocaleDateString()} •{" "}
                           <span className="material-symbols-outlined !text-[12px]">public</span>
                         </div>
                       </div>
                     </div>
 
-                    <button className="text-[#8b949e] hover:text-[#c9d1d9] p-1 rounded-full hover:bg-[#30363d] transition-colors">
+                    <button className="text-gh-text-secondary hover:text-gh-text p-1 rounded-full hover:bg-[#30363d] transition-colors">
                       <span className="material-symbols-outlined">more_horiz</span>
                     </button>
                   </div>
 
                   {/* Content Body */}
                   <div className="pl-[52px]">
-                    <div className="text-[15px] text-[#e6edf3] leading-relaxed whitespace-pre-wrap mb-3">
+                    <div className="text-[15px] text-gh-text leading-relaxed whitespace-pre-wrap mb-3">
                       {post.title && <h3 className="font-bold mb-1">{post.title}</h3>}
                       {post.content}
                     </div>
 
                     {/* Render specific post type content if needed */}
                     {post.type === "repo_update" && post.repoLink && (
-                      <div className="mt-2 bg-[#0d1117] border border-[#30363d] rounded-xl overflow-hidden hover:border-[#8b949e] transition-colors">
+                      <div className="mt-2 bg-gh-bg border border-gh-border rounded-xl overflow-hidden hover:border-gh-text-secondary transition-colors">
                         <div className="p-4">
                           <div className="flex items-center gap-2 mb-1">
                             <img src={post.author.avatar} className="size-5 rounded-md" alt={post.author.name} />
-                            <span className="font-bold text-[#c9d1d9] text-sm">{post.repoLink.name}</span>
+                            <span className="font-bold text-gh-text text-sm">{post.repoLink.name}</span>
                           </div>
-                          <p className="text-sm text-[#8b949e] line-clamp-2 mb-3">{post.repoLink.description}</p>
-                          <div className="flex items-center gap-4 text-xs text-[#8b949e]">
+                          <p className="text-sm text-gh-text-secondary line-clamp-2 mb-3">{post.repoLink.description}</p>
+                          <div className="flex items-center gap-4 text-xs text-gh-text-secondary">
                             <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-[#f78166]"></span> {post.repoLink.language}</span>
                             <span className="flex items-center gap-1"><span className="material-symbols-outlined !text-[14px]">star</span> {post.repoLink.stars}</span>
                             <span className="flex items-center gap-1"><span className="material-symbols-outlined !text-[14px]">fork_right</span> 24</span>
@@ -269,13 +269,13 @@ const CommunityView = () => {
                     )}
 
                     {post.type === "showcase" && post.mediaUrl && (
-                      <div className="mt-3 rounded-xl overflow-hidden border border-[#30363d]">
+                      <div className="mt-3 rounded-xl overflow-hidden border border-gh-border">
                         <img src={post.mediaUrl} className="w-full h-auto object-cover max-h-[500px]" alt="Post media" />
                       </div>
                     )}
 
                     {/* Action Bar */}
-                    <div className="flex items-center justify-between mt-4 text-[#8b949e] max-w-md">
+                    <div className="flex items-center justify-between mt-4 text-gh-text-secondary max-w-md">
                       <button className="flex items-center gap-2 text-xs font-bold hover:text-[#f78166] group/action transition-colors">
                         <div className="p-2 rounded-full group-hover/action:bg-[#f78166]/10 transition-colors flex items-center justify-center">
                           <span className="material-symbols-outlined !text-[18px]">favorite</span>
@@ -313,8 +313,8 @@ const CommunityView = () => {
 
       {/* Right Sidebar: Trending */}
       <div className="w-80 border-l border-gh-border p-6 hidden xl:block overflow-y-auto">
-        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 mb-6">
-          <h3 className="text-xs font-black text-[#8b949e] uppercase tracking-widest mb-4">
+        <div className="bg-gh-bg-secondary border border-gh-border rounded-xl p-4 mb-6">
+          <h3 className="text-xs font-black text-gh-text-secondary uppercase tracking-widest mb-4">
             Trending Repos
           </h3>
           <div className="space-y-4">
@@ -328,10 +328,10 @@ const CommunityView = () => {
                 className="flex items-center justify-between group cursor-pointer"
               >
                 <div>
-                  <div className="text-xs font-bold text-[#c9d1d9] group-hover:text-[#58a6ff] transition-colors">
+                  <div className="text-xs font-bold text-gh-text group-hover:text-[#58a6ff] transition-colors">
                     {r.name}
                   </div>
-                  <div className="text-[10px] text-[#8b949e]">
+                  <div className="text-[10px] text-gh-text-secondary">
                     {r.stars} stars
                   </div>
                 </div>

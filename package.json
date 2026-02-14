@@ -20,7 +20,7 @@
     "electron:dev": "npm run build:electron && electron dist-electron/main.js",
     "build:vscode": "node scripts/build-vscode-web.js",
     "watch:vscode": "cd .vscode_engine && npm run watch-web",
-    "serve:vscode": "node scripts/serve-vscode-web.js",
+    "serve:vscode": "node scripts/serve-code-server.js",
     "dist": "npm run build && npm run build:backend && npm run build:electron && electron-builder",
     "dist:win": "npm run build && npm run build:backend && npm run build:electron && electron-builder --win",
     "dist:mac": "npm run build && npm run build:backend && npm run build:electron && electron-builder --mac",

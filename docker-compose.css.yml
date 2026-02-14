@@ -1,0 +1,44 @@
+# docker-compose.css.yml
+# ======================
+# Docker Compose configuration for the Code Security System.
+# This adds the Shannon Adapter as an isolated microservice alongside the main app.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.css.yml up
+#
+# Or just the Shannon adapter:
+#   docker compose -f docker-compose.css.yml up shannon-adapter
+
+services:
+  # Shannon Adapter — Isolated exploit validation service
+  shannon-adapter:
+    build:
+      context: .
+      dockerfile: backend/services/shannon-adapter/Dockerfile
+    container_name: trackcodex-shannon-adapter
+    ports:
+      - "4100:4100"
+    environment:
+      - SHANNON_PORT=4100
+      - SHANNON_HOST=0.0.0.0
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:4100/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+  # Main TrackCodex Backend (reference — assumed to exist in main compose)
+  # backend:
+  #   environment:
+  #     - SHANNON_ADAPTER_URL=http://shannon-adapter:4100
+  #     - SHANNON_ENABLED=true
+  #     - SHANNON_TIMEOUT_MS=30000
+  #     - CSS_MAX_PARALLEL_SCANS=5

@@ -83,15 +83,17 @@
       }
 
       .dark {
-        /* Deep Space Theme */
-        --gh-bg: #030014; /* Void Black/Blue */
-        --gh-bg-secondary: rgba(15, 23, 42, 0.6); /* Glassy Slate */
-        --gh-bg-tertiary: rgba(30, 41, 59, 0.5);
-        --gh-border: rgba(255, 255, 255, 0.08);
-        --gh-text: #e2e8f0;
-        --gh-text-secondary: #94a3b8;
-        --gh-primary: #58a6ff;
-        --glass-border: rgba(255, 255, 255, 0.08);
+        /* Premium Vercel-like Theme */
+        --gh-bg: #000000; /* Pure Black */
+        --gh-bg-secondary: #0A0A0A; /* Secondary Background */
+        --gh-bg-tertiary: #111111; /* Tertiary */
+        --gh-border: #1A1A1A; /* Ultra-subtle Border */
+        --gh-text: #FFFFFF; /* Pure White Text */
+        --gh-text-secondary: #A1A1AA; /* Muted Gray Text */
+        --gh-primary: #FFFFFF; /* White Accent */
+        --glass-border: #1A1A1A; /* Matches border for seamless look */
+        --neon-primary: #FFFFFF;
+        --neon-secondary: #333333;
       }
 
       :root.high-contrast {
@@ -120,17 +122,6 @@
         height: 100vh;
         background-color: var(--gh-bg);
         color: var(--gh-text);
-        background-image:
-          radial-gradient(
-            circle at 15% 50%,
-            rgba(139, 92, 246, 0.08),
-            transparent 25%
-          ),
-          radial-gradient(
-            circle at 85% 30%,
-            rgba(56, 189, 248, 0.08),
-            transparent 25%
-          );
         background-attachment: fixed;
       }
 
@@ -279,6 +270,41 @@
 
       .animate-slide-in-right {
         animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      /* Premium Soft Glow Button */
+      .btn-glow {
+        position: relative;
+        background: rgba(255, 255, 255, 0.05); /* Very subtle fill */
+        border: 1px solid var(--gh-border);
+        color: var(--gh-text);
+        transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        overflow: hidden;
+      }
+
+      .btn-glow:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+        transform: translateY(-1px);
+      }
+      
+      .btn-glow:active {
+        transform: translateY(0);
+        box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+      }
+
+      /* Premium Card Hover */
+      .card-hover-glow {
+        transition: all 0.3s ease;
+        border: 1px solid var(--gh-border);
+      }
+      
+      .card-hover-glow:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Deep shadow for depth */
+        background: linear-gradient(to bottom right, var(--gh-bg-secondary), #151515);
       }
     </style>
     <!-- Import map removed to avoid conflicts with Vite bundle -->

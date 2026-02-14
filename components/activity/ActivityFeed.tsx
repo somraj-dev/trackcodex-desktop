@@ -6,7 +6,7 @@ import {
 } from "../../services/activityService";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import "../../styles/ActivityFeed.css";
+// import "../../styles/ActivityFeed.css";
 
 export const ActivityFeed: React.FC = () => {
   const { user } = useAuth();
@@ -78,11 +78,14 @@ export const ActivityFeed: React.FC = () => {
 
   if (activities.length === 0) {
     return (
-      <div className="activity-feed-empty">
-        <div className="empty-icon">📭</div>
-        <h3>No Activity Yet</h3>
-        <p>Follow users to see their activity here</p>
-        <button onClick={() => navigate("/explore")} className="explore-button">
+      <div className="flex flex-col items-center justify-center p-8 bg-gh-bg-secondary border border-gh-border rounded-2xl text-center">
+        <div className="text-4xl mb-4">📭</div>
+        <h3 className="text-gh-text font-bold mb-2">No Activity Yet</h3>
+        <p className="text-gh-text-secondary text-sm mb-6">Follow users to see their activity here</p>
+        <button
+          onClick={() => navigate("/explore")}
+          className="px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-blue-600 transition-colors text-sm"
+        >
           Explore Users
         </button>
       </div>
@@ -90,13 +93,15 @@ export const ActivityFeed: React.FC = () => {
   }
 
   return (
-    <div className="activity-feed">
-      <div className="activity-feed-header">
-        <h2>Following Feed</h2>
-        <p>Activity from people you follow</p>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-sm font-bold text-gh-text text-lg">Following Feed</h2>
+          <p className="text-xs text-gh-text-secondary">Activity from people you follow</p>
+        </div>
       </div>
 
-      <div className="activity-list">
+      <div className="space-y-3">
         {activities.map((activity) => {
           const formatted = activityService.formatActivity(activity);
           const timeAgo = activityService.getRelativeTime(activity.createdAt);
@@ -104,41 +109,47 @@ export const ActivityFeed: React.FC = () => {
           return (
             <div
               key={activity.id}
-              className="activity-item"
+              className="flex gap-4 p-4 bg-gh-bg-secondary border border-gh-border rounded-xl hover:border-gh-text-secondary transition-colors cursor-pointer group"
               onClick={() => handleActivityClick(activity)}
             >
-              <div className="activity-avatar">
+              <div className="shrink-0">
                 <img
-                  src={activity.user.avatar || "/default-avatar.png"}
-                  alt={activity.user.name}
+                  src={activity.user?.avatar || "/default-avatar.png"}
+                  alt={activity.user?.name || "User"}
+                  className="size-10 rounded-full border border-gh-border object-cover"
                 />
               </div>
 
-              <div className="activity-content">
-                <div className="activity-header">
-                  <span className="activity-user">{activity.user.name}</span>
-                  <span className="activity-username">
-                    @{activity.user.username}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="text-sm font-bold text-gh-text truncate">
+                      {activity.user?.name}
+                    </span>
+                    <span className="text-xs text-gh-text-secondary truncate">
+                      @{activity.user?.username}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gh-text-secondary shrink-0 whitespace-nowrap ml-2">
+                    {timeAgo}
                   </span>
-                  <span className="activity-time">{timeAgo}</span>
                 </div>
 
-                <div className="activity-body">
-                  <span className="activity-icon">{formatted.icon}</span>
-                  <span className="activity-description">
-                    {formatted.title}
+                <div className="flex items-start gap-2">
+                  <span className="text-base leading-none mt-0.5">{formatted.icon}</span>
+                  <div className="text-sm text-gh-text-secondary leading-snug">
+                    <span className="font-medium text-gh-text">{formatted.title}</span>
                     {formatted.description && (
-                      <span className="activity-target">
-                        {" "}
+                      <span className="ml-1 text-gh-text-secondary">
                         {formatted.description}
                       </span>
                     )}
-                  </span>
+                  </div>
                 </div>
 
                 {activity.metadata?.description && (
-                  <div className="activity-metadata">
-                    {activity.metadata.description}
+                  <div className="mt-2 text-xs text-gh-text-secondary p-2 bg-gh-bg border border-gh-border rounded-lg italic">
+                    "{activity.metadata.description}"
                   </div>
                 )}
               </div>
@@ -148,8 +159,12 @@ export const ActivityFeed: React.FC = () => {
       </div>
 
       {hasMore && (
-        <div className="activity-load-more">
-          <button onClick={handleLoadMore} disabled={loading}>
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={handleLoadMore}
+            disabled={loading}
+            className="text-xs font-bold text-gh-text-secondary hover:text-gh-text transition-colors"
+          >
             {loading ? "Loading..." : "Load More"}
           </button>
         </div>

@@ -254,7 +254,7 @@ const Repositories = () => {
                   setLoading(false);
                 }
               }}
-              className="bg-gh-bg-secondary hover:bg-gh-border text-gh-text px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all border border-gh-border"
+              className="btn-glow px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shadow-sm"
             >
               <span className="material-symbols-outlined !text-[18px]">
                 sync
@@ -263,7 +263,7 @@ const Repositories = () => {
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-primary hover:bg-blue-600 text-white px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95"
+              className="btn-glow bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 hover:border-primary/50 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-all shadow-lg active:scale-95"
             >
               <span className="material-symbols-outlined !text-[20px]">
                 add
@@ -286,11 +286,10 @@ const Repositories = () => {
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`px-4 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                      filter === f
-                        ? "bg-primary text-white shadow-lg"
-                        : "text-gh-text-secondary hover:text-gh-text"
-                    }`}
+                    className={`px-4 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all ${filter === f
+                      ? "bg-primary text-white shadow-lg"
+                      : "text-gh-text-secondary hover:text-gh-text"
+                      }`}
                   >
                     {f}
                   </button>
@@ -324,7 +323,7 @@ const Repositories = () => {
                       navigate(`/repo/${repo.id}`);
                     }
                   }}
-                  className="group bg-gh-bg-secondary border border-gh-border rounded-3xl p-7 hover:border-gh-border/80 transition-all flex flex-col relative overflow-hidden shadow-sm hover:shadow-2xl animate-in slide-in-from-bottom-2 cursor-pointer"
+                  className="card-hover-glow group bg-gh-bg-secondary border border-gh-border rounded-3xl p-7 transition-all flex flex-col relative overflow-hidden shadow-sm animate-in slide-in-from-bottom-2 cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-5">
                     <div className="flex items-center gap-4">

@@ -28,7 +28,7 @@ const StrataSettingsLayout: React.FC = () => {
     <div className="flex-1 flex bg-gh-bg font-display">
       <div className="max-w-[1400px] w-full mx-auto flex gap-8">
         {/* Settings Sidebar */}
-        <aside className="w-[240px] shrink-0 space-y-8">
+        <aside className="w-[240px] shrink-0 space-y-8 sticky top-0 self-start h-screen">
           <div className="px-1 pt-8">
             <SettingsContextSwitcher
               currentContext="strata"

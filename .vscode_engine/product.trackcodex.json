@@ -1,0 +1,22 @@
+{
+  "nameShort": "TrackCodex IDE",
+  "nameLong": "TrackCodex IDE - Powered by VS Code OSS",
+  "applicationName": "trackcodex-ide",
+  "dataFolderName": ".trackcodex-ide",
+  "urlProtocol": "trackcodex-ide",
+  "reportIssueUrl": "https://github.com/Quantaforge-trackcodex/TrackcodexBeta/issues",
+  "licenseName": "MIT",
+  "licenseUrl": "https://github.com/microsoft/vscode/blob/main/LICENSE.txt",
+  "extensionsGallery": {
+    "serviceUrl": "https://open-vsx.org/vscode/gallery",
+    "itemUrl": "https://open-vsx.org/vscode/item",
+    "resourceUrlTemplate": "https://open-vsx.org/vscode/unpkg/{publisher}/{name}/{version}/{path}",
+    "controlUrl": "",
+    "nlsBaseUrl": "",
+    "publisherUrl": ""
+  },
+  "linkProtectionTrustedDomains": [
+    "https://open-vsx.org",
+    "https://*.open-vsx.org"
+  ]
+}

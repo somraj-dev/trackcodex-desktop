@@ -265,11 +265,10 @@ const WorkflowRunDetail: React.FC = () => {
                   setSelectedJob(job.id);
                   fetchJobLogs(job.id);
                 }}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
-                  selectedJob === job.id
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${selectedJob === job.id
                     ? "bg-primary text-white"
                     : "bg-gh-bg text-gh-text hover:bg-gh-border"
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-medium truncate">{job.name}</span>
@@ -320,12 +319,12 @@ const WorkflowRunDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto bg-[#0d1117] p-4 font-mono text-xs">
+          <div className="flex-1 overflow-y-auto bg-gh-bg p-4 font-mono text-xs">
             {logs.length === 0 ? (
               <div className="text-gh-text-secondary">No logs available</div>
             ) : (
               logs.map((log, idx) => (
-                <div key={idx} className="text-gray-300 whitespace-pre-wrap">
+                <div key={idx} className="text-gh-text whitespace-pre-wrap">
                   {log}
                 </div>
               ))

@@ -6,6 +6,7 @@ import {
   Navigate,
   useLocation,
   useNavigate,
+  Outlet,
 } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -50,7 +51,7 @@ const Portfolio = React.lazy(() => import("./views/Portfolio"));
 // const WorkspaceDetailView = React.lazy(
 //   () => import("./views/WorkspaceDetailView"),
 // );
-import WorkspaceIDE from "./views/ide/IDEShim"; // Native Monaco IDE
+import WorkspaceIDE from "./views/ide/VSCodeWorkspaceView"; // VS Code Web Integration
 const HomeView = React.lazy(() => import("./views/Home"));
 const ExploreView = React.lazy(() => import("./views/Explore"));
 const LibraryView = React.lazy(() => import("./views/Library"));
@@ -554,7 +555,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
         >
           {/* Global Search Header */}
           {!isIdeView && !isFocusMode && (
-            <div className="h-14 border-b border-gh-border grid grid-cols-[1fr_auto_1fr] items-center px-6 bg-gh-bg shrink-0 sticky top-0 z-40">
+            <div className="h-14 border-b border-gh-border grid grid-cols-[1fr_auto_1fr] items-center px-6 bg-gh-bg/60 backdrop-blur-xl shrink-0 sticky top-0 z-40 transition-all duration-300">
               <div className="flex items-center">
                 <button
                   onClick={() => navigate(-1)}
@@ -945,15 +946,17 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
               <Route path="*" element={<Navigate to="/dashboard/home" />} />
             </Routes>
           </ErrorBoundary>
+
+          {!isIdeView && !isFocusMode && <Footer />}
         </main>
-      </div>
+      </div >
       {!isFocusMode && <MessagingPanel />}
       <ChatWidget />
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
       />
-    </div>
+    </div >
   );
 };
 
@@ -970,29 +973,41 @@ const AppContent = () => {
       <div className="flex flex-col h-screen overflow-hidden">
         <main className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar">
           <Routes>
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/status" element={<Status />} />
-            <Route path="/security" element={<Security />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/cookies" element={<CookiePolicy />} />
-            {!isAuthenticated ? (
-              <>
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route
-                  path="/auth/callback/:provider"
-                  element={<OAuthCallback />}
-                />
-                <Route path="/" element={<LandingPage />} />
-                <Route path="*" element={<RedirectToLogin />} />
-              </>
-            ) : (
+            {/* Public Pages with Static Footer */}
+            <Route
+              element={
+                <>
+                  <Outlet />
+                  <Footer />
+                </>
+              }
+            >
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/status" element={<Status />} />
+              <Route path="/security" element={<Security />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
+              {!isAuthenticated && (
+                <>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route
+                    path="/auth/callback/:provider"
+                    element={<OAuthCallback />}
+                  />
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="*" element={<RedirectToLogin />} />
+                </>
+              )}
+            </Route>
+
+            {/* Application */}
+            {isAuthenticated && (
               <Route path="/*" element={<ProtectedApp isFocusMode={false} />} />
             )}
           </Routes>
         </main>
-        <Footer />
         <CookieConsent />
       </div>
     </React.Suspense>

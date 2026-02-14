@@ -2,9 +2,9 @@
 
 .trackcodex-footer {
   width: 100%;
-  padding: 4px 16px;
-  background: #f6f8fa;
-  border-top: 1px solid #d0d7de;
+  padding: 12px 24px;
+  background: var(--gh-bg); /* Dark background */
+  border-top: 1px solid var(--gh-border); /* Subtle border */
   margin-top: auto;
 }
 
@@ -20,30 +20,31 @@
 
 .footer-copyright {
   font-size: 11px;
-  color: #656d76;
+  color: var(--gh-text-secondary); /* Muted text */
   white-space: nowrap;
 }
 
 .footer-links {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
 .footer-link {
   font-size: 11px;
-  color: #0969da;
+  color: var(--gh-text-secondary); /* Muted link color */
   text-decoration: none;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
   white-space: nowrap;
-  transition: text-decoration 0.1s ease;
+  transition: color 0.1s ease;
 }
 
 .footer-link:hover {
+  color: var(--gh-text); /* White on hover */
   text-decoration: underline;
 }
 

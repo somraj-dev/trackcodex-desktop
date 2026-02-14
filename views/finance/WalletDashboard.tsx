@@ -88,33 +88,33 @@ const WalletDashboard = () => {
             {/* Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                 {/* Total Balance */}
-                <div className="p-8 rounded-3xl bg-gradient-to-br from-[#1c1c1c] to-[#161616] border border-[#333] relative overflow-hidden group">
+                <div className="p-8 rounded-3xl bg-gh-bg-secondary border border-gh-border relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                         <span className="material-symbols-outlined text-9xl">account_balance_wallet</span>
                     </div>
-                    <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-4">Total Available</h3>
-                    <div className="text-4xl font-black tracking-tighter text-white">
+                    <h3 className="text-gh-text-secondary font-bold uppercase tracking-widest text-xs mb-4">Total Available</h3>
+                    <div className="text-4xl font-black tracking-tighter text-gh-text">
                         {loading ? '...' : formatMoney(balance.available)}
                     </div>
                 </div>
 
                 {/* In Escrow */}
-                <div className="p-8 rounded-3xl bg-[#161b22] border border-[#30363d] relative overflow-hidden">
+                <div className="p-8 rounded-3xl bg-gh-bg-secondary border border-gh-border relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                         <span className="material-symbols-outlined text-9xl">lock</span>
                     </div>
-                    <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-4">Locked in Escrow</h3>
+                    <h3 className="text-gh-text-secondary font-bold uppercase tracking-widest text-xs mb-4">Locked in Escrow</h3>
                     <div className="text-4xl font-black tracking-tighter text-blue-400">
                         {loading ? '...' : formatMoney(balance.in_escrow)}
                     </div>
                 </div>
 
                 {/* Lifetime Earnings */}
-                <div className="p-8 rounded-3xl bg-[#161b22] border border-[#30363d] relative overflow-hidden">
+                <div className="p-8 rounded-3xl bg-gh-bg-secondary border border-gh-border relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                         <span className="material-symbols-outlined text-9xl">trending_up</span>
                     </div>
-                    <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-4">Lifetime Volume</h3>
+                    <h3 className="text-gh-text-secondary font-bold uppercase tracking-widest text-xs mb-4">Lifetime Volume</h3>
                     <div className="text-4xl font-black tracking-tighter text-emerald-400">
                         $0.00
                     </div>
@@ -122,18 +122,18 @@ const WalletDashboard = () => {
             </div>
 
             {/* Transactions */}
-            <div className="bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden">
-                <div className="p-6 border-b border-[#30363d] flex justify-between items-center">
-                    <h3 className="font-bold text-lg">Transaction History</h3>
-                    <button className="text-sm text-slate-400 hover:text-white">View All</button>
+            <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl overflow-hidden">
+                <div className="p-6 border-b border-gh-border flex justify-between items-center">
+                    <h3 className="font-bold text-lg text-gh-text">Transaction History</h3>
+                    <button className="text-sm text-gh-text-secondary hover:text-gh-text">View All</button>
                 </div>
                 {transactions.length === 0 ? (
-                    <div className="p-12 text-center text-slate-500">
+                    <div className="p-12 text-center text-gh-text-secondary">
                         No transactions yet.
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-[#0d1117] text-slate-400 font-medium uppercase text-xs">
+                        <thead className="bg-gh-bg text-gh-text-secondary font-medium uppercase text-xs">
                             <tr>
                                 <th className="p-4 pl-6">Type</th>
                                 <th className="p-4">Description</th>
@@ -141,20 +141,20 @@ const WalletDashboard = () => {
                                 <th className="p-4 pr-6 text-right">Amount</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#30363d]">
+                        <tbody className="divide-y divide-gh-border">
                             {transactions.map(tx => (
-                                <tr key={tx.id} className="hover:bg-[#1f242c] transition-colors">
+                                <tr key={tx.id} className="hover:bg-gh-bg-tertiary transition-colors">
                                     <td className="p-4 pl-6">
                                         <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${tx.type === 'DEPOSIT' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                tx.type === 'WITHDRAWAL' ? 'bg-rose-500/20 text-rose-400' :
-                                                    'bg-blue-500/20 text-blue-400'
+                                            tx.type === 'WITHDRAWAL' ? 'bg-rose-500/20 text-rose-400' :
+                                                'bg-blue-500/20 text-blue-400'
                                             }`}>
                                             {tx.type}
                                         </span>
                                     </td>
-                                    <td className="p-4 font-medium text-slate-200">{tx.description}</td>
-                                    <td className="p-4 text-slate-400">{new Date(tx.createdAt).toLocaleDateString()}</td>
-                                    <td className={`p-4 pr-6 text-right font-mono font-bold ${tx.type === 'DEPOSIT' || tx.type === 'RELEASE' ? 'text-emerald-400' : 'text-slate-200'
+                                    <td className="p-4 font-medium text-gh-text">{tx.description}</td>
+                                    <td className="p-4 text-gh-text-secondary">{new Date(tx.createdAt).toLocaleDateString()}</td>
+                                    <td className={`p-4 pr-6 text-right font-mono font-bold ${tx.type === 'DEPOSIT' || tx.type === 'RELEASE' ? 'text-emerald-400' : 'text-gh-text'
                                         }`}>
                                         {tx.type === 'DEPOSIT' ? '+' : ''}{formatMoney(tx.amount)}
                                     </td>
@@ -168,17 +168,17 @@ const WalletDashboard = () => {
             {/* Deposit Modal */}
             {isDepositModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                    <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-8 w-[400px] shadow-2xl relative">
-                        <button onClick={() => setIsDepositModalOpen(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white">✕</button>
-                        <h2 className="text-xl font-black mb-6">Deposit Funds</h2>
+                    <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl p-8 w-[400px] shadow-2xl relative">
+                        <button onClick={() => setIsDepositModalOpen(false)} className="absolute top-4 right-4 text-gh-text-secondary hover:text-gh-text">✕</button>
+                        <h2 className="text-xl font-black mb-6 text-gh-text">Deposit Funds</h2>
 
                         <div className="mb-6">
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Amount (USD)</label>
+                            <label className="block text-xs font-bold text-gh-text-secondary uppercase mb-2">Amount (USD)</label>
                             <input
                                 type="number"
                                 value={depositAmount}
                                 onChange={e => setDepositAmount(e.target.value)}
-                                className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-3 text-white text-lg font-mono focus:border-blue-500 outline-none"
+                                className="w-full bg-gh-bg border border-gh-border rounded-lg px-4 py-3 text-gh-text text-lg font-mono focus:border-blue-500 outline-none"
                             />
                         </div>
 
@@ -192,7 +192,7 @@ const WalletDashboard = () => {
 
                         <button
                             onClick={handleDeposit}
-                            className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-slate-200"
+                            className="w-full py-3 bg-gh-text text-gh-bg font-bold rounded-xl hover:opacity-90 transition-opacity"
                         >
                             Confirm Deposit
                         </button>

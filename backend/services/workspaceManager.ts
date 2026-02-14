@@ -16,34 +16,33 @@ export class WorkspaceManager {
   }
 
   // Start a workspace container and return the access URL
+  // Start a workspace (or get URL for code-server)
   static async startWorkspace(
     workspaceId: string,
   ): Promise<{ url: string; port: number }> {
     try {
-      // Allocate a port for this session
-      const port = await this.allocatePort();
+      // Local code-server mode (Preferred for local dev)
+      const workspacePath = require("path").join(process.cwd(), "workspaces", workspaceId);
 
-      // Real Docker Backend Execution
-      const containerInfo = await DockerService.createContainer(
-        workspaceId,
-        "gitpod/openvscode-server:latest",
-        port,
-      );
+      // Ensure workspace directory exists
+      const fs = require("fs");
+      if (!fs.existsSync(workspacePath)) {
+        fs.mkdirSync(workspacePath, { recursive: true });
+      }
 
-      activeWorkspaces.set(workspaceId, port);
+      console.log(`[WorkspaceManager] Serving workspace ${workspaceId} via code-server`);
 
       return {
-        url: `http://localhost:${port}`,
-        port: port,
+        url: `http://localhost:8080/?folder=${encodeURIComponent(workspacePath)}`,
+        port: 8080,
       };
     } catch (error: any) {
       console.error(
-        `[WorkspaceManager] Container start failed: ${error.message}. Falling back to simulator.`,
+        `[WorkspaceManager] Failed to start workspace: ${error.message}`,
       );
-      // Fallback to simulator if Docker fails
       return {
-        url: `http://localhost:3000/ide-shim/${workspaceId}`,
-        port: 3000,
+        url: `http://localhost:8080`,
+        port: 8080,
       };
     }
   }

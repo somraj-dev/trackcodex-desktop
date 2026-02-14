@@ -1,19 +1,5 @@
 import React from "react";
-import { NavLink, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import MissionsView from "./MissionsView";
-import MissionDetailView from "./MissionDetailView";
-import TrialRepositoriesView from "./TrialRepositoriesView";
-
-// --- Merged Views ---
-import CandidateDiscoveryView from "../hiring/CandidateDiscoveryView";
-import CandidateScorecardView from "../hiring/CandidateScorecardView";
-import CandidateComparisonView from "../hiring/CandidateComparisonView";
-import OfferEditorView from "../hiring/OfferEditorView";
-import SessionSchedulerView from "../hiring/SessionSchedulerView";
-import InterviewerFeedbackView from "../hiring/InterviewerFeedbackView";
-import AssessmentsView from "../hiring/AssessmentsView";
-import SkillDashboardView from "../growth/SkillDashboardView";
-import DeveloperProfileView from "../growth/DeveloperProfileView";
+import { NavLink, Outlet } from "react-router-dom";
 
 const MarketplaceTab = ({
   to,
@@ -28,10 +14,9 @@ const MarketplaceTab = ({
     to={to}
     end={false} // Allow nested routes to keep the tab active
     className={({ isActive }) =>
-      `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-        isActive
-          ? "bg-primary text-white shadow-lg"
-          : "text-gh-text-secondary hover:bg-gh-bg-secondary hover:text-gh-text"
+      `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-bold transition-all ${isActive
+        ? "bg-primary text-white shadow-lg"
+        : "text-gh-text-secondary hover:bg-gh-bg-secondary hover:text-gh-text"
       }`
     }
   >
@@ -80,7 +65,7 @@ const MarketplaceLayout = () => {
           </nav>
         </div>
       </header>
-      <main className="flex-1 overflow-y-auto custom-scrollbar">
+      <main className="flex-1">
         <Outlet />
       </main>
     </div>

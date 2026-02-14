@@ -106,7 +106,7 @@ const WorkspaceSettings: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0d1117]">
+      <div className="flex items-center justify-center h-screen bg-gh-bg">
         <Spinner size="lg" />
       </div>
     );
@@ -114,7 +114,7 @@ const WorkspaceSettings: React.FC = () => {
 
   if (!workspace) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-[#0d1117] text-slate-400">
+      <div className="flex flex-col items-center justify-center h-screen bg-gh-bg text-gh-text-secondary">
         <p>Workspace not found</p>
         <button
           onClick={() => navigate("/")}
@@ -131,31 +131,30 @@ const WorkspaceSettings: React.FC = () => {
   const isOwner = currentUserRole === "OWNER";
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-[#c9d1d9] flex flex-col">
+    <div className="min-h-screen bg-gh-bg text-gh-text flex flex-col">
       {/* Header */}
-      <div className="border-b border-[#30363d] bg-[#161b22] px-8 py-4 flex items-center gap-4">
+      <div className="border-b border-gh-border bg-gh-bg-secondary px-8 py-4 flex items-center gap-4">
         <button
           onClick={() => navigate(`/workspace/${id}`)}
-          className="text-slate-400 hover:text-white transition-colors"
+          className="text-gh-text-secondary hover:text-gh-text transition-colors"
         >
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
         <div>
-          <h1 className="text-xl font-bold text-white">Workspace Settings</h1>
-          <p className="text-sm text-slate-400">{workspace.name}</p>
+          <h1 className="text-xl font-bold text-gh-text">Workspace Settings</h1>
+          <p className="text-sm text-gh-text-secondary">{workspace.name}</p>
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar Tabs */}
-        <div className="w-64 border-r border-[#30363d] bg-[#0d1117] py-6 px-4 space-y-2">
+        <div className="w-64 border-r border-gh-border bg-gh-bg py-6 px-4 space-y-2">
           <button
             onClick={() => setActiveTab("general")}
-            className={`w-full text-left px-4 py-2 rounded-md transition-colors flex items-center gap-3 ${
-              activeTab === "general"
-                ? "bg-[#1f6feb]/10 text-[#58a6ff]"
-                : "text-slate-400 hover:bg-[#161b22] hover:text-white"
-            }`}
+            className={`w-full text-left px-4 py-2 rounded-md transition-colors flex items-center gap-3 ${activeTab === "general"
+                ? "bg-blue-500/10 text-blue-400"
+                : "text-gh-text-secondary hover:bg-gh-bg-secondary hover:text-gh-text"
+              }`}
           >
             <span className="material-symbols-outlined text-[20px]">
               settings
@@ -164,22 +163,20 @@ const WorkspaceSettings: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab("members")}
-            className={`w-full text-left px-4 py-2 rounded-md transition-colors flex items-center gap-3 ${
-              activeTab === "members"
-                ? "bg-[#1f6feb]/10 text-[#58a6ff]"
-                : "text-slate-400 hover:bg-[#161b22] hover:text-white"
-            }`}
+            className={`w-full text-left px-4 py-2 rounded-md transition-colors flex items-center gap-3 ${activeTab === "members"
+                ? "bg-blue-500/10 text-blue-400"
+                : "text-gh-text-secondary hover:bg-gh-bg-secondary hover:text-gh-text"
+              }`}
           >
             <span className="material-symbols-outlined text-[20px]">group</span>
             Members
           </button>
           <button
             onClick={() => setActiveTab("security")}
-            className={`w-full text-left px-4 py-2 rounded-md transition-colors flex items-center gap-3 ${
-              activeTab === "security"
-                ? "bg-[#1f6feb]/10 text-[#58a6ff]"
-                : "text-slate-400 hover:bg-[#161b22] hover:text-white"
-            }`}
+            className={`w-full text-left px-4 py-2 rounded-md transition-colors flex items-center gap-3 ${activeTab === "security"
+                ? "bg-blue-500/10 text-blue-400"
+                : "text-gh-text-secondary hover:bg-gh-bg-secondary hover:text-gh-text"
+              }`}
           >
             <span className="material-symbols-outlined text-[20px]">lock</span>
             Security
@@ -190,15 +187,15 @@ const WorkspaceSettings: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-8 max-w-4xl">
           {activeTab === "general" && (
             <div className="space-y-8">
-              <section className="bg-[#161b22] border border-[#30363d] rounded-xl p-6">
-                <h2 className="text-lg font-bold text-white mb-4">
+              <section className="bg-gh-bg-secondary border border-gh-border rounded-xl p-6">
+                <h2 className="text-lg font-bold text-gh-text mb-4">
                   General Settings
                 </h2>
                 <div className="space-y-4">
                   <div>
                     <label
                       htmlFor="workspace-name"
-                      className="block text-sm font-medium text-slate-400 mb-1"
+                      className="block text-sm font-medium text-gh-text-secondary mb-1"
                     >
                       Workspace Name
                     </label>
@@ -207,16 +204,16 @@ const WorkspaceSettings: React.FC = () => {
                       type="text"
                       value={workspace.name}
                       disabled
-                      className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#58a6ff] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-gh-bg border border-gh-border rounded-lg px-3 py-2 text-gh-text focus:outline-none focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     />
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-gh-text-secondary mt-1">
                       Renaming workspaces is currently disabled.
                     </p>
                   </div>
                   <div>
                     <label
                       htmlFor="workspace-description"
-                      className="block text-sm font-medium text-slate-400 mb-1"
+                      className="block text-sm font-medium text-gh-text-secondary mb-1"
                     >
                       Description
                     </label>
@@ -224,21 +221,21 @@ const WorkspaceSettings: React.FC = () => {
                       id="workspace-description"
                       value={workspace.description || ""}
                       disabled
-                      className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#58a6ff] h-24 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-gh-bg border border-gh-border rounded-lg px-3 py-2 text-gh-text focus:outline-none focus:border-blue-500 h-24 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                 </div>
               </section>
 
               {isOwner && (
-                <section className="bg-[#161b22] border border-[#f85149]/40 rounded-xl p-6">
+                <section className="bg-gh-bg-secondary border border-[#f85149]/40 rounded-xl p-6">
                   <h2 className="text-lg font-bold text-[#f85149] mb-4">
                     Danger Zone
                   </h2>
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-white">Delete Workspace</h3>
-                      <p className="text-sm text-slate-400">
+                      <h3 className="font-bold text-gh-text">Delete Workspace</h3>
+                      <p className="text-sm text-gh-text-secondary">
                         Permanently delete this workspace and all its data.
                       </p>
                     </div>
@@ -255,9 +252,9 @@ const WorkspaceSettings: React.FC = () => {
           )}
 
           {activeTab === "members" && (
-            <div className="bg-[#161b22] border border-[#30363d] rounded-xl overflow-hidden">
-              <div className="p-4 border-b border-[#30363d] bg-[#0d1117]/50 flex justify-between items-center">
-                <h2 className="font-bold text-white">Workspace Members</h2>
+            <div className="bg-gh-bg-secondary border border-gh-border rounded-xl overflow-hidden">
+              <div className="p-4 border-b border-gh-border bg-gh-bg-secondary/50 flex justify-between items-center">
+                <h2 className="font-bold text-gh-text">Workspace Members</h2>
                 {canManageMembers && (
                   <button className="px-3 py-1.5 bg-[#238636] text-white text-sm font-bold rounded-lg hover:bg-[#2ea043] transition-colors flex items-center gap-2">
                     <span className="material-symbols-outlined text-sm">
@@ -267,11 +264,11 @@ const WorkspaceSettings: React.FC = () => {
                   </button>
                 )}
               </div>
-              <div className="divide-y divide-[#30363d]">
+              <div className="divide-y divide-gh-border">
                 {members.map((member) => (
                   <div
                     key={member.id}
-                    className="p-4 flex items-center justify-between hover:bg-[#1f242c] transition-colors"
+                    className="p-4 flex items-center justify-between hover:bg-gh-bg-tertiary transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white overflow-hidden">
@@ -288,15 +285,15 @@ const WorkspaceSettings: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <p className="font-bold text-white text-sm">
+                        <p className="font-bold text-gh-text text-sm">
                           {member.user.name}
                           {member.userId === user?.id && (
-                            <span className="ml-2 px-1.5 py-0.5 bg-[#1f6feb]/20 text-[#58a6ff] text-[10px] rounded-full uppercase tracking-wider">
+                            <span className="ml-2 px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded-full uppercase tracking-wider">
                               You
                             </span>
                           )}
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-gh-text-secondary">
                           @{member.user.username} • {member.user.email}
                         </p>
                       </div>
@@ -310,14 +307,14 @@ const WorkspaceSettings: React.FC = () => {
                             handleRoleChange(member.id, e.target.value)
                           }
                           aria-label="Change member role"
-                          className="bg-[#0d1117] border border-[#30363d] text-slate-300 text-xs rounded-md px-2 py-1 focus:outline-none focus:border-[#58a6ff]"
+                          className="bg-gh-bg border border-gh-border text-gh-text text-xs rounded-md px-2 py-1 focus:outline-none focus:border-blue-500"
                         >
                           <option value="ADMIN">Admin</option>
                           <option value="WRITE">Editor</option>
                           <option value="READ">Viewer</option>
                         </select>
                       ) : (
-                        <span className="px-2 py-1 bg-[#21262d] border border-[#30363d] text-slate-400 text-xs rounded-md font-mono">
+                        <span className="px-2 py-1 bg-gh-bg-secondary border border-gh-border text-gh-text-secondary text-xs rounded-md font-mono">
                           {member.role}
                         </span>
                       )}

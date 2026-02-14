@@ -3,7 +3,7 @@ import React from "react";
 const NeedsAttention = () => {
   return (
     <div className="space-y-4">
-      <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl overflow-hidden shadow-xl animate-fade-in hover-lift">
+      <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl overflow-hidden shadow-sm animate-fade-in hover-lift">
         <div className="p-5 flex items-center justify-between border-b border-gh-border">
           <div className="flex items-center gap-4">
             <div className="size-2.5 rounded-full bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]"></div>

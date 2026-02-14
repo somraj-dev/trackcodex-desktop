@@ -17,7 +17,7 @@ const JobHub = () => {
   ];
 
   return (
-    <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl shadow-xl divide-y divide-gh-border overflow-hidden">
+    <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl shadow-sm divide-y divide-gh-border overflow-hidden">
       {jobs.map((job, i) => (
         <div
           key={i}

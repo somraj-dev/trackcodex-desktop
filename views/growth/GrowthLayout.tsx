@@ -14,10 +14,9 @@ const GrowthNavItem = ({
     to={to}
     end
     className={({ isActive }) =>
-      `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all ${
-        isActive
-          ? "bg-gh-bg-secondary text-gh-text"
-          : "text-gh-text-secondary hover:bg-gh-bg-secondary hover:text-gh-text"
+      `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-all ${isActive
+        ? "bg-gh-bg-secondary text-gh-text"
+        : "text-gh-text-secondary hover:bg-gh-bg-secondary hover:text-gh-text"
       }`
     }
   >
@@ -31,7 +30,7 @@ const GrowthLayout = () => {
 
   return (
     <div className="flex-1 flex bg-gh-bg font-display">
-      <aside className="w-64 p-6 border-r border-gh-border flex flex-col">
+      <aside className="w-64 p-6 border-r border-gh-border flex flex-col sticky top-0 self-start h-screen">
         <div className="mb-8">
           <h2 className="text-lg font-bold text-gh-text">Engineering Level</h2>
           <p className="text-xs text-gh-text-secondary mt-1">Senior SWE II</p>
@@ -64,7 +63,7 @@ const GrowthLayout = () => {
           </button>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto custom-scrollbar p-8 bg-gh-bg">
+      <main className="flex-1 p-8 bg-gh-bg">
         <Outlet />
       </main>
     </div>
