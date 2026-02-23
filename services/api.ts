@@ -1,4 +1,5 @@
-import { Repository, Workspace, Job, ProfileData, SSHKey } from "../types";
+import { Repository, Workspace, Job, ProfileData, SSHKey, Notification, PullRequest } from "../types";
+import { UserProfile } from "./profile";
 
 // Extended Window interface for Electron Bridge
 declare global {
@@ -20,7 +21,7 @@ class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
-    public data?: any,
+    public data?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -68,19 +69,45 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 }
 
+export interface LoginCredentials {
+  username?: string;
+  email?: string;
+  password?: string;
+}
+
+export interface Commit {
+  sha: string;
+  message: string;
+  author: {
+    name: string;
+    email: string;
+    date: string;
+    avatar?: string;
+  };
+  htmlUrl?: string;
+}
+
+export interface CIRun {
+  id: string;
+  status: "queued" | "in_progress" | "completed" | "waiting";
+  conclusion: "success" | "failure" | "neutral" | "cancelled" | "skipped" | "timed_out" | "action_required" | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const api = {
   auth: {
-    login: (credentials: any) =>
-      request<{ token: string; user: any }>("/auth/login", {
+    login: (credentials: LoginCredentials) =>
+      request<{ token: string; user: UserProfile }>("/auth/login", {
         method: "POST",
         body: JSON.stringify(credentials),
       }),
-    getMe: () => request<any>("/auth/me"),
+    getMe: () => request<UserProfile>("/auth/me"),
   },
   workspaces: {
     list: () => request<Workspace[]>("/workspaces"),
     get: (id: string) => request<Workspace>(`/workspaces/${id}`),
-    create: (data: any) =>
+    create: (data: Partial<Workspace>) =>
       request<Workspace>("/workspaces", {
         method: "POST",
         body: JSON.stringify(data),
@@ -98,10 +125,10 @@ export const api = {
       const res = await request<{ repositories: Repository[] } | Repository[]>("/repositories");
       // Backend may return { repositories: [...] } or flat array — handle both
       if (Array.isArray(res)) return res;
-      return (res as any).repositories || [];
+      return (res as { repositories: Repository[] }).repositories || [];
     },
     get: (id: string) => request<Repository>(`/repositories/${id}`),
-    create: (data: any) =>
+    create: (data: Partial<Repository>) =>
       request<Repository>("/repositories", {
         method: "POST",
         body: JSON.stringify(data),
@@ -112,13 +139,25 @@ export const api = {
         { method: "POST" },
       ),
     getCommits: (id: string, ref?: string, path?: string, depth?: number) =>
-      request<any[]>(
+      request<Commit[]>(
         `/repositories/${id}/commits?ref=${ref || "HEAD"}&path=${path || ""}&depth=${depth || 50}`,
       ),
     getBranches: (id: string) =>
       request<string[]>(`/repositories/${id}/branches`),
     getCommitDiff: (id: string, sha: string) =>
       request<{ diff: string }>(`/repositories/${id}/commits/${sha}/diff`),
+    importRepo: (data: {
+      sourceUrl: string;
+      sourceUsername?: string;
+      sourceToken?: string;
+      name: string;
+      visibility: string;
+      ownerId?: string;
+    }) =>
+      request<Repository>("/repositories/import", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   },
   forgeAI: {
     complete: (options: {
@@ -128,76 +167,76 @@ export const api = {
       workspaceId?: string;
       systemPrompt?: string;
     }) =>
-      request<any>("/forgeai/complete", {
+      request<{ result: string }>("/forgeai/complete", {
         method: "POST",
         body: JSON.stringify(options),
       }),
     synthesize: (requirement: string, workspaceId: string) =>
-      request<any>("/forgeai/synthesize", {
+      request<{ success: boolean; message?: string }>("/forgeai/synthesize", {
         method: "POST",
         body: JSON.stringify({ requirement, workspaceId }),
       }),
   },
   jobs: {
     list: () => request<Job[]>("/jobs"),
-    create: (data: any) =>
+    create: (data: Partial<Job>) =>
       request<Job>("/jobs", { method: "POST", body: JSON.stringify(data) }),
     apply: (id: string) =>
       request<void>(`/jobs/${id}/apply`, { method: "POST" }),
   },
   profile: {
     get: (username: string) => request<ProfileData>(`/profiles/${username}`),
-    update: (data: any) =>
+    update: (data: Partial<UserProfile>) =>
       request<ProfileData>("/profiles/me", {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
   },
   cloud: {
-    listContainers: () => request<any[]>("/cloud/containers"),
+    listContainers: () => request<unknown[]>("/cloud/containers"),
     stopContainer: (id: string) =>
-      request<any>(`/cloud/containers/${id}/stop`, { method: "POST" }),
+      request<{ success: boolean }>(`/cloud/containers/${id}/stop`, { method: "POST" }),
     listPipelines: (workspaceId?: string) =>
-      request<any[]>(
+      request<unknown[]>(
         `/cloud/pipelines${workspaceId ? `?workspaceId=${workspaceId}` : ""}`,
       ),
     triggerPipeline: (workspaceId: string) =>
-      request<any>("/cloud/pipelines", {
+      request<{ pipelineId: string }>("/cloud/pipelines", {
         method: "POST",
         body: JSON.stringify({ workspaceId }),
       }),
-    getPipeline: (id: string) => request<any>(`/cloud/pipelines/${id}`),
+    getPipeline: (id: string) => request<unknown>(`/cloud/pipelines/${id}`),
   },
   notifications: {
-    list: (userId: string) => request<any[]>(`/notifications?userId=${userId}`),
+    list: (userId: string) => request<Notification[]>(`/notifications?userId=${userId}`),
     markRead: (id: string) => request<void>(`/notifications/${id}/read`, { method: "POST" }),
     markAllRead: (userId: string) => request<void>("/notifications/read-all", { method: "POST", body: JSON.stringify({ userId }) }),
   },
   pullRequests: {
     list: (repoId: string, status?: string) =>
-      request<any[]>(`/repositories/${repoId}/pulls${status ? `?status=${status}` : ""}`),
+      request<PullRequest[]>(`/repositories/${repoId}/pulls${status ? `?status=${status}` : ""}`),
     get: (repoId: string, number: number) =>
-      request<any>(`/repositories/${repoId}/pulls/${number}`),
+      request<PullRequest>(`/repositories/${repoId}/pulls/${number}`),
     create: (repoId: string, data: { base: string; head: string; title: string; body?: string; draft?: boolean }) =>
-      request<any>(`/repositories/${repoId}/pulls`, { method: "POST", body: JSON.stringify(data) }),
+      request<PullRequest>(`/repositories/${repoId}/pulls`, { method: "POST", body: JSON.stringify(data) }),
     merge: (repoId: string, number: number, method?: "merge" | "squash" | "rebase") =>
-      request<any>(`/repositories/${repoId}/pulls/${number}/merge`, { method: "POST", body: JSON.stringify({ method }) }),
+      request<{ success: boolean; message?: string }>(`/repositories/${repoId}/pulls/${number}/merge`, { method: "POST", body: JSON.stringify({ method }) }),
     close: (repoId: string, number: number) =>
-      request<any>(`/repositories/${repoId}/pulls/${number}/close`, { method: "POST" }),
+      request<{ success: boolean }>(`/repositories/${repoId}/pulls/${number}/close`, { method: "POST" }),
     addReview: (repoId: string, number: number, status: "APPROVED" | "CHANGES_REQUESTED" | "COMMENTED", body?: string) =>
-      request<any>(`/repositories/${repoId}/pulls/${number}/reviews`, { method: "POST", body: JSON.stringify({ status, body }) }),
+      request<{ success: boolean }>(`/repositories/${repoId}/pulls/${number}/reviews`, { method: "POST", body: JSON.stringify({ status, body }) }),
     getDiff: (repoId: string, number: number) =>
       request<{ diff: string }>(`/repositories/${repoId}/pulls/${number}/diff`),
     addComment: (repoId: string, number: number, body: string) =>
-      request<any>(`/repositories/${repoId}/pulls/${number}/comments`, { method: "POST", body: JSON.stringify({ body }) }),
+      request<{ success: boolean; comment: unknown }>(`/repositories/${repoId}/pulls/${number}/comments`, { method: "POST", body: JSON.stringify({ body }) }),
   },
   ciRuns: {
-    list: (repoId: string) => request<any[]>(`/repos/${repoId}/runs`),
-    get: (runId: string) => request<any>(`/runs/${runId}`),
-    cancel: (runId: string) => request<any>(`/runs/${runId}/cancel`, { method: "POST" }),
-    rerun: (runId: string) => request<any>(`/runs/${runId}/rerun`, { method: "POST" }),
+    list: (repoId: string) => request<CIRun[]>(`/repos/${repoId}/runs`),
+    get: (runId: string) => request<CIRun>(`/runs/${runId}`),
+    cancel: (runId: string) => request<{ success: boolean }>(`/runs/${runId}/cancel`, { method: "POST" }),
+    rerun: (runId: string) => request<{ success: boolean }>(`/runs/${runId}/rerun`, { method: "POST" }),
     dispatch: (repoId: string, workflowId?: string) =>
-      request<any>(`/repos/${repoId}/dispatch`, { method: "POST", body: JSON.stringify({ workflowId }) }),
+      request<{ success: boolean }>(`/repos/${repoId}/dispatch`, { method: "POST", body: JSON.stringify({ workflowId }) }),
   },
 
   sshKeys: {
@@ -212,17 +251,17 @@ export const api = {
   },
   // Generic methods for services
   get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, body?: any) =>
+  post: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: "POST",
       body: JSON.stringify(body),
     }),
-  patch: <T>(path: string, body?: any) =>
+  patch: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
-  put: <T>(path: string, body?: any) =>
+  put: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: "PUT",
       body: JSON.stringify(body),

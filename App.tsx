@@ -11,7 +11,6 @@ import {
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationProvider, useNotifications } from "./context/NotificationContext";
-import { api } from "./services/api";
 import { RealtimeProvider } from "./contexts/RealtimeContext";
 
 // Auth Views
@@ -22,7 +21,6 @@ const LandingPage = React.lazy(() => import("./views/LandingPage"));
 
 // Layout Components
 
-import Sidebar from "./components/layout/Sidebar";
 import Footer from "./components/layout/Footer";
 import MessagingPanel from "./components/messaging/MessagingPanel";
 import SplashScreen from "./components/branding/SplashScreen";
@@ -387,12 +385,54 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const lastScrollTopRef = useRef(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [profile, setProfile] = useState<UserProfile>(
     profileService.getProfile(),
   );
 
   useEffect(() => {
     return profileService.subscribe(setProfile);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      // Capture scroll events from any element (global listener with capture phase)
+      const target = e.target as HTMLElement;
+      if (!target || typeof target.scrollTop === 'undefined') return;
+
+      const currentScrollTop = target.scrollTop;
+
+      // Basic bounce protection
+      if (Math.abs(currentScrollTop - lastScrollTopRef.current) < 5) return;
+
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      // Hide on scroll down, show on scroll up
+      // Only trigger if we've scrolled enough to justify hiding
+      if (currentScrollTop > lastScrollTopRef.current && currentScrollTop > 60) {
+        setIsNavbarVisible(false);
+      } else {
+        setIsNavbarVisible(true);
+      }
+
+      lastScrollTopRef.current = currentScrollTop;
+
+      // Show when stopped (LinkedIn behavior)
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsNavbarVisible(true);
+      }, 150);
+    };
+
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
   }, []);
 
   const isStandalone =
@@ -405,6 +445,8 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
   ) || ["/editor", "/trials/live-session"].some(
     (path) => location.pathname.includes(path),
   ) || isStandalone;
+
+  const isFullPageAction = ["/repositories/new", "/repositories/import"].includes(location.pathname);
 
   // Global Key Handlers
   useEffect(() => {
@@ -482,7 +524,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
   }, [isAddMenuOpen, isNotificationsOpen, isProfileDropdownOpen]);
 
   // Use notification context
-  const { notifications, markAllAsRead } = useNotifications();
+  const { notifications } = useNotifications();
   const { logout } = useAuth(); // Restore logout for UserProfileDropdown
 
   // Listen for Real-Time Notification Events (Toast only)
@@ -532,199 +574,248 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden text-gh-text font-display bg-gh-bg transition-colors duration-300">
-      {notification && (
-        <div className="fixed top-12 right-12 z-[500] bg-gh-bg-secondary border border-gh-border/30 rounded-2xl p-6 shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col gap-6 max-w-sm ring-2 ring-black/50 ring-inset">
-          <div className="flex items-start gap-4">
-            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20">
-              <span className="material-symbols-outlined !text-[20px]">
-                {notification.type === "job" ? "work" : "notifications"}
-              </span>
+      {/* GitHub-Style Slide-Over Sidebar */}
+      {isSidebarOpen && (
+        <>
+          {/* Dark overlay */}
+          <div
+            className="fixed inset-0 bg-black/50 z-[70] animate-in fade-in duration-200"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+          {/* Panel */}
+          <div className="fixed top-0 left-0 h-full w-[320px] bg-[#161b22] border-r border-[#30363d] z-[80] animate-in slide-in-from-left duration-300 flex flex-col overflow-y-auto">
+            {/* Header: Logo + Close */}
+            <div className="flex items-center justify-between px-4 h-14 shrink-0">
+              <button
+                onClick={() => { setIsSidebarOpen(false); navigate("/dashboard/home"); }}
+                className="text-white hover:text-gh-text-secondary transition-colors"
+                aria-label="Home"
+              >
+                <svg height="32" viewBox="0 0 16 16" width="32" fill="currentColor">
+                  <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                aria-label="Close sidebar"
+              >
+                <span className="material-symbols-outlined !text-[20px]">close</span>
+              </button>
             </div>
-            <div className="min-w-0">
-              <h4 className="text-[15px] font-black text-gh-text uppercase tracking-tight truncate">
-                {notification.title}
-              </h4>
-              <p className="text-[13px] text-gh-text-secondary mt-1 leading-relaxed">
-                {notification.message}
-              </p>
-            </div>
-            <button
-              onClick={() => setNotification(null)}
-              className="text-gh-text-secondary hover:text-gh-text shrink-0 mt-1"
-            >
-              <span className="material-symbols-outlined !text-[20px]">
-                close
-              </span>
-            </button>
+
+            {/* Primary Nav */}
+            <nav className="px-3 py-2 space-y-0.5">
+              {[
+                { icon: "home", label: "Home", to: "/dashboard/home" },
+                { icon: "account_tree", label: "Dashboard", to: "/repositories" },
+                { icon: "terminal", label: "Workspaces", to: "/workspaces" },
+                { icon: "auto_stories", label: "Library", to: "/dashboard/library" },
+                { icon: "store", label: "Marketplace", to: "/marketplace" },
+                { icon: "diversity_3", label: "Community", to: "/community" },
+                { icon: "bolt", label: "ForgeAI", to: "/forge-ai" },
+                { icon: "account_circle", label: "Profile", to: "/profile" },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => { setIsSidebarOpen(false); navigate(item.to); }}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-[14px] font-medium transition-colors ${location.pathname === item.to || location.pathname.startsWith(item.to + "/")
+                    ? "text-white bg-[#1f6feb]/15"
+                    : "text-gh-text hover:bg-[#21262d] hover:text-white"
+                    }`}
+                >
+                  <span className="material-symbols-outlined !text-[18px]">{item.icon}</span>
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+
+            {/* Divider */}
+            <div className="mx-3 my-2 border-t border-[#30363d]" />
+
+            {/* Footer Nav */}
+            <nav className="px-3 py-1 space-y-0.5">
+              {[
+                { icon: "settings", label: "Settings", to: "/settings" },
+                { icon: "help", label: "Help", to: "/help" },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => { setIsSidebarOpen(false); navigate(item.to); }}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[14px] font-medium text-gh-text hover:bg-[#21262d] hover:text-white transition-colors"
+                >
+                  <span className="material-symbols-outlined !text-[18px]">{item.icon}</span>
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+
           </div>
-        </div>
+        </>
       )}
+
       <div className="flex-1 flex min-h-0">
-        {!isFocusMode && !isIdeView && <Sidebar />}
 
         <main
           ref={mainScrollRef}
           className={`flex-1 min-w-0 flex flex-col bg-gh-bg relative ${isIdeView || isFocusMode ? "overflow-hidden" : "overflow-y-auto custom-scrollbar"}`}
         >
-          {/* Global Search Header */}
+          {/* GitHub-Style Navigation Header */}
           {!isIdeView && !isFocusMode && (
-            <div className="h-14 border-b border-gh-border grid grid-cols-[1fr_auto_1fr] items-center px-6 bg-gh-bg/60 backdrop-blur-xl shrink-0 sticky top-0 z-40 transition-all duration-300">
-              <div className="flex items-center">
-                {/* Back button removed */}
+            <div className={`h-12 border-b border-gh-border flex items-center px-4 bg-[#010409] shrink-0 sticky top-0 z-40 gap-2 transition-transform duration-300 ${isNavbarVisible ? "translate-y-0" : "-translate-y-full"}`}>
+              {/* Left Section: Hamburger + Logo + Page Title */}
+              <div className="flex items-center gap-3">
+                {/* Hamburger Menu */}
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="text-gh-text hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                  aria-label="Toggle sidebar"
+                >
+                  <span className="material-symbols-outlined !text-[20px]">menu</span>
+                </button>
+
+                {/* Logo */}
+                <button
+                  onClick={() => navigate("/dashboard/home")}
+                  className="text-white hover:text-gh-text-secondary transition-colors flex items-center"
+                  aria-label="Home"
+                >
+                  <svg height="32" viewBox="0 0 16 16" width="32" fill="currentColor">
+                    <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                  </svg>
+                </button>
+
+                {/* Page Title */}
+                <span className="text-gh-text font-semibold text-[14px] hidden sm:inline">
+                  {location.pathname === "/repositories/new"
+                    ? "New repository"
+                    : location.pathname === "/repositories/import"
+                      ? "Import repository"
+                      : location.pathname.startsWith("/repo/")
+                        ? "Repository"
+                        : location.pathname.startsWith("/settings")
+                          ? "Settings"
+                          : ""}
+                </span>
               </div>
 
-              <div
-                onClick={() => setIsCommandPaletteOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gh-bg-secondary border border-gh-border rounded-md w-[400px] cursor-pointer hover:border-gh-text-secondary transition-colors group shadow-sm"
-              >
-                <span className="material-symbols-outlined !text-[16px] text-gh-text-secondary group-hover:text-gh-text">
-                  search
-                </span>
-                <span className="text-sm text-gh-text-secondary group-hover:text-gh-text flex-1">
-                  Type <kbd className="border border-gh-border rounded px-1 text-[10px] bg-gh-bg">/</kbd> to search
-                </span>
-              </div>
-
-              <div className="flex items-center justify-end gap-4">
-                {/* Notifications Bell */}
-                <div className="relative notifications-container">
-                  <button
-                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                    className="text-gh-text-secondary hover:text-white transition-colors relative h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white/5"
-                  >
-                    <span className="material-symbols-outlined !text-[20px]">
-                      notifications
-                    </span>
-                    {displayNotifications.some((n) => !n.read) && (
-                      <span className="absolute top-1.5 right-1.5 size-2 bg-primary rounded-full ring-2 ring-gh-bg-secondary" />
-                    )}
-                  </button>
-
-                  {isNotificationsOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-80 bg-gh-bg-secondary border border-gh-border rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                      <div className="px-4 py-3 border-b border-gh-border bg-gh-bg flex justify-between items-center">
-                        <span className="text-xs font-bold text-gh-text">
-                          Notifications
-                        </span>
-                        <button
-                          onClick={markAllAsRead}
-                          className="text-[10px] text-primary hover:underline font-bold"
-                        >
-                          Mark all read
-                        </button>
-                      </div>
-                      <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                        {displayNotifications.map((notif: any) => (
-                          <div
-                            key={notif.id}
-                            className={`px-4 py-3 border-b border-gh-border/50 hover:bg-gh-bg transition-colors cursor-pointer ${!notif.read ? "bg-primary/5" : ""}`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="size-8 rounded-lg bg-gh-bg flex items-center justify-center text-gh-text-secondary border border-gh-border/50">
-                                <span className="material-symbols-outlined !text-[16px]">
-                                  {notif.type === "job" ? "work" : "info"}
-                                </span>
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex justify-between items-start mb-0.5">
-                                  <h5 className="text-sm font-bold text-gh-text truncate">
-                                    {notif.title}
-                                  </h5>
-                                  <span className="text-[10px] text-gh-text-secondary whitespace-nowrap ml-2">
-                                    Now
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gh-text-secondary line-clamp-2">
-                                  {notif.message}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => {
-                          setIsNotificationsOpen(false);
-                          navigate("/notifications");
-                        }}
-                        className="w-full py-2.5 text-[10px] font-black uppercase tracking-widest text-gh-text-secondary hover:text-white bg-gh-bg border-t border-gh-border transition-colors"
-                      >
-                        View All
-                      </button>
-                    </div>
-                  )}
+              {/* Center: Search Bar */}
+              <div className="flex-1 flex justify-center max-w-[720px] mx-auto">
+                <div
+                  onClick={() => setIsCommandPaletteOpen(true)}
+                  className="flex items-center gap-2 px-3 py-1 bg-[#0d1117] border border-[#30363d] rounded-md w-full max-w-[272px] cursor-pointer hover:border-[#58a6ff]/50 transition-colors group"
+                >
+                  <span className="material-symbols-outlined !text-[14px] text-gh-text-secondary group-hover:text-gh-text">
+                    search
+                  </span>
+                  <span className="text-[13px] text-gh-text-secondary group-hover:text-gh-text flex-1">
+                    Type <kbd className="border border-[#30363d] rounded px-1 text-[10px] bg-[#0d1117] text-gh-text-secondary ml-0.5">/</kbd> to search
+                  </span>
                 </div>
+              </div>
 
-                {/* Add Menu */}
-                <div className="relative add-menu-container">
+              {/* Right Section: Action Icons */}
+              <div className="flex items-center gap-0.5">
+                {/* Divider */}
+                <div className="w-px h-5 bg-[#21262d] mx-1" />
+
+                {/* Add/Plus (with dropdown caret) */}
+                <div className="relative add-menu-container flex items-center">
                   <button
                     onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
-                    className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white/5"
+                    className="text-gh-text-secondary hover:text-white transition-colors h-8 px-1 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                    aria-label="Create new..."
                   >
-                    <span className="material-symbols-outlined !text-[20px]">
-                      add_circle
-                    </span>
+                    <span className="material-symbols-outlined !text-[20px]">add</span>
+                    <span className="material-symbols-outlined !text-[14px] -ml-0.5">arrow_drop_down</span>
                   </button>
                   {isAddMenuOpen && (
-                    <div className="absolute top-full right-0 mt-2 w-56 bg-gh-bg-secondary border border-gh-border rounded-xl shadow-2xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
-                      <div className="px-3 py-2 border-b border-gh-border mb-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gh-text-secondary">
-                          Create New
+                    <div className="absolute top-full right-0 mt-1 w-56 bg-[#161b22] border border-[#30363d] rounded-lg shadow-2xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-3 py-2 border-b border-[#30363d] mb-1">
+                        <span className="text-[11px] font-semibold text-gh-text-secondary">
+                          Create new...
                         </span>
                       </div>
                       <button
-                        onClick={() => {
-                          setIsAddMenuOpen(false);
-                          navigate("/workspace/new");
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-gh-text hover:text-white hover:bg-gh-bg flex items-center gap-2"
+                        onClick={() => { setIsAddMenuOpen(false); navigate("/repositories/new"); }}
+                        className="w-full text-left px-4 py-2 text-[13px] text-gh-text hover:bg-[#1f6feb] hover:text-white flex items-center gap-3 transition-colors"
                       >
-                        <span className="material-symbols-outlined !text-[16px]">
-                          laptop_mac
-                        </span>
-                        Workspace
+                        <span className="material-symbols-outlined !text-[16px]">folder_open</span>
+                        New repository
                       </button>
                       <button
-                        onClick={() => {
-                          setIsAddMenuOpen(false);
-                          navigate("/repositories/new");
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-gh-text hover:text-white hover:bg-gh-bg flex items-center gap-2"
+                        onClick={() => { setIsAddMenuOpen(false); navigate("/repositories/import"); }}
+                        className="w-full text-left px-4 py-2 text-[13px] text-gh-text hover:bg-[#1f6feb] hover:text-white flex items-center gap-3 transition-colors"
                       >
-                        <span className="material-symbols-outlined !text-[16px]">
-                          folder_open
-                        </span>
-                        Repository
+                        <span className="material-symbols-outlined !text-[16px]">download</span>
+                        Import repository
+                      </button>
+                      <div className="border-t border-[#30363d] my-1" />
+                      <button
+                        onClick={() => { setIsAddMenuOpen(false); navigate("/workspace/new"); }}
+                        className="w-full text-left px-4 py-2 text-[13px] text-gh-text hover:bg-[#1f6feb] hover:text-white flex items-center gap-3 transition-colors"
+                      >
+                        <span className="material-symbols-outlined !text-[16px]">laptop_mac</span>
+                        New workspace
                       </button>
                       <button
-                        onClick={() => {
-                          setIsAddMenuOpen(false);
-                          navigate("/strata/new");
-                        }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-gh-text hover:text-white hover:bg-gh-bg flex items-center gap-2"
+                        onClick={() => { setIsAddMenuOpen(false); navigate("/strata/new"); }}
+                        className="w-full text-left px-4 py-2 text-[13px] text-gh-text hover:bg-[#1f6feb] hover:text-white flex items-center gap-3 transition-colors"
                       >
-                        <span className="material-symbols-outlined !text-[16px]">
-                          corporate_fare
-                        </span>
-                        Strata
+                        <span className="material-symbols-outlined !text-[16px]">corporate_fare</span>
+                        New organization
                       </button>
                     </div>
                   )}
                 </div>
 
-                {/* Profile Dropdown */}
-                <div className="relative profile-dropdown-container">
+                {/* Divider */}
+                <div className="w-px h-5 bg-[#21262d] mx-1" />
+
+                {/* Issues */}
+                <button
+                  onClick={() => navigate("/repositories")}
+                  className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                  aria-label="Issues"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path></svg>
+                </button>
+
+                {/* Pull Requests */}
+                <button
+                  onClick={() => navigate("/repositories")}
+                  className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                  aria-label="Pull requests"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"></path></svg>
+                </button>
+
+                {/* Notifications */}
+                <button
+                  onClick={() => navigate("/notifications")}
+                  className="text-gh-text-secondary hover:text-white transition-colors relative h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                  aria-label="Notifications"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 16a2 2 0 0 0 1.985-1.75c.017-.137-.097-.25-.235-.25h-3.5c-.138 0-.252.113-.235.25A2 2 0 0 0 8 16ZM3 5a5 5 0 0 1 10 0v2.947c0 .05.015.098.042.139l1.703 2.555A1.519 1.519 0 0 1 13.482 13H2.518a1.516 1.516 0 0 1-1.263-2.36l1.703-2.554A.255.255 0 0 0 3 7.947Zm5-3.5A3.5 3.5 0 0 0 4.5 5v2.947c0 .346-.102.683-.294.97l-1.703 2.556a.017.017 0 0 0-.003.01l.001.006c0 .002.002.004.004.006l.006.004.007.001h10.964l.007-.001.006-.004.004-.006.001-.007a.017.017 0 0 0-.003-.01l-1.703-2.554a1.745 1.745 0 0 1-.294-.97V5A3.5 3.5 0 0 0 8 1.5Z"></path></svg>
+                  {displayNotifications.filter((n) => !n.read).length > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-[#1f6feb] rounded-full ring-2 ring-[#010409] text-[10px] font-bold text-white flex items-center justify-center">
+                      {displayNotifications.filter((n) => !n.read).length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Profile Avatar */}
+                <div className="relative profile-dropdown-container ml-1">
                   <div
-                    onClick={() =>
-                      setIsProfileDropdownOpen(!isProfileDropdownOpen)
-                    }
-                    className="cursor-pointer"
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="cursor-pointer flex items-center"
                   >
                     <img
                       src={profile.avatar}
-                      className="size-6 rounded-full border border-gh-border hover:border-gh-text transition-colors"
+                      className="size-5 rounded-full border border-[#30363d] hover:border-[#58a6ff] transition-colors"
                       alt="Profile"
                     />
+                    <span className="material-symbols-outlined !text-[14px] text-gh-text-secondary -ml-0.5">arrow_drop_down</span>
                   </div>
                   {isProfileDropdownOpen && (
                     <UserProfileDropdown
@@ -967,7 +1058,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
             </Routes>
           </ErrorBoundary>
 
-          {!isIdeView && !isFocusMode && <Footer />}
+          {!isIdeView && !isFocusMode && !isFullPageAction && <Footer />}
         </main>
       </div >
       {!isFocusMode && <MessagingPanel />}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { profileService, UserProfile } from "../../services/profileService";
+import { profileService, UserProfile } from "../../services/profile";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "../../styles/FollowListModal.css";
@@ -146,9 +146,8 @@ export const FollowListModal: React.FC<FollowListModalProps> = ({
                       <button
                         onClick={() => handleFollow(user.id)}
                         disabled={isLoading}
-                        className={`follow-action-button ${
-                          isFollowing ? "following" : ""
-                        }`}
+                        className={`follow-action-button ${isFollowing ? "following" : ""
+                          }`}
                       >
                         {isLoading
                           ? "Loading..."

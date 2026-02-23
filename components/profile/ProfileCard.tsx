@@ -29,9 +29,12 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
   >("followers");
 
   useEffect(() => {
-    const unsubscribe = profileService.subscribe(setProfile);
-    return unsubscribe;
-  }, []);
+    // Only subscribe to global updates if we are showing the "current" user's live profile
+    if (!propProfile) {
+      const unsubscribe = profileService.subscribe(setProfile);
+      return unsubscribe;
+    }
+  }, [propProfile]);
 
   const handleFollow = () => {
     if (isFollowing) {

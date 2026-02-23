@@ -95,6 +95,13 @@ const Sidebar = () => {
     return profileService.subscribe(setProfile);
   }, []);
 
+  // Listen for hamburger click from the top nav
+  useEffect(() => {
+    const handleToggleClick = () => toggleSidebar();
+    window.addEventListener("tc-sidebar-toggle-click", handleToggleClick);
+    return () => window.removeEventListener("tc-sidebar-toggle-click", handleToggleClick);
+  }, [toggleSidebar]);
+
   return (
     <aside
       onMouseEnter={() => setIsExpanded(true)}

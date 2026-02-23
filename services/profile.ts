@@ -1,5 +1,7 @@
 import { SystemRole } from "../types";
 import { systemBus } from "./systemBus";
+import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 export interface Review {
   id: string;
@@ -72,6 +74,13 @@ export interface UserProfile {
   resumeUploadedAt?: string | null;
   showResume?: boolean;
   showReadme?: boolean;
+
+  // Compatibility fields for PublicProfile
+  isFollowing?: boolean;
+  showPortfolio?: boolean;
+  showRepositories?: boolean;
+  showContributions?: boolean;
+  pinnedItems?: string[];
 }
 
 // Blank default — no personal details. Will be hydrated by initFromAuth() on login.
@@ -228,7 +237,7 @@ export const profileService = {
           this.updateProfile(profile);
         }
         return profile;
-      } catch (e) {
+      } catch (_e) {
         return DEFAULT_PROFILE;
       }
     }
@@ -343,21 +352,6 @@ export const profileService = {
     const profile = this.getProfile();
     const newCount = profile.followers + 1;
     this.updateProfile({ followers: newCount });
-
-    // Optional: Notification for "realism"
-    // Notification for "realism" - using realtime event to show in bell icon
-    window.dispatchEvent(
-      new CustomEvent("trackcodex-realtime-notification", {
-        detail: {
-          id: `notif-${Date.now()}`,
-          title: "New Follower",
-          message: "You have a new follower!",
-          type: "community",
-          createdAt: new Date().toISOString(),
-          read: false,
-        },
-      }),
-    );
   },
 
   simulateUnfollow() {
@@ -393,8 +387,187 @@ export const profileService = {
   },
 
   subscribe(callback: (profile: UserProfile) => void) {
-    const handler = (e: any) => callback(e.detail);
-    window.addEventListener(UPDATE_EVENT, handler);
-    return () => window.removeEventListener(UPDATE_EVENT, handler);
+    const handler = (e: CustomEvent<UserProfile>) => callback(e.detail);
+    window.addEventListener(UPDATE_EVENT, handler as any);
+    return () => window.removeEventListener(UPDATE_EVENT, handler as any);
   },
+
+  /**
+   * Get a user's profile by ID or username.
+   * Checks mocks first, then falls back to backend.
+   */
+  async getProfileByIdOrUsername(idOrUsername: string): Promise<UserProfile> {
+    if (!idOrUsername) throw new Error("User ID or username is required");
+
+    // 1. Check Mock Users
+    const query = idOrUsername.startsWith("@") ? idOrUsername : "@" + idOrUsername;
+    const mockUser = MOCK_USERS.find(
+      (u) => u.id === idOrUsername || u.username === query || u.username === idOrUsername
+    );
+    if (mockUser) return mockUser;
+
+    // 2. Check for current user
+    const current = this.getProfile();
+    if (current.id === idOrUsername || current.username === query || current.username === idOrUsername) {
+      return current;
+    }
+
+    // 3. Fallback to Backend
+    try {
+      const response = await axios.get(`${API_BASE_URL}/users/${idOrUsername}`, {
+        withCredentials: true,
+      });
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Error fetching profile from backend:", error);
+
+      // 4. Generate a fallback profile for any ID to prevent "Not Found" screens
+      // This ensures a premium experience even if data is missing
+      return {
+        ...DEFAULT_PROFILE,
+        id: idOrUsername,
+        name: idOrUsername.split("-")[0] || idOrUsername,
+        username: query,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(idOrUsername)}&background=random&size=128`,
+        bio: "A talented developer in the TrackCodex community.",
+        location: "Planet Earth",
+      };
+    }
+  },
+
+  /**
+   * Follow a user
+   */
+  async followUser(userId: string): Promise<void> {
+    // If it's a mock user, just simulate
+    if (userId.startsWith("user-") || userId.startsWith("@")) {
+      this.simulateNewFollower();
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${API_BASE_URL}/users/${userId}/follow`,
+        {},
+        { withCredentials: true },
+      );
+      this.simulateNewFollower();
+    } catch (error: unknown) {
+      console.error("Error following user:", error);
+      const message = error instanceof Error ? error.message : "Failed to follow user";
+      throw new Error(message);
+    }
+  },
+
+  /**
+   * Unfollow a user
+   */
+  async unfollowUser(userId: string): Promise<void> {
+    if (userId.startsWith("user-") || userId.startsWith("@")) {
+      this.simulateUnfollow();
+      return;
+    }
+
+    try {
+      await axios.delete(`${API_BASE_URL}/users/${userId}/follow`, {
+        withCredentials: true,
+      });
+      this.simulateUnfollow();
+    } catch (error: unknown) {
+      console.error("Error unfollowing user:", error);
+      const message = error instanceof Error ? error.message : "Failed to unfollow user";
+      throw new Error(message);
+    }
+  },
+
+  /**
+   * Get a user's followers
+   */
+  async getFollowers(userId: string): Promise<UserProfile[]> {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/users/${userId}/followers`,
+        {
+          withCredentials: true,
+        },
+      );
+      return response.data;
+    } catch (error: any) {
+      // Fallback for mocks
+      return [];
+    }
+  },
+
+  /**
+   * Get users that this user follows
+   */
+  async getFollowing(userId: string): Promise<UserProfile[]> {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/users/${userId}/following`,
+        {
+          withCredentials: true,
+        },
+      );
+      return response.data;
+    } catch (error: any) {
+      // Fallback for mocks
+      return [];
+    }
+  },
+
+  /**
+   * Get trending users for Discovery
+   */
+  async getTrendingUsers(): Promise<UserProfile[]> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/users/trending`, {
+        withCredentials: true,
+      });
+      return response.data.length > 0 ? response.data : MOCK_USERS;
+    } catch (error) {
+      return MOCK_USERS;
+    }
+  },
+
+  /**
+   * Get suggested users for Discovery
+   */
+  async getSuggestedUsers(): Promise<UserProfile[]> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/users/suggested`, {
+        withCredentials: true,
+      });
+      return response.data.length > 0 ? response.data : [...MOCK_USERS].reverse();
+    } catch (error) {
+      return [...MOCK_USERS].reverse();
+    }
+  },
+
+  /**
+   * Search users by query
+   */
+  async searchUsers(query: string): Promise<UserProfile[]> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/users/search`, {
+        params: { q: query },
+        withCredentials: true,
+      });
+
+      const results = response.data;
+
+      // Merge with mock matches
+      const mockMatches = MOCK_USERS.filter(u =>
+        u.name.toLowerCase().includes(query.toLowerCase()) ||
+        u.username.toLowerCase().includes(query.toLowerCase())
+      );
+
+      return [...mockMatches, ...results];
+    } catch (error) {
+      return MOCK_USERS.filter(u =>
+        u.name.toLowerCase().includes(query.toLowerCase()) ||
+        u.username.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+  }
 };

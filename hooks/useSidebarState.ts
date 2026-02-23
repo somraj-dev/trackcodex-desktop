@@ -16,8 +16,18 @@ export const useSidebarState = () => {
     setIsExpanded((prev) => {
       const next = !prev;
       localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(next));
+      // Dispatch custom event for other instances
+      window.dispatchEvent(new CustomEvent("tc-sidebar-toggle", { detail: next }));
       return next;
     });
+  }, []);
+
+  useEffect(() => {
+    const handleSync = (e: Event) => {
+      setIsExpanded((e as CustomEvent).detail);
+    };
+    window.addEventListener("tc-sidebar-toggle", handleSync);
+    return () => window.removeEventListener("tc-sidebar-toggle", handleSync);
   }, []);
 
   // Keyboard shortcut: Ctrl/Cmd + B to toggle sidebar

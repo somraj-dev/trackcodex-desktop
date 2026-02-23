@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { Repository } from "../types";
-import CreateRepoModal from "../components/repositories/CreateRepoModal";
 import { githubService, GitHubRepo } from "../services/github";
 import EmptyState from "../components/common/EmptyState";
 
@@ -15,25 +14,25 @@ const AIHealthIndicator = ({
   label: string;
 }) => {
   const getColors = () => {
-      const s = String(score || "B");
-      if (s.startsWith("A"))
-        return {
-          text: "text-emerald-400",
-          border: "border-emerald-500/30",
-          bg: "bg-emerald-500/10",
-        };
-      if (s.startsWith("B"))
-        return {
-          text: "text-amber-400",
-          border: "border-amber-500/30",
-          bg: "bg-amber-500/10",
-        };
+    const s = String(score || "B");
+    if (s.startsWith("A"))
       return {
-        text: "text-rose-400",
-        border: "border-rose-500/30",
-        bg: "bg-rose-500/10",
+        text: "text-emerald-400",
+        border: "border-emerald-500/30",
+        bg: "bg-emerald-500/10",
       };
+    if (s.startsWith("B"))
+      return {
+        text: "text-amber-400",
+        border: "border-amber-500/30",
+        bg: "bg-amber-500/10",
+      };
+    return {
+      text: "text-rose-400",
+      border: "border-rose-500/30",
+      bg: "bg-rose-500/10",
     };
+  };
   const colors = getColors();
 
   return (
@@ -195,53 +194,8 @@ const Repositories = () => {
       );
   };
 
-  const handleCreateRepo = async (newRepoData: Partial<Repository>) => {
-    try {
-      // Actually call the backend API to create the repo in DB + Gitea
-      const created = await api.repositories.create({
-        name: newRepoData.name || "untitled",
-        description: newRepoData.description || "",
-        isPublic: newRepoData.visibility === "PUBLIC",
-        techStack: newRepoData.techStack || "TypeScript",
-      });
+  /* handleCreateRepo removed as it moved to CreateRepo.tsx */
 
-      // Enrich the returned data for the UI
-      const newRepo = {
-        ...created,
-        aiHealth: "A",
-        aiHealthLabel: "Healthy",
-        securityStatus: "Passing",
-        lastUpdated: "Just now",
-        techStack: newRepoData.techStack || "TypeScript",
-        techColor: "#3178c6",
-        visibility: (created.isPublic ? "PUBLIC" : "PRIVATE") as "PUBLIC" | "PRIVATE",
-      } as Repository;
-
-      setRepos((prev) => [newRepo, ...prev]);
-      setIsModalOpen(false);
-
-      window.dispatchEvent(
-        new CustomEvent("trackcodex-notification", {
-          detail: {
-            title: "Repository Created",
-            message: `${newRepo.name} has been created and synced to Gitea.`,
-            type: "success",
-          },
-        }),
-      );
-    } catch (err: any) {
-      console.error("❌ Failed to create repository:", err);
-      window.dispatchEvent(
-        new CustomEvent("trackcodex-notification", {
-          detail: {
-            title: "Repository Creation Failed",
-            message: err?.message || "An error occurred while creating the repository.",
-            type: "error",
-          },
-        }),
-      );
-    }
-  };
 
   const filteredRepos = repos.filter((repo) => {
     if (filter === "Public") return repo.visibility === "PUBLIC";
@@ -289,7 +243,7 @@ const Repositories = () => {
               Sync from Remote
             </button>
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => navigate("/repositories/new")}
               className="btn-glow bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 hover:border-primary/50 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs flex items-center gap-2 transition-all shadow-lg active:scale-95"
             >
               <span className="material-symbols-outlined !text-[20px]">
@@ -426,11 +380,6 @@ const Repositories = () => {
           </div>
         </div>
 
-        <CreateRepoModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleCreateRepo}
-        />
       </div>
     </div>
   );

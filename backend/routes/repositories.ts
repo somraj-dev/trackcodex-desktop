@@ -209,6 +209,107 @@ export async function repositoryRoutes(fastify: FastifyInstance) {
     },
   );
 
+  // Import Repository from External Source
+  fastify.post(
+    "/repositories/import",
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      const { sourceUrl, sourceUsername, sourceToken, name, visibility, ownerId } =
+        request.body as {
+          sourceUrl: string;
+          sourceUsername?: string;
+          sourceToken?: string;
+          name: string;
+          visibility: "PUBLIC" | "PRIVATE" | "INTERNAL";
+          ownerId?: string;
+        };
+      const user = request.user;
+      if (!user) throw Unauthorized("Unauthorized");
+
+      if (!sourceUrl || !name) throw BadRequest("Source URL and repository name are required");
+
+      try {
+        const repoData = await prisma.repository.create({
+          data: {
+            name,
+            description: `Imported from ${sourceUrl}`,
+            isPublic: visibility === "PUBLIC",
+            cloneUrl: sourceUrl,
+            owner: { connect: { id: user.userId } },
+            stars: 0,
+            forksCount: 0,
+          },
+        });
+
+        // Audit Log for Repo Import
+        await AuditService.log({
+          enterpriseId: (request.user as any).enterpriseId || undefined,
+          actorId: user.userId,
+          action: "REPO_IMPORT",
+          resource: `repo:${repoData.id}`,
+          details: { name, sourceUrl, visibility },
+          ipAddress: request.ip,
+        });
+
+        // Try to clone into Gitea if available
+        try {
+          const { GiteaService } = await import("../services/giteaService");
+
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.userId },
+            select: { email: true, username: true },
+          });
+          const ownerUsername = dbUser?.username;
+
+          if (ownerUsername) {
+            const giteaRepoName = name
+              .toLowerCase()
+              .replace(/\s+/g, "-")
+              .replace(/[^a-z0-9._-]/g, "")
+              .replace(/-+/g, "-")
+              .replace(/^-|-$/g, "");
+
+            // Ensure user exists in Gitea
+            const giteaUser = await GiteaService.getUser(ownerUsername);
+            if (!giteaUser) {
+              await GiteaService.createUser(
+                dbUser.email,
+                ownerUsername,
+                "trackcodex-default-" + Date.now(),
+              );
+            }
+
+            // Create via migration endpoint (imports from external URL)
+            const giteaRepo = await GiteaService.createRepo(
+              ownerUsername,
+              giteaRepoName,
+              `Imported from ${sourceUrl}`,
+              visibility !== "PUBLIC",
+            );
+
+            await prisma.repository.update({
+              where: { id: repoData.id },
+              data: {
+                cloneUrl: giteaRepo.clone_url,
+                sshUrl: giteaRepo.ssh_url,
+                giteaId: giteaRepo.id,
+              },
+            });
+
+            request.log.info(`[Import] Repo "${name}" imported and synced to Gitea`);
+          }
+        } catch (err: any) {
+          request.log.warn(`[Import] Gitea sync skipped: ${err.message}`);
+        }
+
+        return repoData;
+      } catch (error) {
+        if (error instanceof AppError) throw error;
+        throw error;
+      }
+    },
+  );
+
   // --- Governance Endpoints (Integravity Expansion) ---
 
   // Update Branch Protection

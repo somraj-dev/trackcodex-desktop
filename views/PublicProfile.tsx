@@ -1,530 +1,162 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { profileService, UserProfile } from "../services/profileService";
-import { activityService, Activity } from "../services/activityService";
-import { useAuth } from "../context/AuthContext";
-import { FollowListModal } from "../components/profile/FollowListModal";
-import { ChatInterface } from "../components/chat/ChatInterface";
-import PortfolioDisplay from "../components/profile/PortfolioDisplay";
-import RepositoryShowcase from "../components/profile/RepositoryShowcase";
-import PinnedItemsGrid from "../components/profile/PinnedItemsGrid";
-import ContributionGraph from "../components/profile/ContributionGraph";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import "../styles/PublicProfile.css";
-import styles from "./PublicProfile.module.css";
-import "../styles/PortfolioStyles.css";
+import { profileService, UserProfile } from "../services/profile";
+import ProfileCard from "../components/profile/ProfileCard";
+import Highlights from "../components/profile/Highlights";
+import CodingSnapshot from "../components/profile/CodingSnapshot";
+import SecurityImpact from "../components/profile/SecurityImpact";
+import ForgeAIUsage from "../components/profile/ForgeAIUsage";
+import ContributionHeatmap from "../components/profile/ContributionHeatmap";
+import PinnedRepos from "../components/profile/PinnedRepos";
+import ActivityFeed from "../components/profile/ActivityFeed";
+import VisualPortfolio from "../components/profile/VisualPortfolio";
 
 export const PublicProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const { user: currentUser } = useAuth();
   const navigate = useNavigate();
-
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [stats, setStats] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
-  const [activityPage, setActivityPage] = useState(1);
-  const [hasMoreActivities, setHasMoreActivities] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"followers" | "following">(
-    "followers",
-  );
-  const [chatOpen, setChatOpen] = useState(false);
-
-  // Portfolio state
-  const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
-  const [repositories, setRepositories] = useState<any[]>([]);
-  const [pinnedItems, setPinnedItems] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("Overview");
 
   useEffect(() => {
     if (userId) {
-      loadProfile();
-      loadActivities();
-      loadStats();
-      loadPortfolio();
-      loadRepositories();
-      loadPinnedItems();
+      loadProfile(userId);
     }
   }, [userId]);
 
-  const loadProfile = async () => {
-    if (!userId) return;
-
-    try {
-      const profileData = await profileService.getProfile(userId);
-      setProfile(profileData);
-      setIsFollowing(profileData.isFollowing || false);
-    } catch (error) {
-      console.error("Error loading profile:", error);
-    }
-  };
-
-  const loadActivities = async () => {
-    if (!userId) return;
-
+  const loadProfile = async (id: string) => {
     setLoading(true);
     try {
-      const response = await activityService.getUserActivity(
-        userId,
-        activityPage,
-        20,
-      );
-
-      if (response.activities.length < 20) {
-        setHasMoreActivities(false);
-      }
-
-      setActivities((prev) =>
-        activityPage === 1
-          ? response.activities
-          : [...prev, ...response.activities],
-      );
+      const data = await profileService.getProfileByIdOrUsername(id);
+      setProfile(data);
     } catch (error) {
-      console.error("Error loading activities:", error);
+      console.error("Error loading profile:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadStats = async () => {
-    if (!userId) return;
-
-    try {
-      const statsData = await activityService.getActivityStats(userId);
-      setStats(statsData);
-    } catch (error) {
-      console.error("Error loading stats:", error);
-    }
-  };
-
-  const loadPortfolio = async () => {
-    if (!userId) return;
-
-    try {
-      const response = await fetch(`/api/v1/portfolio/${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setPortfolioItems(data.items || []);
-      }
-    } catch (error) {
-      console.error("Error loading portfolio:", error);
-    }
-  };
-
-  const loadRepositories = async () => {
-    if (!userId) return;
-
-    try {
-      const response = await fetch(
-        `/api/v1/repositories?userId=${userId}&limit=6`,
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setRepositories(data.repositories || []);
-      }
-    } catch (error) {
-      console.error("Error loading repositories:", error);
-    }
-  };
-
-  const loadPinnedItems = async () => {
-    if (!userId || !profile) return;
-
-    try {
-      // Fetch pinned items from user profile
-      const pinnedIds = profile.pinnedItems || [];
-      const items = [];
-
-      for (const pinnedId of pinnedIds.slice(0, 6)) {
-        if (pinnedId.startsWith("portfolio:")) {
-          const itemId = pinnedId.replace("portfolio:", "");
-          const portItem = portfolioItems.find((p) => p.id === itemId);
-          if (portItem) {
-            items.push({
-              type: "portfolio",
-              id: portItem.id,
-              title: portItem.title,
-              description: portItem.description,
-              technologies: portItem.technologies,
-              imageUrl: portItem.imageUrl,
-              demoUrl: portItem.demoUrl,
-              sourceUrl: portItem.sourceUrl,
-            });
-          }
-        } else if (pinnedId.startsWith("repo:")) {
-          const repoName = pinnedId.replace("repo:", "");
-          const repo = repositories.find((r) => r.name === repoName);
-          if (repo) {
-            items.push({
-              type: "repository",
-              id: repo.id,
-              title: repo.name,
-              description: repo.description,
-              language: repo.language,
-              stars: repo.stars,
-              forks: repo.forks,
-            });
-          }
-        }
-      }
-
-      setPinnedItems(items);
-    } catch (error) {
-      console.error("Error loading pinned items:", error);
-    }
-  };
-
-  const handleFollow = async () => {
-    if (!userId || !profile) return;
-
-    setFollowLoading(true);
-    try {
-      if (isFollowing) {
-        await profileService.unfollowUser(userId);
-        setIsFollowing(false);
-        setProfile({
-          ...profile,
-          followers: profile.followers - 1,
-        });
-      } else {
-        await profileService.followUser(userId);
-        setIsFollowing(true);
-        setProfile({
-          ...profile,
-          followers: profile.followers + 1,
-        });
-      }
-    } catch (error) {
-      console.error("Error toggling follow:", error);
-    } finally {
-      setFollowLoading(false);
-    }
-  };
-
-  const handleLoadMore = () => {
-    if (!loading && hasMoreActivities) {
-      setActivityPage((prev) => prev + 1);
-    }
-  };
-
-  useEffect(() => {
-    if (activityPage > 1) {
-      loadActivities();
-    }
-  }, [activityPage]);
-
-  if (loading && activityPage === 1) {
+  if (loading) {
     return (
-      <div className="public-profile-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading profile...</p>
+      <div className="min-h-screen bg-gh-bg flex flex-col items-center justify-center">
+        <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+        <p className="text-gh-text-secondary font-bold animate-pulse">
+          Decrypting Profile...
+        </p>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="public-profile-error">
-        <h2>Profile Not Found</h2>
-        <p>The user you're looking for doesn't exist.</p>
-        <button onClick={() => navigate("/explore")}>Explore Users</button>
+      <div className="min-h-screen bg-gh-bg flex flex-col items-center justify-center p-6 text-center">
+        <span className="material-symbols-outlined !text-6xl text-rose-500 mb-4">
+          person_off
+        </span>
+        <h2 className="text-2xl font-bold text-gh-text mb-2">
+          Profile Not Found
+        </h2>
+        <p className="text-gh-text-secondary mb-6 max-w-md">
+          The user you are looking for does not exist or has set their profile
+          to private.
+        </p>
+        <button
+          onClick={() => navigate("/dashboard/home")}
+          className="px-6 py-2 bg-gh-bg-secondary border border-gh-border rounded-lg text-sm font-bold text-gh-text hover:border-primary transition-all"
+        >
+          Return Home
+        </button>
       </div>
     );
   }
 
-  const isOwnProfile = currentUser?.id === userId;
-  const totalActivities = Object.values(stats).reduce(
-    (sum, count) => sum + count,
-    0,
-  );
+  const tabs = ["Overview", "Repositories", "Projects", "Packages", "Stars"];
 
   return (
-    <div className="public-profile">
-      {/* Profile Header */}
-      <div className="profile-header">
-        <div className="profile-banner"></div>
+    <div className="min-h-screen bg-gh-bg text-gh-text font-display">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+          {/* Sidebar */}
+          <aside>
+            <ProfileCard profile={profile} />
+          </aside>
 
-        <div className="profile-info-container">
-          <div className="profile-avatar-section">
-            <img
-              src={profile.avatar || "/default-avatar.png"}
-              alt={profile.name}
-              className="profile-avatar-large"
-            />
-          </div>
-
-          <div className="profile-details">
-            <div className="profile-name-section">
-              <h1>{profile.name}</h1>
-              <p className="profile-username">@{profile.username}</p>
-            </div>
-
-            {isOwnProfile && (
-              <button
-                onClick={() => navigate("/settings/profile")}
-                className="edit-profile-button"
-              >
-                Edit Profile
-              </button>
-            )}
-
-            {!isOwnProfile && currentUser && (
-              <button
-                onClick={() => setChatOpen(true)}
-                className={`edit-profile-button ${styles.messageButton}`}
-              >
-                Message
-              </button>
-            )}
-          </div>
-
-          <ChatInterface
-            isOpen={chatOpen}
-            onClose={() => setChatOpen(false)}
-            targetUser={{
-              id: profile.id,
-              username: profile.username || profile.name,
-              avatar: profile.avatar || "/default-avatar.png",
-            }}
-            currentUser={{
-              id: currentUser?.id || "",
-              avatar: currentUser?.avatar || "/default-avatar.png",
-            }}
-          />
-
-          {profile.bio && (
-            <div className="profile-bio">
-              <p>{profile.bio}</p>
-            </div>
-          )}
-
-          {/* Profile README Section */}
-          {profile.profileReadme && profile.showReadme && (
-            <div className={styles.profileReadmeSection}>
-              <div
-                className={`prose prose-gh max-w-none ${styles.readmeContent}`}
-              >
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {profile.profileReadme}
-                </ReactMarkdown>
-              </div>
-            </div>
-          )}
-
-          {/* Resume Download Button */}
-          {profile.resumeUrl && profile.showResume && (
-            <div className={styles.resumeContainer}>
-              <a
-                href={`/api/v1/profile/${userId}/resume`}
-                download
-                className={`btn btn-secondary ${styles.resumeButton}`}
-              >
-                <span
-                  className={`material-symbols-outlined ${styles.resumeIcon}`}
+          {/* Main Content */}
+          <main className="min-w-0">
+            {/* Tabs Navigation */}
+            <div className="flex items-center gap-1 border-b border-gh-border mb-8 overflow-x-auto no-scrollbar sticky top-0 bg-gh-bg/80 backdrop-blur-md z-40">
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-3 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === tab
+                      ? "text-gh-text"
+                      : "text-gh-text-secondary hover:text-gh-text"
+                    }`}
                 >
-                  download
-                </span>
-                Download Resume
-              </a>
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined !text-[18px]">
+                      {tab === "Overview"
+                        ? "dashboard"
+                        : tab === "Repositories"
+                          ? "book"
+                          : tab === "Projects"
+                            ? "grid_view"
+                            : tab === "Packages"
+                              ? "package"
+                              : "star"}
+                    </span>
+                    {tab}
+                  </div>
+                  {activeTab === tab && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary shadow-[0_0_10px_rgba(139,92,246,0.5)]"></div>
+                  )}
+                </button>
+              ))}
             </div>
-          )}
 
-          <div className="profile-meta">
-            {profile.location && (
-              <span className="meta-item">
-                <span className="material-symbols-outlined">location_on</span>
-                {profile.location}
-              </span>
-            )}
-            {profile.website && (
-              <a
-                href={profile.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="meta-item"
-              >
-                <span className="material-symbols-outlined">link</span>
-                {profile.website}
-              </a>
-            )}
-            <span className="meta-item">
-              <span className="material-symbols-outlined">calendar_today</span>
-              Joined{" "}
-              {new Date(profile.createdAt || Date.now()).toLocaleDateString(
-                "en-US",
-                { month: "long", year: "numeric" },
-              )}
-            </span>
-          </div>
+            {/* Tab Content */}
+            {activeTab === "Overview" && (
+              <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <Highlights />
 
-          <div className="profile-stats">
-            <button
-              onClick={() => {
-                setModalType("followers");
-                setModalOpen(true);
-              }}
-              className="stat-item"
-            >
-              <strong>{profile.followers}</strong>
-              <span>Followers</span>
-            </button>
-            <button
-              onClick={() => {
-                setModalType("following");
-                setModalOpen(true);
-              }}
-              className="stat-item"
-            >
-              <strong>{profile.following}</strong>
-              <span>Following</span>
-            </button>
-            <div className="stat-item">
-              <strong>{totalActivities}</strong>
-              <span>Activities</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Activity Timeline */}
-      <div className="profile-content">
-        <div className="activity-timeline">
-          {/* Pinned Items Section */}
-          {pinnedItems.length > 0 && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionHeading}>
-                <span className="material-icons">push_pin</span>
-                Pinned
-              </h2>
-              <PinnedItemsGrid
-                items={pinnedItems}
-                userId={userId || ""}
-                isOwner={isOwnProfile}
-              />
-            </div>
-          )}
-
-          {/* Portfolio Section */}
-          {profile?.showPortfolio && portfolioItems.length > 0 && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionHeading}>
-                <span className="material-icons">work_outline</span>
-                Portfolio
-              </h2>
-              <PortfolioDisplay items={portfolioItems} isOwner={isOwnProfile} />
-            </div>
-          )}
-
-          {/* Repositories Section */}
-          {profile?.showRepositories && repositories.length > 0 && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionHeading}>
-                <span className="material-icons">folder</span>
-                Repositories
-              </h2>
-              <RepositoryShowcase
-                repositories={repositories}
-                userId={userId || ""}
-                isOwner={isOwnProfile}
-              />
-            </div>
-          )}
-
-          {/* Contribution Graph Section */}
-          {profile?.showContributions && userId && (
-            <div className={styles.section}>
-              <h2 className={styles.sectionHeading}>
-                <span className="material-icons">insert_chart</span>
-                Contribution Graph
-              </h2>
-              <ContributionGraph userId={userId} />
-            </div>
-          )}
-
-          <h2>Activity Timeline</h2>
-
-          {activities.length === 0 ? (
-            <div className="no-activities">
-              <p>No activity yet</p>
-            </div>
-          ) : (
-            <>
-              <div className="timeline-list">
-                {activities.map((activity) => {
-                  const formatted = activityService.formatActivity(activity);
-                  const timeAgo = activityService.getRelativeTime(
-                    activity.createdAt,
-                  );
-
-                  return (
-                    <div key={activity.id} className="timeline-item">
-                      <div className="timeline-icon">{formatted.icon}</div>
-
-                      <div className="timeline-content">
-                        <div className="timeline-header">
-                          <span className="timeline-action">
-                            {formatted.title}
-                          </span>
-                          {formatted.description && (
-                            <span className="timeline-target">
-                              {formatted.description}
-                            </span>
-                          )}
-                        </div>
-
-                        {activity.metadata?.description && (
-                          <div className="timeline-metadata">
-                            {activity.metadata.description}
-                          </div>
-                        )}
-
-                        <div className="timeline-time">{timeAgo}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {hasMoreActivities && (
-                <div className="load-more-activities">
-                  <button onClick={handleLoadMore} disabled={loading}>
-                    {loading ? "Loading..." : "Load More"}
-                  </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <CodingSnapshot />
+                  <SecurityImpact />
                 </div>
-              )}
-            </>
-          )}
-        </div>
 
-        {/* Activity Stats Sidebar */}
-        <div className="activity-stats-sidebar">
-          <h3>Activity Breakdown</h3>
-          <div className="stats-list">
-            {Object.entries(stats).map(([action, count]) => (
-              <div key={action} className="stat-row">
-                <span className="stat-label">{action.replace(/_/g, " ")}</span>
-                <span className="stat-value">{count}</span>
+                <div className="grid grid-cols-1 xl:grid-cols-[1fr_350px] gap-8">
+                  <div className="space-y-8">
+                    <PinnedRepos />
+                    <ContributionHeatmap />
+                  </div>
+                  <div className="space-y-8">
+                    <ForgeAIUsage />
+                    <ActivityFeed />
+                  </div>
+                </div>
               </div>
-            ))}
-            {Object.keys(stats).length === 0 && (
-              <p className="no-stats">No activity stats yet</p>
             )}
-          </div>
+
+            {activeTab === "Projects" && <VisualPortfolio />}
+
+            {activeTab !== "Overview" && activeTab !== "Projects" && (
+              <div className="py-20 text-center animate-in fade-in duration-500">
+                <span className="material-symbols-outlined !text-6xl text-gh-text-secondary/20 mb-4">
+                  construction
+                </span>
+                <h3 className="text-xl font-bold text-gh-text mb-2">
+                  Content Coming Soon
+                </h3>
+                <p className="text-gh-text-secondary">
+                  The {activeTab} section for this user is currently under
+                  construction.
+                </p>
+              </div>
+            )}
+          </main>
         </div>
       </div>
-
-      {/* Follow List Modal */}
-      {userId && (
-        <FollowListModal
-          userId={userId}
-          type={modalType}
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
     </div>
   );
 };

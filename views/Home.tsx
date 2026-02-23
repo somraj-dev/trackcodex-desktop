@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ContinueWorkspaces from "../components/home/ContinueWorkspaces";
-import NeedsAttention from "../components/home/NeedsAttention";
-import JobHub from "../components/home/JobHub";
-import LearnGrow from "../components/home/LearnGrow";
-import { ActivityFeed } from "../components/activity/ActivityFeed";
-import styles from "./Home.module.css";
 
 
-const MockRepo = ({ name, description, lang, stars }: any) => (
+interface MockRepoProps {
+  name: string;
+  description: string;
+  lang: string;
+  stars: string;
+}
+
+const MockRepo = ({ name, description, lang, stars }: MockRepoProps) => (
   <div className="p-4 border-b border-gh-border last:border-0 hover:bg-gh-bg-secondary/50 group cursor-pointer transition-colors">
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-2">
@@ -207,10 +209,9 @@ const HomeView = () => {
 
         {/* --- ORIGINAL TRACKCODEX CONTENT BELOW --- */}
 
-        {/* Main Content Grid - Workspaces and Activity Feed */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 mt-12 pt-12 border-t border-gh-border">
-          {/* Left Column - Workspaces */}
-          <div className="lg:col-span-7 animate-slide-up">
+        {/* Main Content Grid - Workspaces */}
+        <div className="mb-12 mt-12 pt-12 border-t border-gh-border">
+          <div className="animate-slide-up">
             <section className="mb-12">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gh-text tracking-tight">
@@ -225,55 +226,9 @@ const HomeView = () => {
               </div>
               <ContinueWorkspaces />
             </section>
-
-            <div className="flex items-center gap-2 mb-6">
-              <span className="material-symbols-outlined text-rose-500 filled">
-                report
-              </span>
-              <h2 className="text-xl font-bold text-gh-text tracking-tight">
-                Critical Insights
-              </h2>
-            </div>
-            <NeedsAttention />
-          </div>
-
-          {/* Right Column - Activity Feed */}
-          <div className="lg:col-span-5 animate-slide-in-right">
-            <ActivityFeed />
           </div>
         </div>
 
-        {/* Grid for Job Hub and Learn & Grow */}
-        <div
-          className={`grid grid-cols-1 lg:grid-cols-12 gap-10 mb-12 animate-slide-up ${styles.animatedSection} ${styles.delay200}`}
-        >
-          <div className="lg:col-span-5">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary filled">
-                  work
-                </span>
-                <h2 className="text-xl font-bold text-gh-text tracking-tight">
-                  Marketplace Activity
-                </h2>
-              </div>
-              <button
-                onClick={() => navigate("/dashboard/jobs")}
-                className="text-primary text-sm font-bold hover:underline"
-              >
-                Browse Missions
-              </button>
-            </div>
-            <JobHub />
-          </div>
-
-          <div className="lg:col-span-7">
-            <h2 className="text-xl font-bold text-gh-text tracking-tight mb-6">
-              Ecosystem Highlights
-            </h2>
-            <LearnGrow />
-          </div>
-        </div>
       </div>
     </div>
   );

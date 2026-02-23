@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Users, Search, TrendingUp, UserPlus, Star } from "lucide-react";
-import { profileService } from "../services/profileService";
+import { profileService } from "../services/profile";
 import { useNavigate } from "react-router-dom";
 import "../styles/Explore.css";
 
