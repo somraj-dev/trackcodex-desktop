@@ -432,15 +432,29 @@ async function bootstrap() {
     });
 
     try {
+        // 12. Database Connection Check
+        if (!process.env.DATABASE_URL) {
+            console.error("❌ [FATAL] DATABASE_URL is not set in environment variables!");
+            process.exit(1);
+        }
+
+        const maskedDbUrl = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ":****@");
+        console.warn(`⏳ Connecting to database: ${maskedDbUrl}`);
+
         // Test DB connection
         await prisma.$connect();
-        console.warn("✅ Connected to PostgreSQL database");
+        console.warn("✅ Connected to PostgreSQL database successfully");
 
         const port = process.env.PORT ? parseInt(process.env.PORT) : 4000;
         await server.listen({ port, host: "0.0.0.0" });
         console.warn(
             `🚀 TrackCodex Backend operational on port ${port} (Secure Mode)`,
         );
+
+        if (!process.env.ENCRYPTION_KEY) {
+            console.warn("⚠️  [WARN] ENCRYPTION_KEY is not set. Security features will be limited.");
+        }
+
         if (process.env.NODE_ENV !== "production") {
             console.warn("---------------------------------------");
             console.warn("🔑 Developer Credentials:");
@@ -449,8 +463,11 @@ async function bootstrap() {
             console.warn("---------------------------------------");
         }
     } catch (err) {
+        console.error("❌ [FATAL] Backend startup failed:");
+        console.error(err);
         server.log.error(err);
         await prisma.$disconnect();
+        process.exit(1);
     }
 }
 
