@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/LegalPage.css";
+import "../../styles/LegalPage.css";
 
 const Privacy: React.FC = () => {
   return (
