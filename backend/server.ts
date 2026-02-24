@@ -436,7 +436,7 @@ async function bootstrap() {
     });
 
     try {
-        // 12. Database Connection Check
+        // 12. Database Connection Check (with retries for Render stability)
         if (!process.env.DATABASE_URL) {
             console.error("❌ [FATAL] DATABASE_URL is not set in environment variables!");
             process.exit(1);
@@ -445,9 +445,21 @@ async function bootstrap() {
         const maskedDbUrl = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ":****@");
         console.warn(`⏳ Connecting to database: ${maskedDbUrl}`);
 
-        // Test DB connection
-        await prisma.$connect();
-        console.warn("✅ Connected to PostgreSQL database successfully");
+        let connected = false;
+        let retries = 5;
+        while (retries > 0 && !connected) {
+            try {
+                await prisma.$connect();
+                connected = true;
+                console.warn("✅ Connected to PostgreSQL database successfully");
+            } catch (err) {
+                retries--;
+                console.error(`❌ Connection failed. Retries left: ${retries}`);
+                if (retries === 0) throw err;
+                console.warn("⏳ Waiting 5 seconds before next attempt...");
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+        }
 
         const port = process.env.PORT ? parseInt(process.env.PORT) : 4000;
         await server.listen({ port, host: "0.0.0.0" });
