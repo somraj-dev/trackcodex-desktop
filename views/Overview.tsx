@@ -60,10 +60,13 @@ const Overview = () => {
           api.repositories.list(),
         ]);
 
-        setWorkspaces(wsData);
+        const safeWsData = Array.isArray(wsData) ? wsData : [];
+        const safeRepoData = Array.isArray(repoData) ? repoData : [];
+
+        setWorkspaces(safeWsData);
         setStats({
-          workspaces: String(wsData.length),
-          repos: String(repoData.length),
+          workspaces: String(safeWsData.length),
+          repos: String(safeRepoData.length),
           intelligence: "12.4k",
           issues: "0",
         });

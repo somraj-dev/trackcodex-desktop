@@ -78,9 +78,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const list = await api.notifications.list(user.id);
-      setNotifications(list);
+      setNotifications(Array.isArray(list) ? list : []);
     } catch (e) {
       console.error("Failed to load notifications", e);
+      setNotifications([]);
     } finally {
       setIsLoading(false);
     }

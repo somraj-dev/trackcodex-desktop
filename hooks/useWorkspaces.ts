@@ -11,7 +11,7 @@ export const useWorkspaces = () => {
     // setLoading(true); // Removed to avoid sync state update in useEffect. Initial state is true.
     try {
       const data = await api.workspaces.list();
-      setWorkspaces(data);
+      setWorkspaces(Array.isArray(data) ? data : []);
     } catch (err: unknown) {
       console.error("Failed to fetch workspaces", err);
       const message =

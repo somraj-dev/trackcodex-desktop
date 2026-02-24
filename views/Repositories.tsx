@@ -90,8 +90,10 @@ const Repositories = () => {
       setLoading(true);
       try {
         const data = await api.repositories.list();
+        const safeData = Array.isArray(data) ? data : [];
+
         // Enrich backend data with UI indicators if missing
-        const enriched = data.map((repo) => ({
+        const enriched = safeData.map((repo: any) => ({
           ...repo,
           aiHealth: repo.aiHealth || (repo.stars > 500 ? "A+" : "B"),
           aiHealthLabel:
