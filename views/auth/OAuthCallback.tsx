@@ -99,14 +99,15 @@ const OAuthCallback: React.FC = () => {
 
         // Use navigate with small delay to ensure state is flushed
         setTimeout(() => navigate(redirectPath), 100);
-      } catch (err) {
-        const error = err as Error;
-        console.error("OAuth callback error:", error);
-        setError(error.message || "Authentication failed");
-        // Redirect to login after 3 seconds
+      } catch (err: any) {
+        console.error("OAuth callback error:", err);
+        const serverError = err.response?.data?.error || err.response?.data?.detail;
+        const errorMessage = serverError || err.message || "Authentication failed";
+        setError(errorMessage);
+        // Redirect to login after 5 seconds to give user time to read
         setTimeout(() => {
           navigate("/login");
-        }, 3000);
+        }, 5000);
       }
     };
 

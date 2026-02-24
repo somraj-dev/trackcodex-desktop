@@ -450,13 +450,21 @@ export async function authRoutes(fastify: FastifyInstance) {
         });
 
         // Encrypt tokens before storage
-        const encryptedAccessToken = encrypt(tokenData.access_token);
-        const encryptedRefreshToken = tokenData.refresh_token
-          ? encrypt(tokenData.refresh_token)
-          : undefined;
-        const encryptedIdToken = tokenData.id_token
-          ? encrypt(tokenData.id_token)
-          : undefined;
+        let encryptedAccessToken, encryptedRefreshToken, encryptedIdToken;
+        try {
+          encryptedAccessToken = encrypt(tokenData.access_token);
+          encryptedRefreshToken = tokenData.refresh_token
+            ? encrypt(tokenData.refresh_token)
+            : undefined;
+          encryptedIdToken = tokenData.id_token
+            ? encrypt(tokenData.id_token)
+            : undefined;
+        } catch (encError: any) {
+          console.error("Encryption failed. ENCRYPTION_KEY is likely missing.");
+          throw InternalError(
+            "Server Configuration Error: ENCRYPTION_KEY is not set in the environment variables."
+          );
+        }
 
         if (user) {
           // Link Verification
@@ -586,6 +594,14 @@ export async function authRoutes(fastify: FastifyInstance) {
         const realMessage = error?.message || String(error);
         request.log.error({ msg: "Google OAuth failed", error: realMessage });
         console.error("[AUTH/GOOGLE] REAL ERROR:", realMessage);
+
+        // Provide clear feedback for missing or invalid Google credentials
+        if (realMessage.includes("Google token exchange failed") || realMessage.includes("redirect_uri_mismatch")) {
+          throw InternalError(
+            "Server Configuration Error: Google token exchange failed. Please verify GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and REDIRECT_URI in the environment variables."
+          );
+        }
+
         // Return the real message in dev mode for easier debugging
         if (process.env.NODE_ENV !== "production") {
           return reply.code(500).send({ error: "Google login failed", detail: realMessage });
