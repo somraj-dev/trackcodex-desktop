@@ -436,36 +436,40 @@ async function bootstrap() {
     });
 
     try {
-        // 12. Database Connection Check (with retries for Render stability)
+        // 12. Bind to Port Early (to satisfy Render's port scan)
+        const port = process.env.PORT ? parseInt(process.env.PORT) : 4000;
+        await server.listen({ port, host: "0.0.0.0" });
+        console.warn(`🚀 TrackCodex Backend operational on port ${port} (Secure Mode)`);
+
+        // 13. Database Connection Check (with retries)
         if (!process.env.DATABASE_URL) {
             console.error("❌ [FATAL] DATABASE_URL is not set in environment variables!");
             process.exit(1);
         }
 
         const maskedDbUrl = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ":****@");
-        console.warn(`⏳ Connecting to database: ${maskedDbUrl}`);
+        console.warn(`⏳ Connecting to database in background: ${maskedDbUrl}`);
 
         let connected = false;
-        let retries = 5;
+        let retries = 10; // Increase retries for extra stability
         while (retries > 0 && !connected) {
             try {
                 await prisma.$connect();
                 connected = true;
                 console.warn("✅ Connected to PostgreSQL database successfully");
-            } catch (err) {
+            } catch (err: any) {
                 retries--;
-                console.error(`❌ Connection failed. Retries left: ${retries}`);
-                if (retries === 0) throw err;
-                console.warn("⏳ Waiting 5 seconds before next attempt...");
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                console.error(`❌ Connection failed [Retry ${10 - retries}/10]: ${err.message}`);
+                if (retries === 0) {
+                    console.error("❌ [FATAL] Database connection could not be established after all retries.");
+                    // In production, we might want to exit, but here we'll log and keep the port bound for debugging
+                    console.error("Check Render DATABASE_URL and Supabase Network Restrictions.");
+                    break;
+                }
+                console.warn("⏳ Waiting 10 seconds before next attempt...");
+                await new Promise(resolve => setTimeout(resolve, 10000));
             }
         }
-
-        const port = process.env.PORT ? parseInt(process.env.PORT) : 4000;
-        await server.listen({ port, host: "0.0.0.0" });
-        console.warn(
-            `🚀 TrackCodex Backend operational on port ${port} (Secure Mode)`,
-        );
 
         if (!process.env.ENCRYPTION_KEY) {
             console.warn("⚠️  [WARN] ENCRYPTION_KEY is not set. Security features will be limited.");
