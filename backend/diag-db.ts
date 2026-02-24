@@ -3,7 +3,7 @@ import pkg from 'pg';
 const { Client } = pkg;
 import process from 'process';
 
-console.error("🚀 DIAGNOSTIC START: Script is running...");
+console.error("🚀 DIAGNOSTIC START: Script is running (SSL BYPASS MODE)...");
 
 async function testConnection() {
     console.error("🔍 Starting Database Connectivity Diagnostic...");
@@ -17,26 +17,39 @@ async function testConnection() {
     const maskedUrl = url.replace(/:([^:@]+)@/, ":****@");
     console.error(`📡 Target URL (masked): ${maskedUrl}`);
 
-    const client = new Client({
+    // CONFIG 1: Standard Require
+    console.error("⏳ TEST 1: Attempting with sslmode=require (Standard)...");
+    const client1 = new Client({
         connectionString: url,
-        connectionTimeoutMillis: 15000,
+        connectionTimeoutMillis: 10000,
     });
 
     try {
-        console.error("⏳ Attempting raw TCP connection via node-postgres (15s timeout)...");
-        await client.connect();
-        console.error("✅ SUCCESS: Successfully connected to PostgreSQL via raw driver!");
+        await client1.connect();
+        console.error("✅ TEST 1 SUCCESS: Connected with standard SSL.");
+        await client1.end();
+    } catch (err: any) {
+        console.error(`❌ TEST 1 FAILED: ${err.message}`);
+    }
 
-        const res = await client.query('SELECT version()');
+    // CONFIG 2: SSL Bypass (rejectUnauthorized: false)
+    console.error("⏳ TEST 2: Attempting with rejectUnauthorized: false...");
+    const client2 = new Client({
+        connectionString: url,
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 10000,
+    });
+
+    try {
+        await client2.connect();
+        console.error("✅ TEST 2 SUCCESS: Connected with SSL Bypass!");
+        const res = await client2.query('SELECT version()');
         console.error("📊 DB Version:", res.rows[0].version);
-
-        await client.end();
-        console.error("🏁 DIAGNOSTIC COMPLETE: success.");
+        await client2.end();
+        console.error("🏁 DIAGNOSTIC COMPLETE: SSL Bypass works.");
         process.exit(0);
     } catch (err: any) {
-        console.error("❌ CONNECTION FAILED!");
-        console.error("Error Code:", err.code || "No Code");
-        console.error("Error Message:", err.message);
+        console.error(`❌ TEST 2 FAILED: ${err.message}`);
         console.error("Full Trace:", JSON.stringify(err, null, 2));
         process.exit(1);
     }
