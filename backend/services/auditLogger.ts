@@ -3,9 +3,9 @@
  * Logs all security-critical events for monitoring and compliance
  */
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export interface AuditEventData {
   userId?: string;

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from "../services/prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 // In-memory cache for Jobs List
 let jobsCache: any = null;
@@ -217,7 +217,7 @@ export async function jobRoutes(fastify: FastifyInstance) {
     // Fund Job (Escrow)
     fastify.post('/jobs/:id/fund', async (request, reply) => {
         const { id } = request.params as any;
-        const userId = request.headers['x-user-id'] || 'user-1'; // Employer
+        const userId = (request.headers['x-user-id'] as string) || 'user-1'; // Employer
 
         // 1. Get Job & Wallet
         const job = await prisma.job.findUnique({ where: { id } });
@@ -249,7 +249,7 @@ export async function jobRoutes(fastify: FastifyInstance) {
                         walletId: wallet.id,
                         amount: -amount,
                         type: 'ESCROW_HOLD',
-                        description: `Funded Escrow for Job: ${job.title}`,
+                        description: `Funded Escrow for Job: ${job.title} `,
                         referenceId: job.id
                     }
                 });

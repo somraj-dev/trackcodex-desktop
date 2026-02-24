@@ -1,8 +1,8 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function leaderboardRoutes(fastify: FastifyInstance) {
     fastify.get("/leaderboard", async (request: FastifyRequest, reply: FastifyReply) => {

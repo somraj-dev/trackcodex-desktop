@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
 import { AuditService } from "../services/audit";
 import {
@@ -10,7 +10,7 @@ import {
   Conflict,
 } from "../utils/AppError";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Organization Routes (GitHub Parity)

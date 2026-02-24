@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { prisma } from "../services/prisma";
 import { ActivityService } from "../services/activityService";
 import { requireRepoPermission, RepoLevel } from "../middleware/repoAuth";
 
@@ -39,10 +40,11 @@ export async function activityRoutes(fastify: FastifyInstance) {
   // Following Feed - Activity from users the current user follows
   fastify.get("/activity/following", async (request, reply) => {
     try {
+      // Shared prisma instance
       const { page, limit } = request.query as { page?: string; limit?: string };
       const pageNum = page ? parseInt(page) : 1;
       const limitNum = limit ? parseInt(limit) : 20;
-      
+
       // For now, return empty activities since follow system may not be fully implemented
       // This prevents 404 errors and allows the UI to render correctly
       return {

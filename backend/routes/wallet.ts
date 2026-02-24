@@ -1,7 +1,8 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from "../services/prisma";
 
-const prisma = new PrismaClient(); // Ideally import from shared lib if available
+// Shared prisma instance
+// Ideally import from shared lib if available
 
 export async function walletRoutes(fastify: FastifyInstance) {
 

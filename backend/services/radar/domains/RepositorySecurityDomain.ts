@@ -6,9 +6,9 @@
  *
  * All scores normalized 0-100. Pushed via event system.
  */
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export class RepositorySecurityDomain {
     /**

@@ -3,10 +3,10 @@
  * Provides secure HttpOnly cookie-based sessions with Redis backing
  */
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import crypto from "crypto";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export interface SessionData {
   userId: string;

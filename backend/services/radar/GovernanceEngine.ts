@@ -10,10 +10,10 @@
  *   Professional Reliability < 55 → Reduce ranking visibility
  *   Security Leadership > 85  → Grant advanced review privileges
  */
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../prisma";
 import { radarEventBus, RadarAxis, RADAR_AXES } from "./RadarService";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 // ─── Rule Actions ────────────────────────────────────────────────
 export type GovernanceAction =

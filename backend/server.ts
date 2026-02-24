@@ -5,7 +5,7 @@ console.warn("☢️  [INIT] NODE_TLS_REJECT_UNAUTHORIZED set to '0' (SSL Bypass
 // Fix: Import process from 'process' to ensure the Node.js process object is correctly typed
 import process from "process";
 import fs from "fs";
-// import { env } from "./config/env"; // Strict Env Validation
+import { env } from "./config/env"; // Strict Env Validation
 
 import Fastify, { FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
@@ -27,7 +27,7 @@ import { routes } from "./routes/index";
 // import { csrfProtection } from "./middleware/csrf";
 import { RealtimeService } from "./services/realtime";
 import { AppError } from "./utils/AppError";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./services/prisma";
 
 const server = Fastify({
     logger: true,
@@ -41,7 +41,7 @@ const server = Fastify({
     trustProxy: true,
 });
 
-const prisma = new PrismaClient();
+// Shared prisma instance imported from services/prisma
 
 // import { Resend } from "resend";
 // const resend = new Resend(process.env.RESEND_API_KEY || "re_123456789");
@@ -415,23 +415,17 @@ async function bootstrap() {
         server.log.error(error);
         console.error("DEBUG: UNHANDLED ERROR CAUGHT:", error);
 
-        // Force write to absolute path for debugging
-        try {
-            const errAny = error as any;
-            // fs and path are imported at the top
-            const logPath = path.resolve("backend_crash_forced.log");
-            const errorLog = `\n[${new Date().toISOString()}] ERROR: ${errAny.message}\n${errAny.stack || ""}\n`;
-            fs.appendFileSync(logPath, errorLog);
-        } catch (e) {
-            console.error("Log write failed", e);
-        }
+        // Security: Don't leak internals in prod, but add a tag
+        const isProd = process.env.NODE_ENV === "production";
+        const diagnosticMessage = isProd
+            ? "Internal Server Error (Ref: " + Date.now() + ")"
+            : (error as Error).message || "Unknown error";
 
-        reply.status(500).send({
+        reply.status(statusCode).send({
             success: false,
             code: "INTERNAL_SERVER_ERROR",
-            message: (error as Error).message || "Unknown Internal Error",
-            stack: (error as Error).stack,
-            original_error: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+            message: diagnosticMessage,
+            error: isProd ? undefined : error,
         });
     });
 

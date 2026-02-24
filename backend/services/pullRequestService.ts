@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { GitServer } from "./git/gitServer";
 import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 const gitServer = new GitServer();
 
 interface DiffStats {

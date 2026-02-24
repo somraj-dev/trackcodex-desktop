@@ -1,8 +1,8 @@
 import { Octokit } from "@octokit/rest";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { decrypt } from "./encryption";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export class GitHubService {
   /**

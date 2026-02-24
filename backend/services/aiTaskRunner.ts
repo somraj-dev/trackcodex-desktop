@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { AIOrchestrator } from "./aiOrchestrator";
 import { AuditService } from "./audit";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export class AITaskRunner {
   private static isPolling = false;

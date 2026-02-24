@@ -1,12 +1,12 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { requireAuth } from "./auth";
 import { IAMService, RepoLevel } from "../services/iamService";
 import { PolicyService, PolicyType } from "../services/policyService";
 
 export { RepoLevel };
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Middleware to require Repository Access/Permission

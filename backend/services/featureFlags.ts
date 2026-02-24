@@ -1,8 +1,8 @@
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from "./prisma";
 import { env } from '../config/env';
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export type FeatureFlagName =
     | 'ENABLE_REGISTRATION'

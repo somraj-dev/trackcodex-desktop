@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { AppError, BadRequest, NotFound, Forbidden } from "../utils/AppError";
 import { RealtimeService } from "../services/realtime";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function messageRoutes(fastify: FastifyInstance) {
   // 1. Get All Conversations for Current User

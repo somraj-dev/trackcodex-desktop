@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { GitServer } from "./git/gitServer";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 const gitServer = new GitServer();
 
 export interface SCMRepository {

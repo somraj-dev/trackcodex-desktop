@@ -54,8 +54,7 @@ export default async function (server: FastifyInstance) {
 
     if (authorEmail) {
       // Import Prisma
-      const { PrismaClient } = await import("@prisma/client");
-      const prisma = new PrismaClient();
+      const { prisma } = await import("../services/prisma");
 
       // Find user by email (assuming User has email, or we check UserKey directly if linked)
       // Schema: UserKey linked to User. User has email?

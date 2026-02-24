@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 const toGlobalId = (type: string, id: string) =>
   Buffer.from(`${type}:${id}`).toString("base64");

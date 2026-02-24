@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from "./prisma";
 import { ChatService } from './chat';
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export class NotificationService {
 

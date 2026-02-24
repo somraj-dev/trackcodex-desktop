@@ -1,8 +1,7 @@
-import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function userRoutes(fastify: FastifyInstance) {
   // Export User Data
@@ -343,9 +342,9 @@ export async function userRoutes(fastify: FastifyInstance) {
       // Get users the current user is NOT following
       const following = currentUser
         ? await prisma.follow.findMany({
-            where: { followerId: currentUser.id },
-            select: { followingId: true },
-          })
+          where: { followerId: currentUser.id },
+          select: { followingId: true },
+        })
         : [];
 
       const followingIds = following.map((f) => f.followingId);

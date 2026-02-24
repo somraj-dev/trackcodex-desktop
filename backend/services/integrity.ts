@@ -110,8 +110,8 @@ export class CryptographicService {
       console.error("SSH Verification Error", e);
       return false;
     } finally {
-      await fs.unlink(sigPath).catch(() => {});
-      await fs.unlink(allowedSignersPath).catch(() => {});
+      await fs.unlink(sigPath).catch(() => { });
+      await fs.unlink(allowedSignersPath).catch(() => { });
     }
   }
 
@@ -154,8 +154,8 @@ export class CryptographicService {
    * Requires direct access to the repo via isomorphic-git.
    */
   static async ingestCommit(repoPath: string, sha: string) {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
+    // Shared prisma instance
+    const { prisma } = await import("./prisma");
 
     // 1. Read Commit using isomorphic-git
     const commitResult = await git.readCommit({

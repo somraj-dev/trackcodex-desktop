@@ -12,6 +12,7 @@
  *   POST /radar/governance/seed   — Seed default governance rules
  */
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { prisma } from "../services/prisma";
 
 export async function radarRoutes(fastify: FastifyInstance) {
     // ─── GET /radar/:userId — Full 5-axis radar state ────────────
@@ -19,6 +20,7 @@ export async function radarRoutes(fastify: FastifyInstance) {
         const { userId } = request.params as { userId: string };
         try {
             const { radarService } = await import("../services/radar/RadarService");
+            // Shared prisma instance
             const data = await radarService.getUserRadar(userId);
             if (data) return data;
         } catch (e) {

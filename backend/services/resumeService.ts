@@ -1,9 +1,9 @@
 import fs from "fs/promises";
 import path from "path";
 import { createHash } from "crypto";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 // Storage configuration
 const RESUME_STORAGE_PATH = path.join(

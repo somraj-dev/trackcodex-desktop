@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { GitServer } from "./git/gitServer";
 import fs from "fs/promises";
 import path from "path";
 import { spawn } from "child_process";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 const gitServer = new GitServer();
 
 export class RavenIndexer {

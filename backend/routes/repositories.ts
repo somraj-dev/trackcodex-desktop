@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import fs from "fs";
 import path from "path";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { SCMService } from "../services/scmService";
 import { GitHubService } from "../services/github";
 import { requireAuth } from "../middleware/auth";
@@ -20,7 +20,7 @@ import {
   requireRepoCapability,
 } from "../middleware/repoAuth";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Repository Routes (GitHub Parity)

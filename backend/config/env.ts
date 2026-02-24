@@ -12,6 +12,11 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
 
+  // Security
+  ENCRYPTION_KEY: z
+    .string()
+    .min(32, "ENCRYPTION_KEY must be at least 32 characters"),
+
   // Database
   DATABASE_URL: z.string().url(),
 
@@ -34,7 +39,7 @@ const envSchema = z.object({
   REDIS_URL: z.string().url().optional(),
 
   // Frontend
-  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+  FRONTEND_URL: z.string().url(),
 });
 
 // Parse and validate

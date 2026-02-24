@@ -11,10 +11,10 @@
  * DESIGN RULE: This engine NEVER knows domain internals.
  * It only consumes normalized 0-100 scores from domain tables.
  */
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../prisma";
 import { EventEmitter } from "events";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 // ─── Axis Definitions ────────────────────────────────────────────
 export const RADAR_AXES = [
