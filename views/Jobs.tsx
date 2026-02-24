@@ -17,8 +17,9 @@ const Jobs = () => {
       setLoading(true);
       try {
         const data = await api.jobs.list();
+        const safeData = Array.isArray(data) ? data : [];
         // Robust mapping to handle backend schema variations
-        const enriched = data.map((job: any) => ({
+        const enriched = safeData.map((job: any) => ({
           ...job,
           id: job.id || String(Math.random()),
           title: job.title || "Untitled Opportunity",
@@ -87,11 +88,10 @@ const Jobs = () => {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${
-                filter === f
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${filter === f
                   ? "bg-primary border-primary text-white"
                   : "bg-gh-bg-secondary border-gh-border text-gh-text-secondary hover:border-gh-text"
-              }`}
+                }`}
             >
               {f}
             </button>
@@ -166,7 +166,7 @@ const Jobs = () => {
       <CreateJobModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={() => {}}
+        onSubmit={() => { }}
       />
     </div>
   );
