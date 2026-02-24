@@ -125,6 +125,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         return {
           message: "Registration successful",
           csrfToken,
+          sessionId,
           user: {
             id: user.id,
             email: user.email,
@@ -216,6 +217,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         return {
           message: "Dev login successful",
           csrfToken,
+          sessionId,
           user: {
             id: user.id,
             email: user.email,
@@ -236,8 +238,14 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.get("/auth/me", async (request, reply) => {
     try {
       console.log("DEBUG: /me called");
-      const sessionId = request.cookies.session_id;
-      console.log("DEBUG: Session ID from cookie:", sessionId);
+      let sessionId = request.cookies.session_id;
+      if (!sessionId && request.headers.authorization) {
+        const authHeader = request.headers.authorization;
+        if (authHeader.startsWith("Bearer ")) {
+          sessionId = authHeader.substring(7);
+        }
+      }
+      console.log("DEBUG: Session ID from cookie/header:", sessionId);
 
       if (!sessionId) {
         console.log("DEBUG: No session ID");
@@ -398,6 +406,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         return {
           message: "Login successful",
           csrfToken,
+          sessionId,
           user: {
             id: user.id,
             email: user.email,
@@ -584,6 +593,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         return {
           message: "OAuth login successful",
           csrfToken,
+          sessionId,
           user: {
             id: user.id,
             email: user.email,
@@ -760,6 +770,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         return {
           message: "OAuth login successful",
           csrfToken,
+          sessionId,
           user: {
             id: user.id,
             email: user.email,
@@ -782,7 +793,14 @@ export async function authRoutes(fastify: FastifyInstance) {
     "/auth/logout",
     { preHandler: requireAuth },
     async (request, reply) => {
-      const sessionId = request.cookies.session_id;
+      let sessionId = request.cookies.session_id;
+      if (!sessionId && request.headers.authorization) {
+        const authHeader = request.headers.authorization;
+        if (authHeader.startsWith("Bearer ")) {
+          sessionId = authHeader.substring(7);
+        }
+      }
+
       if (sessionId) {
         await revokeSession(sessionId);
         reply.clearCookie("session_id", { path: "/" });

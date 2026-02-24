@@ -4,6 +4,7 @@ import { socialService, Post } from "../services/socialService";
 import { CommunityBrowser } from "../components/community/CommunityBrowser";
 import { CreatePostModal } from "../components/community/CreatePostModal";
 import UserHoverCard from "../components/community/UserHoverCard";
+import { profileService, UserProfile } from "../services/profile";
 
 const CommunityView = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const CommunityView = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("for-you");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   const [sidebarView, setSidebarView] = useState<"channels" | "communities">(
     "channels",
@@ -18,6 +20,7 @@ const CommunityView = () => {
 
   useEffect(() => {
     loadFeed();
+    setCurrentUser(profileService.getProfile());
   }, []);
 
   const loadFeed = async () => {
@@ -131,7 +134,7 @@ const CommunityView = () => {
             <div className="flex gap-3">
               <div className="shrink-0">
                 <img
-                  src="https://i.pravatar.cc/150?u=arivera"
+                  src={currentUser?.avatar || "https://ui-avatars.com/api/?name=User&background=random"}
                   alt="Current User"
                   className="size-10 rounded-full object-cover border border-gh-border"
                 />

@@ -75,6 +75,46 @@ export async function repositoryRoutes(fastify: FastifyInstance) {
     },
   );
 
+  // Get Repository Details by Owner and Name (Case-insensitive)
+  fastify.get(
+    "/repositories/by-name/:owner/:name",
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      const { owner, name } = request.params as { owner: string; name: string };
+
+      const repo = await prisma.repository.findFirst({
+        where: {
+          name: { equals: name, mode: "insensitive" },
+          owner: {
+            username: { equals: owner, mode: "insensitive" }
+          }
+        },
+        include: {
+          org: true,
+          securityAlerts: true,
+          aiTasks: true,
+          branchProtections: true,
+        },
+      });
+
+      if (!repo) throw NotFound("Repository not found");
+
+      // We still need to enforce basic READ access logic similar to middleware
+      // since we bypassed `requireRepoPermission` to do the initial lookup.
+      if (!repo.isPublic && repo.ownerId !== request.user?.userId) {
+        // Full RBAC check using IAMService
+        const { IAMService } = await import("../services/iamService");
+        const actualLevel = request.user ? await IAMService.getRepoPermission(request.user.userId, repo.id) : null;
+
+        if (!actualLevel && request.user?.role !== "super_admin") {
+          throw Unauthorized("You do not have permission to access this repository.");
+        }
+      }
+
+      return repo;
+    },
+  );
+
   // Get Repository Details
   fastify.get(
     "/repositories/:id",

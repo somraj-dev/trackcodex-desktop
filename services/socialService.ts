@@ -85,83 +85,18 @@ export interface Community {
   };
 }
 
-const MOCK_POSTS: Post[] = [
-  {
-    id: "mock-1",
-    title: "Introducing TrackCodex: The Future of Developer Workspaces",
-    content: "We're excited to reveal what we've been working on! TrackCodex is a gamified, all-in-one developer productivity platform. Check out our new workspace features!",
-    type: "showcase",
-    author: {
-      id: "u1",
-      name: "TrackCodex Team",
-      username: "trackcodexteam",
-      avatar: "https://github.com/Quantaforge-trackcodex.png",
-      role: "Core Team",
-      karma: 9001,
-    },
-    createdAt: new Date().toISOString(),
-    comments: [],
-    likes: 128,
-    mediaUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    id: "mock-2",
-    content: "Does anyone have experience with the new React 19 compiler? I'm trying to optimize a large dashboard and wondering if it's worth the migration effort right now.",
-    type: "question",
-    author: {
-      id: "u2",
-      name: "Sarah Chen",
-      username: "sarahchen",
-      avatar: "https://i.pravatar.cc/150?u=sarah",
-      role: "Frontend Lead",
-      karma: 4200,
-    },
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    comments: [],
-    likes: 42,
-    codeSnippet: {
-      language: "tsx",
-      code: "const Dashboard = () => {\n  // Looking to optimize this rendering\n  return <ComplexChart data={largeDataset} />;\n}",
-    },
-  },
-  {
-    id: "mock-3",
-    type: "repo_update",
-    content: "New release v2.0 is out! Major performance improvements and a new plugin system.",
-    author: {
-      id: "u3",
-      name: "Rust Foundation",
-      username: "rustlang",
-      avatar: "https://avatars.githubusercontent.com/u/5430905?s=200&v=4",
-      karma: 8800,
-    },
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-    comments: [],
-    likes: 89,
-    repoLink: {
-      name: "rust-lang/rust",
-      description: "Empowering everyone to build reliable and efficient software.",
-      stars: 94120,
-      language: "Rust",
-    },
-  },
-];
+// MOCK_POSTS removed to ensure real database usage
 
 export const socialService = {
   getFeed: async (): Promise<Post[]> => {
     try {
-      // Return mocks for now, or merge with real data if available
-      // const response = await axios.get(`${API_BASE_URL}/community/posts`, {
-      //   withCredentials: true,
-      // });
-      // return [...MOCK_POSTS, ...response.data...];
-
-      // For now, just return mock posts to guarantee they appear
-      return MOCK_POSTS;
+      const response = await axios.get(`${API_BASE_URL}/community/posts`, {
+        withCredentials: true,
+      });
+      return response.data || [];
     } catch (err) {
       console.error("❌ Failed to fetch community feed:", err);
-      // Fallback to mocks
-      return MOCK_POSTS;
+      return [];
     }
   },
 

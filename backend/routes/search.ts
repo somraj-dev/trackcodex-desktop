@@ -27,9 +27,9 @@ export async function searchRoutes(fastify: FastifyInstance) {
           prisma.user.findMany({
             where: {
               OR: [
-                { name: { contains: query } }, // Case insensitive in standard SQL, Prisma standard depends on DB
-                { username: { contains: query } },
-                { email: { contains: query } },
+                { name: { contains: query, mode: "insensitive" } },
+                { username: { contains: query, mode: "insensitive" } },
+                { email: { contains: query, mode: "insensitive" } },
               ],
             },
             take: 5,
@@ -38,7 +38,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
 
           // 2. Organizations
           prisma.organization.findMany({
-            where: { name: { contains: query } },
+            where: { name: { contains: query, mode: "insensitive" } },
             take: 5,
             select: { id: true, name: true },
           }),
@@ -48,8 +48,8 @@ export async function searchRoutes(fastify: FastifyInstance) {
           prisma.repository.findMany({
             where: {
               OR: [
-                { name: { contains: query } },
-                { description: { contains: query } },
+                { name: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
               ],
               // isPublic: true // Assume public for search scope in this demo
             },
@@ -61,7 +61,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
           prisma.workspace.findMany({
             where: {
               ownerId: user.userId,
-              name: { contains: query },
+              name: { contains: query, mode: "insensitive" },
             },
             take: 5,
             select: { id: true, name: true, status: true },
@@ -71,8 +71,8 @@ export async function searchRoutes(fastify: FastifyInstance) {
           prisma.job.findMany({
             where: {
               OR: [
-                { title: { contains: query } },
-                { description: { contains: query } },
+                { title: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
               ],
             },
             take: 5,

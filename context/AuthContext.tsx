@@ -29,7 +29,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (userData: User, csrfToken: string) => void;
+  login: (userData: User, csrfToken: string, sessionId?: string) => void;
   logout: () => void;
   csrfToken: string | null;
 }
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
   const [isLoading, setIsLoading] = useState(true);
 
-  // Configure axios interceptor to attach CSRF token
+  // Configure axios interceptor to attach CSRF token and Session ID
   useEffect(() => {
     const interceptor = api.interceptors.request.use((config) => {
       // CSRF token is needed for state-changing requests
@@ -68,6 +68,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       ) {
         config.headers["X-CSRF-Token"] = csrfToken;
       }
+
+      const sessionId = localStorage.getItem("session_id");
+      if (sessionId) {
+        config.headers["Authorization"] = `Bearer ${sessionId}`;
+      }
+
       return config;
     });
 
@@ -89,6 +95,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             setCsrfToken(res.data.csrfToken);
             localStorage.setItem("csrf_token", res.data.csrfToken);
           }
+          if (res.data.sessionId) {
+            localStorage.setItem("session_id", res.data.sessionId);
+          }
         }
       } catch (error) {
         console.warn(
@@ -100,6 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser(null);
         setCsrfToken(null);
         localStorage.removeItem("csrf_token");
+        localStorage.removeItem("session_id");
       } finally {
         console.log(
           "AuthContext: checkAuthStatus finished, setting isLoading false",
@@ -111,10 +121,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     checkAuthStatus();
   }, []);
 
-  const login = (userData: User, token: string) => {
+  const login = (userData: User, token: string, sessionId?: string) => {
     setUser(userData);
     setCsrfToken(token);
     localStorage.setItem("csrf_token", token);
+    if (sessionId) {
+      localStorage.setItem("session_id", sessionId);
+    }
     // Seed the profile with real user data
     profileService.initFromAuth(userData);
   };
@@ -128,6 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(null);
       setCsrfToken(null);
       localStorage.removeItem("csrf_token");
+      localStorage.removeItem("session_id");
       // Clear any profile data so the next user starts fresh
       profileService.clearProfile();
       window.location.href = "/login";

@@ -1,44 +1,7 @@
 import React, { useState } from "react";
 
 const UserManager = () => {
-  const [users, setUsers] = useState([
-    {
-      id: "1",
-      name: "Alex Rivers",
-      email: "alex@trackcodex.io",
-      role: "Super Admin",
-      status: "Active",
-      joined: "Oct 2023",
-      avatar: "https://picsum.photos/seed/alex/64",
-    },
-    {
-      id: "2",
-      name: "Sarah Chen",
-      email: "sarah.c@trackcodex.io",
-      role: "Org Admin",
-      status: "Active",
-      joined: "Nov 2023",
-      avatar: "https://picsum.photos/seed/sarah/64",
-    },
-    {
-      id: "3",
-      name: "Marcus Thorne",
-      email: "m.thorne@partner.com",
-      role: "Moderator",
-      status: "Active",
-      joined: "Dec 2023",
-      avatar: "https://picsum.photos/seed/marcus/64",
-    },
-    {
-      id: "4",
-      name: "David Kim",
-      email: "david@test.com",
-      role: "Developer",
-      status: "Suspended",
-      joined: "Jan 2024",
-      avatar: "https://picsum.photos/seed/david/64",
-    },
-  ]);
+  const [users, setUsers] = useState<any[]>([]);
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500">
@@ -104,13 +67,12 @@ const UserManager = () => {
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${
-                        user.role === "Super Admin"
+                      className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${user.role === "Super Admin"
                           ? "bg-primary/10 border-primary/20 text-primary"
                           : user.role === "Moderator"
                             ? "bg-rose-500/10 border-rose-500/20 text-rose-500"
                             : "bg-slate-500/10 border-slate-500/20 text-slate-400"
-                      }`}
+                        }`}
                     >
                       {user.role}
                     </span>

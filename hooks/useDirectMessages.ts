@@ -21,20 +21,7 @@ export interface Conversation {
 }
 
 export const useDirectMessages = () => {
-  const [conversations, setConversations] = useState<Conversation[]>([
-    {
-      id: 'conv-1',
-      participants: [{ id: 'sarah_backend', name: 'Sarah Chen', avatar: 'https://picsum.photos/seed/sarah/64' }],
-      lastMessage: 'Let me know when the PR is ready.',
-      lastTimestamp: '10:45 AM',
-      unreadCount: 0,
-      messages: [
-        { id: 'm1', senderId: 'sarah_backend', text: 'Hey Alex, how is the auth refactor going?', timestamp: '10:30 AM', status: 'seen' },
-        { id: 'm2', senderId: 'current', text: 'Almost done. Just fixing the test cases.', timestamp: '10:42 AM', status: 'seen' },
-        { id: 'm3', senderId: 'sarah_backend', text: 'Great! Let me know when the PR is ready.', timestamp: '10:45 AM', status: 'seen' },
-      ]
-    }
-  ]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -65,23 +52,7 @@ export const useDirectMessages = () => {
       return c;
     }));
 
-    // Simulate real-time reply from Sarah for demo purposes
-    if (activeConvId === 'conv-1') {
-      setTimeout(() => {
-        setIsTyping(true);
-        setTimeout(() => {
-          setIsTyping(false);
-          const reply: Message = {
-            id: `msg-${Date.now() + 1}`,
-            senderId: 'sarah_backend',
-            text: "Understood. I'll review it ASAP.",
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: 'delivered'
-          };
-          setConversations(convs => convs.map(c => c.id === 'conv-1' ? { ...c, messages: [...c.messages, reply], lastMessage: reply.text } : c));
-        }, 2000);
-      }, 1000);
-    }
+    // Simulation removed
   }, [activeConvId]);
 
   useEffect(() => {

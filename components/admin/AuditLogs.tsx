@@ -1,40 +1,7 @@
 import React from "react";
 
 const AuditLogs = () => {
-  const logs = [
-    {
-      id: "a1",
-      timestamp: "2024-11-09 14:23:12",
-      actor: "Alex Rivers",
-      action: "ROLE_CHANGE",
-      target: "Sarah Chen (Org Admin -> Super Admin)",
-      severity: "Critical",
-    },
-    {
-      id: "a2",
-      timestamp: "2024-11-09 13:45:04",
-      actor: "System",
-      action: "VULNERABILITY_DETECTED",
-      target: "trackcodex-backend",
-      severity: "High",
-    },
-    {
-      id: "a3",
-      timestamp: "2024-11-09 11:20:55",
-      actor: "Marcus Thorne",
-      action: "CONTENT_MODERATION",
-      target: "Post #9023 (Spam Filter Override)",
-      severity: "Info",
-    },
-    {
-      id: "a4",
-      timestamp: "2024-11-09 10:05:32",
-      actor: "Sarah Chen",
-      action: "WORKSPACE_TERMINATED",
-      target: "Abandoned Session #WS-04",
-      severity: "Warning",
-    },
-  ];
+  const logs: any[] = [];
 
   const getSeverityStyle = (s: string) => {
     switch (s) {

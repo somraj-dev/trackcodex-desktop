@@ -16,6 +16,7 @@ export interface TechStatus {
   text: string;
   emoji: string;
   expiresAt?: number; // timestamp
+  busy?: boolean;
 }
 
 export interface Achievement {
@@ -113,62 +114,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   receivedReviews: [],
 };
 
-export const MOCK_USERS: UserProfile[] = [
-  {
-    ...DEFAULT_PROFILE,
-    id: "user-alex",
-    name: "Alex Rivera",
-    username: "@arivera",
-    role: "Senior Frontend Engineer",
-    skills: [
-      { name: "React", level: 95 },
-      { name: "TypeScript", level: 90 },
-      { name: "Three.js", level: 85 },
-    ],
-    avatar: "https://i.pravatar.cc/150?u=u1",
-    bio: "Frontend wizard creating immersive 3D web experiences.",
-    location: "San Francisco, CA",
-    followers: 1240,
-    following: 340,
-    communityKarma: 4500,
-  },
-  {
-    ...DEFAULT_PROFILE,
-    id: "user-sarah",
-    name: "Sarah Chen",
-    username: "@schen_ai",
-    role: "AI Research Scientist",
-    skills: [
-      { name: "Python", level: 98 },
-      { name: "PyTorch", level: 95 },
-      { name: "LLMs", level: 92 },
-    ],
-    avatar: "https://i.pravatar.cc/150?u=u2",
-    bio: "Building the next generation of reasoning models.",
-    location: "London, UK",
-    followers: 8900,
-    following: 120,
-    communityKarma: 12000,
-  },
-  {
-    ...DEFAULT_PROFILE,
-    id: "user-david",
-    name: "David Kim",
-    username: "@dkim",
-    role: "Full Stack Developer",
-    skills: [
-      { name: "Node.js", level: 88 },
-      { name: "PostgreSQL", level: 85 },
-      { name: "React", level: 80 },
-    ],
-    avatar: "https://i.pravatar.cc/150?u=u3",
-    bio: "Full stack dev loving the JS ecosystem.",
-    location: "Seoul, South Korea",
-    followers: 450,
-    following: 890,
-    communityKarma: 2100,
-  },
-];
+// MOCK_USERS removed to enforce real database usage
 
 const STORAGE_KEY = "trackcodex_user_profile";
 const STORAGE_USER_ID_KEY = "trackcodex_profile_user_id";
@@ -256,7 +202,7 @@ export const profileService = {
       return this.getProfile();
     }
 
-    return MOCK_USERS.find((u) => u.username === query) || null;
+    return null;
   },
 
   updateProfile(updates: Partial<UserProfile>) {
@@ -399,15 +345,11 @@ export const profileService = {
   async getProfileByIdOrUsername(idOrUsername: string): Promise<UserProfile> {
     if (!idOrUsername) throw new Error("User ID or username is required");
 
-    // 1. Check Mock Users
-    const query = idOrUsername.startsWith("@") ? idOrUsername : "@" + idOrUsername;
-    const mockUser = MOCK_USERS.find(
-      (u) => u.id === idOrUsername || u.username === query || u.username === idOrUsername
-    );
-    if (mockUser) return mockUser;
+    // 1. Removed mock checkout logic
 
     // 2. Check for current user
     const current = this.getProfile();
+    const query = idOrUsername.startsWith("@") ? idOrUsername : "@" + idOrUsername;
     if (current.id === idOrUsername || current.username === query || current.username === idOrUsername) {
       return current;
     }
@@ -524,9 +466,9 @@ export const profileService = {
       const response = await axios.get(`${API_BASE_URL}/users/trending`, {
         withCredentials: true,
       });
-      return response.data.length > 0 ? response.data : MOCK_USERS;
+      return response.data || [];
     } catch (error) {
-      return MOCK_USERS;
+      return [];
     }
   },
 
@@ -538,9 +480,9 @@ export const profileService = {
       const response = await axios.get(`${API_BASE_URL}/users/suggested`, {
         withCredentials: true,
       });
-      return response.data.length > 0 ? response.data : [...MOCK_USERS].reverse();
+      return response.data || [];
     } catch (error) {
-      return [...MOCK_USERS].reverse();
+      return [];
     }
   },
 
@@ -565,11 +507,8 @@ export const profileService = {
 
       return results;
     } catch (error) {
-      console.warn("User search API failed, using mock fallback", error);
-      return MOCK_USERS.filter(u =>
-        u.name.toLowerCase().includes(query.toLowerCase()) ||
-        u.username.toLowerCase().includes(query.toLowerCase())
-      );
+      console.warn("User search API failed", error);
+      return [];
     }
   }
 };

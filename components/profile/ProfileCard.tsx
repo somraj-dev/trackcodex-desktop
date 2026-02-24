@@ -4,8 +4,10 @@ import { profileService, UserProfile } from "../../services/profile";
 import OfferJobModal from "../jobs/offer/OfferJobModal";
 import { directMessageBus } from "../../services/directMessageBus";
 import FollowListModal from "./FollowListModal";
+import { useAuth } from "../../context/AuthContext";
 
 import ProofProfileModal from "./ProofProfileModal";
+import EditStatusModal from "./EditStatusModal";
 
 const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
   const navigate = useNavigate();
@@ -20,10 +22,14 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
     }
   }, [propProfile, profile.username]);
 
+  const { user: currentUser } = useAuth();
+  const isSelf = currentUser?.username === profile.username || currentUser?.id === profile.id;
+
   const [isFollowing, setIsFollowing] = useState(false);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [isProofProfileOpen, setIsProofProfileOpen] = useState(false);
   const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+  const [isEditStatusOpen, setIsEditStatusOpen] = useState(false);
   const [followModalType, setFollowModalType] = useState<
     "followers" | "following"
   >("followers");
@@ -79,56 +85,83 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
             alt={profile.name}
           />
 
-          {/* Status Badge (Always Visible) */}
-          {profile.techStatus && profile.techStatus.emoji && (
-            <div className="absolute bottom-4 right-4 size-10 rounded-full bg-gh-bg-secondary border border-gh-border flex items-center justify-center text-xl shadow-lg z-20 group-hover:scale-110 transition-transform neon-text">
-              {profile.techStatus.emoji}
+          {/* Status Badge */}
+          {(profile.techStatus?.emoji || isSelf) && (
+            <div
+              className={`absolute bottom-4 right-4 size-10 rounded-full bg-gh-bg-secondary border border-gh-border flex items-center justify-center text-xl shadow-lg z-20 transition-transform ${isSelf ? 'cursor-pointer hover:border-primary/50' : ''} neon-text`}
+              onClick={(e) => {
+                if (isSelf) {
+                  e.stopPropagation();
+                  setIsEditStatusOpen(true);
+                }
+              }}
+              title={isSelf ? "Edit status" : profile.techStatus?.text}
+            >
+              {profile.techStatus?.emoji || "😊"}
 
               {/* Status Tooltip (On Hover) */}
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-[#030014] border border-primary/20 rounded-lg px-4 py-2 w-max max-w-[200px] shadow-2xl opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50">
-                <p className="text-xs text-white cursor-text font-medium text-center">
-                  <span className="mr-1">{profile.techStatus.emoji}</span>
-                  {profile.techStatus.text}
-                </p>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#030014] border-b border-r border-primary/20 rotate-45"></div>
-              </div>
+              {profile.techStatus?.text && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 bg-[#030014] border border-primary/20 rounded-lg px-4 py-2 w-max max-w-[200px] shadow-2xl opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50">
+                  <p className="text-xs text-white cursor-text font-medium text-center flex items-center gap-1">
+                    <span>{profile.techStatus.emoji}</span>
+                    <span className="truncate">{profile.techStatus.text}</span>
+                  </p>
+                  <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#030014] border-b border-r border-primary/20 rotate-45"></div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-[26px] font-bold text-gh-text leading-tight">
           {profile.name}
         </h1>
+        <p className="text-[20px] text-gh-text-secondary font-light">
+          {profile.username.startsWith('@') ? profile.username.substring(1) : profile.username}
+        </p>
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          onClick={handleFollow}
-          className={`flex-1 px-4 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1 ${isFollowing ? "bg-gh-bg-secondary text-gh-text-secondary border-gh-border hover:border-gh-text-secondary" : "bg-emerald-500/5 text-emerald-500 border-emerald-500/50 hover:bg-emerald-500/10 hover:shadow-[0_0_10px_rgba(16,185,129,0.2)]"}`}
-          title={isFollowing ? "Unfollow" : "Follow for Updates"}
-        >
-          <span className="material-symbols-outlined !text-[16px]">
-            {isFollowing ? "check" : "person_add"}
-          </span>
-          {isFollowing ? "Following" : "Follow"}
-        </button>
-        <button
-          onClick={handleOffer}
-          className="px-4 py-2 bg-gh-bg-secondary text-gh-text border border-gh-border rounded-lg text-xs font-bold hover:border-primary/50 hover:text-primary transition-all hover:shadow-[0_0_10px_rgba(139,92,246,0.2)]"
-        >
-          Job Offer
-        </button>
-        <button
-          onClick={handleMessage}
-          className="px-4 py-2 bg-gh-bg-secondary text-gh-text border border-gh-border rounded-lg text-xs font-bold hover:border-primary/50 hover:text-primary transition-all hover:shadow-[0_0_10px_rgba(139,92,246,0.2)]"
-        >
-          Message
-        </button>
-      </div>
+      {profile.bio && (
+        <p className="text-base text-gh-text mb-6">{profile.bio}</p>
+      )}
 
-      <p className="text-base text-gh-text mb-6">{profile.bio}</p>
+      {isSelf ? (
+        <div className="mb-6">
+          <button
+            onClick={() => navigate("/settings/profile")}
+            className="w-full py-1.5 bg-gh-bg-secondary text-gh-text border border-gh-border rounded-md text-sm font-bold hover:border-gh-text-secondary transition-colors"
+          >
+            Edit profile
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 mb-6">
+          <button
+            onClick={handleFollow}
+            className={`flex-1 px-4 py-1.5 rounded-md text-sm font-bold border transition-all flex items-center justify-center gap-1 ${isFollowing ? "bg-gh-bg-secondary text-gh-text-secondary border-gh-border hover:border-gh-text-secondary" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/50 hover:bg-emerald-500/20"}`}
+            title={isFollowing ? "Unfollow" : "Follow for Updates"}
+          >
+            <span className="material-symbols-outlined !text-[16px]">
+              {isFollowing ? "check" : "person_add"}
+            </span>
+            {isFollowing ? "Following" : "Follow"}
+          </button>
+          <button
+            onClick={handleOffer}
+            className="px-4 py-1.5 bg-gh-bg-secondary text-gh-text border border-gh-border rounded-md text-sm font-bold hover:border-primary/50 transition-all hover:text-primary"
+          >
+            Job Offer
+          </button>
+          <button
+            onClick={handleMessage}
+            className="px-4 py-1.5 bg-gh-bg-secondary text-gh-text border border-gh-border rounded-md text-sm font-bold hover:border-primary/50 transition-all hover:text-primary"
+          >
+            Message
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center gap-4 mb-6 text-sm">
         <span className="material-symbols-outlined !text-base text-gh-text-secondary">
@@ -159,24 +192,75 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
         </button>
       </div>
 
-      <div className="space-y-3 text-sm mb-8">
+      <div className="space-y-3 text-sm mb-8 mt-6">
+        {profile.company && (
+          <div className="flex items-center gap-3 text-gh-text">
+            <span className="material-symbols-outlined !text-[20px] text-gh-text-secondary">
+              business
+            </span>
+            <span>{profile.company}</span>
+          </div>
+        )}
         {profile.location && (
           <div className="flex items-center gap-3 text-gh-text">
-            <span className="material-symbols-outlined !text-lg text-gh-text-secondary">
+            <span className="material-symbols-outlined !text-[20px] text-gh-text-secondary">
               {profile.useGPSLocation ? "my_location" : "location_on"}
             </span>
             <span>{profile.location}</span>
           </div>
         )}
+        {(profile.publicEmail || profile.email) && (
+          <div className="flex items-center gap-3 text-gh-text">
+            <span className="material-symbols-outlined !text-[20px] text-gh-text-secondary">
+              mail
+            </span>
+            <a href={`mailto:${profile.publicEmail || profile.email}`} className="hover:text-primary transition-colors hover:underline">
+              {profile.publicEmail || profile.email}
+            </a>
+          </div>
+        )}
+        {profile.website && (
+          <div className="flex items-center gap-3 text-gh-text">
+            <span className="material-symbols-outlined !text-[20px] text-gh-text-secondary">
+              link
+            </span>
+            <a
+              href={
+                profile.website.startsWith("http")
+                  ? profile.website
+                  : `https://${profile.website}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.preventDefault();
+                const url = profile.website.startsWith("http")
+                  ? profile.website
+                  : `https://${profile.website}`;
+                if (window.require) {
+                  const { shell } = window.require("electron");
+                  shell.openExternal(url);
+                } else {
+                  window.open(url, "_blank");
+                }
+              }}
+              className="truncate hover:text-primary transition-colors hover:underline font-semibold"
+            >
+              {profile.website.startsWith("http")
+                ? profile.website.replace(/^https?:\/\//, '')
+                : profile.website}
+            </a>
+          </div>
+        )}
         {profile.linkedinUrl && (
           <a
-            href={`https://linkedin.com/${profile.linkedinUrl}`}
+            href={`https://linkedin.com/in/${profile.linkedinUrl}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 text-gh-text hover:text-primary"
+            className="flex items-center gap-3 text-gh-text hover:text-primary hover:underline"
           >
             <svg
-              className="size-4 text-gh-text-secondary"
+              className="size-5 text-gh-text-secondary"
               fill="currentColor"
               viewBox="0 0 24 24"
               aria-hidden="true"
@@ -188,13 +272,13 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
         )}
         {profile.redditUrl && (
           <a
-            href={`https://reddit.com/${profile.redditUrl}`}
+            href={`https://reddit.com/user/${profile.redditUrl}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 text-gh-text hover:text-primary"
+            className="flex items-center gap-3 text-gh-text hover:text-primary hover:underline"
           >
             <svg
-              className="size-4 text-gh-text-secondary"
+              className="size-5 text-gh-text-secondary"
               fill="currentColor"
               viewBox="0 0 24 24"
               aria-hidden="true"
@@ -206,49 +290,8 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
         )}
       </div>
 
-      {/* Website URL */}
-      {profile.website && (
-        <div className="mb-6">
-          <a
-            href={
-              profile.website.startsWith("http")
-                ? profile.website
-                : `https://${profile.website}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => {
-              e.preventDefault();
-              const url = profile.website.startsWith("http")
-                ? profile.website
-                : `https://${profile.website}`;
-              // Open in external browser
-              if (window.require) {
-                const { shell } = window.require("electron");
-                shell.openExternal(url);
-              } else {
-                window.open(url, "_blank");
-              }
-            }}
-            className="flex items-center gap-3 text-gh-text hover:text-primary transition-colors"
-          >
-            <span className="material-symbols-outlined !text-lg text-gh-text-secondary">
-              link
-            </span>
-            <span className="truncate">
-              {profile.website.startsWith("http")
-                ? profile.website
-                : `https://${profile.website}`}
-            </span>
-            <span className="material-symbols-outlined !text-sm text-gh-text-secondary">
-              open_in_new
-            </span>
-          </a>
-        </div>
-      )}
-
       {profile.achievements && profile.achievements.length > 0 && (
-        <section className="mb-6">
+        <section className="mb-6 border-t border-gh-border pt-6">
           <h2 className="text-base font-bold text-gh-text mb-4">
             Achievements
           </h2>
@@ -256,7 +299,7 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
             {profile.achievements.map((ach, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 group"
+                className="flex items-center gap-2 group cursor-pointer"
                 title={ach.name}
               >
                 <img
@@ -274,6 +317,22 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
           </div>
         </section>
       )}
+
+      {/* Hardcoded Organizations List for the visual mock as requested */}
+      <section className="mb-6 border-t border-gh-border pt-6">
+        <h2 className="text-base font-bold text-gh-text mb-4">Organizations</h2>
+        <div className="flex flex-wrap gap-2">
+          {(!profile.achievements || profile.achievements.length === 0) && isSelf ? (
+            <div className="size-8 rounded overflow-hidden border border-gh-border hover:border-gh-text-secondary cursor-pointer" title="Quantaforge">
+              <img src={profile.avatar} alt="Org" className="size-full object-cover" />
+            </div>
+          ) : (
+            <div className="size-8 rounded overflow-hidden border border-gh-border hover:border-gh-text-secondary cursor-pointer" title="Organization">
+              <img src={"https://avatars.githubusercontent.com/u/9919"} alt="Org" className="size-full object-cover" />
+            </div>
+          )}
+        </div>
+      </section>
 
       <div className="mt-6 pt-6 border-t border-gh-border">
         <button className="text-sm text-gh-text-secondary hover:text-rose-500">
@@ -309,6 +368,12 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
           type={followModalType}
           isOpen={isFollowModalOpen}
           onClose={() => setIsFollowModalOpen(false)}
+        />
+      )}
+      {isSelf && (
+        <EditStatusModal
+          isOpen={isEditStatusOpen}
+          onClose={() => setIsEditStatusOpen(false)}
         />
       )}
     </div>

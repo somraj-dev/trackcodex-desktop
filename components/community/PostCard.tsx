@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import KarmaBadge from './KarmaBadge';
 import CommentItem from './CommentItem';
@@ -11,34 +11,37 @@ import { profileService } from '../../services/profile';
 // Typed as React.FC to allow standard props like 'key' when rendered in lists
 const PostCard: React.FC<{ post: any }> = ({ post }) => {
   const navigate = useNavigate();
-  const [upvotes, setUpvotes] = useState(post.upvotes);
+  const [upvotes, setUpvotes] = useState<number>(post.upvotes || 0);
   const [isTyping, setIsTyping] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentInput, setCommentInput] = useState('');
   const [showHoverCard, setShowHoverCard] = useState(false);
   const [justLiked, setJustLiked] = useState(false);
-  const [commentsList, setCommentsList] = useState<CommunityComment[]>(post.commentsData || [
-    {
-      id: 'c1',
-      author: { name: 'Marcus Thorne', username: 'm_thorne', avatar: 'https://picsum.photos/seed/marcus/64', karma: 120 },
-      text: 'This is exactly what we were discussing in the last live session. Partitioning seems to be the way to go for the auth shards.',
-      timestamp: '1 hour ago',
-      upvotes: 12,
-      replies: [
-        {
-          id: 'c2',
-          author: { name: 'Alex Chen', username: 'alexcoder', avatar: 'https://picsum.photos/seed/alexprofile/600', karma: 320 },
-          text: '@m_thorne I agree, but we need to ensure the foreign key consistency doesn\'t take a hit.',
-          timestamp: '45 mins ago',
-          upvotes: 5,
-          replies: []
-        }
-      ]
-    }
-  ]);
-  
+  const [commentsList, setCommentsList] = useState<CommunityComment[]>(post.commentsData || []);
+
   const [replyTo, setReplyTo] = useState<{ id: string; username: string } | null>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const addCommentToState = useCallback((newComment: CommunityComment, parentId?: string) => {
+    if (!parentId) {
+      setCommentsList(prev => [...prev, newComment]);
+      return;
+    }
+
+    const recursiveAdd = (comments: CommunityComment[]): CommunityComment[] => {
+      return comments.map(c => {
+        if (c.id === parentId) {
+          return { ...c, replies: [...(c.replies || []), newComment] };
+        }
+        if (c.replies) {
+          return { ...c, replies: recursiveAdd(c.replies) };
+        }
+        return c;
+      });
+    };
+
+    setCommentsList(prev => recursiveAdd(prev));
+  }, []);
 
   useEffect(() => {
     return communityBus.subscribe((event) => {
@@ -46,7 +49,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
         setIsTyping(true);
         setTimeout(() => setIsTyping(false), 3000);
       }
-      
+
       if (event.type === 'REACTION_ADDED' && event.data.postId === post.id) {
         // Only increment if it's from another user (to avoid double count)
         if (event.data.userId !== 'current') {
@@ -75,7 +78,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
         if (!isDuplicate) {
           addCommentToState(event.data.comment, event.data.parentCommentId);
           setShowComments(true);
-          
+
           // Karma for receiving comments
           if (post.author.username === profileService.getProfile().username) {
             profileService.receiveComment();
@@ -83,28 +86,9 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
         }
       }
     });
-  }, [post.id, commentsList]);
+  }, [post.id, commentsList, post.author.username, addCommentToState]);
 
-  const addCommentToState = (newComment: CommunityComment, parentId?: string) => {
-    if (!parentId) {
-      setCommentsList(prev => [...prev, newComment]);
-      return;
-    }
 
-    const recursiveAdd = (comments: CommunityComment[]): CommunityComment[] => {
-      return comments.map(c => {
-        if (c.id === parentId) {
-          return { ...c, replies: [...(c.replies || []), newComment] };
-        }
-        if (c.replies) {
-          return { ...c, replies: recursiveAdd(c.replies) };
-        }
-        return c;
-      });
-    };
-
-    setCommentsList(prev => recursiveAdd(prev));
-  };
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -125,15 +109,15 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
       setUpvotes(prev => prev + delta);
       return;
     }
-    
+
     // Optimistic local update
     setUpvotes(prev => prev + delta);
     setJustLiked(true);
     setTimeout(() => setJustLiked(false), 1000);
 
-    communityBus.publish({ 
-      type: 'REACTION_ADDED', 
-      data: { postId: post.id, emoji: 'up', userId: 'current' } 
+    communityBus.publish({
+      type: 'REACTION_ADDED',
+      data: { postId: post.id, emoji: 'up', userId: 'current' }
     });
   };
 
@@ -180,27 +164,27 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
 
   return (
     <div className={`bg-[#161b22] border border-[#30363d] rounded-2xl p-6 hover:border-[#8b949e] transition-all group shadow-sm relative ${post.moderation === 'FLAGGED' ? 'opacity-50 grayscale' : ''}`}>
-      
+
       {post.moderation === 'WARNING' && (
         <div className="mb-4 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-amber-500 text-[10px] font-bold uppercase tracking-widest">
-           <span className="material-symbols-outlined !text-[14px]">warning</span>
-           ForgeAI Warning: {post.moderationReason || 'Potential quality issues detected.'}
+          <span className="material-symbols-outlined !text-[14px]">warning</span>
+          ForgeAI Warning: {post.moderationReason || 'Potential quality issues detected.'}
         </div>
       )}
 
       {/* Post Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div 
-            className="relative cursor-pointer" 
+          <div
+            className="relative cursor-pointer"
             onMouseEnter={() => setShowHoverCard(true)}
             onMouseLeave={() => setShowHoverCard(false)}
           >
-            <img 
+            <img
               onClick={handleProfileClick}
-              src={post.author.avatar} 
-              alt={post.author.name} 
-              className="size-11 rounded-full border border-border-dark object-cover" 
+              src={post.author.avatar}
+              alt={post.author.name}
+              className="size-11 rounded-full border border-border-dark object-cover"
             />
             {post.author.isLive && (
               <span className="absolute -bottom-1 -right-1 size-3 bg-red-500 rounded-full border-2 border-[#161b22] animate-pulse"></span>
@@ -248,7 +232,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
 
         {post.image && (
           <div className="rounded-xl overflow-hidden mb-4 border border-[#30363d] relative group/img">
-            <img src={post.image} className="w-full h-auto max-h-[400px] object-cover" />
+            <img src={post.image} alt="Post attachment" className="w-full h-auto max-h-[400px] object-cover" />
             <div className="absolute inset-0 bg-black/20 group-hover/img:bg-transparent transition-all"></div>
           </div>
         )}
@@ -264,7 +248,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
 
       {/* Linked Entity Card (If any) */}
       {post.linkedEntity && (
-        <div 
+        <div
           onClick={handleEntityClick}
           className="mb-6 p-4 bg-[#0d1117] border border-[#30363d] rounded-xl flex items-center justify-between group/entity cursor-pointer hover:border-primary/50 transition-all"
         >
@@ -275,10 +259,10 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
               </span>
             </div>
             <div>
-               <p className="text-[13px] font-bold text-white group-hover/entity:text-primary transition-colors">
-                 Open in Workspace <span className="text-slate-500 font-normal">(Read Mode)</span>
-               </p>
-               <p className="text-[10px] text-slate-500 font-mono">Context: {post.linkedEntity.label}</p>
+              <p className="text-[13px] font-bold text-white group-hover/entity:text-primary transition-colors">
+                Open in Workspace <span className="text-slate-500 font-normal">(Read Mode)</span>
+              </p>
+              <p className="text-[10px] text-slate-500 font-mono">Context: {post.linkedEntity.label}</p>
             </div>
           </div>
           <span className="material-symbols-outlined text-slate-500 group-hover/entity:text-white transition-all group-hover/entity:translate-x-1">arrow_forward</span>
@@ -289,8 +273,8 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
       <div className="flex items-center justify-between pt-4 border-t border-[#30363d]">
         <div className="flex items-center gap-4">
           <div className="flex items-center bg-[#0d1117] border border-[#30363d] rounded-lg p-1">
-            <button 
-              onClick={() => handleVote(1)} 
+            <button
+              onClick={() => handleVote(1)}
               className={`px-3 py-1 flex items-center gap-1.5 transition-all ${justLiked ? 'text-primary scale-110' : 'text-slate-400 hover:text-white'}`}
             >
               <span className={`material-symbols-outlined !text-[18px] ${justLiked ? 'filled' : ''}`}>arrow_upward</span>
@@ -302,7 +286,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
             </button>
           </div>
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowComments(!showComments)}
               className={`flex items-center gap-2 transition-colors ${showComments ? 'text-primary' : 'text-slate-400 hover:text-white'}`}
             >
@@ -311,9 +295,9 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
             </button>
             {isTyping && (
               <div className="absolute -top-6 left-0 animate-bounce flex items-center gap-1">
-                 <div className="size-1 bg-primary rounded-full"></div>
-                 <div className="size-1 bg-primary rounded-full delay-100"></div>
-                 <div className="size-1 bg-primary rounded-full delay-200"></div>
+                <div className="size-1 bg-primary rounded-full"></div>
+                <div className="size-1 bg-primary rounded-full delay-100"></div>
+                <div className="size-1 bg-primary rounded-full delay-200"></div>
               </div>
             )}
           </div>
@@ -334,6 +318,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
           <div className="flex items-start gap-3 mb-6">
             <img
               src={profileService.getProfile().avatar}
+              alt="Current user avatar"
               className="size-8 rounded-full border border-[#30363d] object-cover shrink-0"
             />
             <div className="flex-1 space-y-3">

@@ -13,17 +13,22 @@ export async function requireAuth(
   reply: FastifyReply,
 ) {
   try {
-    // Get session ID from HttpOnly cookie
-    const sessionId = request.cookies?.session_id;
+    // Get session ID from HttpOnly cookie or Authorization header
+    let sessionId = request.cookies?.session_id;
+    if (!sessionId && request.headers.authorization) {
+      const authHeader = request.headers.authorization;
+      if (authHeader.startsWith("Bearer ")) {
+        sessionId = authHeader.substring(7);
+      }
+    }
 
     if (!sessionId) {
       console.warn(
-        "[Auth Middleware] 401: No session_id cookie found in request.",
+        "[Auth Middleware] 401: No session_id cookie or Bearer token found in request.",
       );
-      console.warn("[Auth Middleware] Cookies received:", request.cookies);
       return reply.code(401).send({
         error: "Unauthorized",
-        message: "No session cookie found",
+        message: "No session cookie or token found",
       });
     }
 
@@ -70,7 +75,13 @@ export async function optionalAuth(
   reply: FastifyReply,
 ) {
   try {
-    const sessionId = request.cookies?.session_id;
+    let sessionId = request.cookies?.session_id;
+    if (!sessionId && request.headers.authorization) {
+      const authHeader = request.headers.authorization;
+      if (authHeader.startsWith("Bearer ")) {
+        sessionId = authHeader.substring(7);
+      }
+    }
 
     if (sessionId) {
       const sessionData = await getSession(sessionId);

@@ -18,7 +18,7 @@ import RepoSettingsTab from "../components/repositories/RepoSettingsTab";
 import ActivityFeed from "../components/shared/ActivityFeed";
 
 const RepoDetailView = () => {
-  const { id } = useParams();
+  const { id, owner, repo: repoName } = useParams();
   const navigate = useNavigate();
   const { isConnected, presence, send, subscribe } = useRealtime();
   const location = useLocation();
@@ -90,12 +90,25 @@ const RepoDetailView = () => {
     const fetchRepo = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/v1/repositories/${id}`);
+        let url = "";
+        if (id && id !== "undefined") {
+          url = `/api/v1/repositories/${id}`;
+        } else if (owner && repoName) {
+          url = `/api/v1/repositories/by-name/${owner}/${repoName}`;
+        } else {
+          throw new Error("No repository ID or owner/name provided in URL");
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Failed to fetch repository details");
+        }
         const data = await response.json();
         setRepo(data);
       } catch (err) {
         console.error("Failed to fetch repo detail from internal API", err);
-        const mockRepo = MOCK_REPOS.find((r) => r.id === id) || MOCK_REPOS[0];
+        const mockId = id || (owner && repoName ? `${owner}/${repoName}` : undefined);
+        const mockRepo = MOCK_REPOS.find((r) => r.id === mockId) || MOCK_REPOS[0];
         setRepo(mockRepo);
       } finally {
         setLoading(false);
@@ -106,11 +119,14 @@ const RepoDetailView = () => {
   }, [id]);
 
   useEffect(() => {
-    if (isConnected && id) {
-      send({ type: "WORKSPACE_JOIN", workspaceId: id });
+    // Determine the unique identifier for realtime room (use id or fallback to owner/name)
+    const roomId = id || (owner && repoName ? `${owner}/${repoName}` : null);
+
+    if (isConnected && roomId) {
+      send({ type: "WORKSPACE_JOIN", workspaceId: roomId });
 
       const unsubscribe = subscribe((event) => {
-        if (event.type === "REPOSITORY_UPDATE" && event.repoId === id) {
+        if (event.type === "REPOSITORY_UPDATE" && (event.repoId === id || event.repoId === roomId)) {
           console.log(
             "🔄 Realtime: Repository updated externally, refreshing data...",
           );
@@ -119,11 +135,11 @@ const RepoDetailView = () => {
       });
 
       return () => {
-        send({ type: "WORKSPACE_LEAVE", workspaceId: id });
+        send({ type: "WORKSPACE_LEAVE", workspaceId: roomId });
         unsubscribe();
       };
     }
-  }, [isConnected, id, send, subscribe]);
+  }, [isConnected, id, owner, repoName, send, subscribe]);
 
   if (loading) {
     return (
@@ -153,7 +169,7 @@ const RepoDetailView = () => {
       case "Actions":
         return <RepoActionsTab />;
       case "Wiki":
-        return <RepoWikiTab />;
+        return <RepoWikiTab repo={repo} />;
       case "Projects":
         return <RepoProjectsTab repo={repo} />;
       case "Security":
@@ -336,7 +352,7 @@ const RepoDetailView = () => {
       <PostJobModal
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
-        onSubmit={() => {}}
+        onSubmit={() => { }}
         initialData={{
           repoId: repo.id,
           description: `Hiring an expert for ${repo.name} repository tasks.`,

@@ -71,8 +71,14 @@ export async function userRoutes(fastify: FastifyInstance) {
     const currentUser = (request as any).user;
 
     try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: isUuid
+            ? [{ id: userId }, { username: { equals: userId, mode: "insensitive" } }]
+            : [{ username: { equals: userId, mode: "insensitive" } }],
+        },
         select: {
           id: true,
           username: true,

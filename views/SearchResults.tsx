@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import "../styles/SearchResults.css";
+import { api } from "../services/api";
 
 interface SearchFilter {
   name: string;
@@ -9,7 +10,7 @@ interface SearchFilter {
   type: string;
 }
 
-interface SearchResultsPageProps {}
+interface SearchResultsPageProps { }
 
 const SearchResultsPage: React.FC<SearchResultsPageProps> = () => {
   const [searchParams] = useSearchParams();
@@ -51,16 +52,13 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = () => {
     const startTime = performance.now();
 
     try {
-      const res = await fetch(
-        `/api/v1/search?q=${encodeURIComponent(query)}&type=${type}`,
+      const data = await api.get<any>(
+        `/search?q=${encodeURIComponent(query)}&type=${type}`,
       );
-      if (res.ok) {
-        const data = await res.json();
-        setResults(data.results || []);
+      setResults(data.results || []);
 
-        // Update filter counts (mock data for now)
-        // In real implementation, backend would return counts for each type
-      }
+      // Update filter counts (mock data for now)
+      // In real implementation, backend would return counts for each type
     } catch (error) {
       console.error("Search error:", error);
     } finally {

@@ -1,32 +1,7 @@
 import React from "react";
 
 const TeamManager = () => {
-  const teams = [
-    {
-      name: "Core Engine",
-      org: "Quantaforge",
-      members: 12,
-      repos: 4,
-      lead: "Sarah Chen",
-      status: "Active",
-    },
-    {
-      name: "Frontend UX",
-      org: "Quantaforge",
-      members: 8,
-      repos: 2,
-      lead: "Alex Rivers",
-      status: "Active",
-    },
-    {
-      name: "Security Audit",
-      org: "External Partners",
-      members: 4,
-      repos: 1,
-      lead: "Marcus Thorne",
-      status: "Restricted",
-    },
-  ];
+  const teams: any[] = [];
 
   return (
     <div className="animate-in fade-in duration-500">

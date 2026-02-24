@@ -40,14 +40,8 @@ const CommandPalette = ({
   // Fetch Results
   useEffect(() => {
     if (!search || search.length < 2) {
-      // Default initial view 
-      setResults([
-        { id: "owner-1", type: "user", label: "Quantaforge-Trackcodex", group: "Owners", url: "/Quantaforge-Trackcodex", icon: "user" },
-        { id: "owner-2", type: "user", label: "quantaforze", group: "Owners", url: "/quantaforze", icon: "user" },
-        { id: "repo-1", type: "repo", label: "Quantaforge-trackcodex/TrackcodexVersion1.0.0", group: "Repositories", url: "/repo", icon: "repo" },
-        { id: "repo-2", type: "repo", label: "Quantaforge-trackcodex/TrackcodexBeta", group: "Repositories", url: "/repo-beta", icon: "repo" },
-        { id: "copilot-1", type: "nav", label: "Chat with Copilot", group: "Copilot", url: "/forge-ai", icon: "copilot" },
-      ]);
+      // Default initial view: Only show standard navigation commands
+      setResults([...navCommands]);
       return;
     }
 

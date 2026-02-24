@@ -20,12 +20,8 @@ const OfferAcceptanceView = () => {
 
     const [fullName, setFullName] = useState('');
     const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).replace(',', '');
-    
-    const team = [
-        { name: 'Sarah Chen', role: 'Staff Engineer', pairedOn: 'Oct 12', avatar: 'https://picsum.photos/seed/sarah/64' },
-        { name: 'Marcus Lopez', role: 'Vanquisher Architect', pairedOn: 'Oct 14', avatar: 'https://picsum.photos/seed/marcus/64' },
-        { name: 'Jamie Kim', role: 'Frontend Lead', pairedOn: 'Oct 15', avatar: 'https://picsum.photos/seed/jamiekim/64' }
-    ];
+
+    const team: any[] = [];
 
     const perks = [
         { icon: 'home', text: '$2,500 Home Office Stipend' },
@@ -37,11 +33,27 @@ const OfferAcceptanceView = () => {
     const handleAccept = (e: React.FormEvent) => {
         e.preventDefault();
         if (!fullName.trim()) {
-            alert('Please enter your full legal name to sign.');
+            window.dispatchEvent(
+                new CustomEvent("trackcodex-notification", {
+                    detail: {
+                        title: "Action Required",
+                        message: "Please enter your full legal name to sign.",
+                        type: "warning"
+                    }
+                })
+            );
             return;
         }
-        // In a real app, this would submit to a backend.
-        // For now, let's navigate to a success page.
+
+        window.dispatchEvent(
+            new CustomEvent("trackcodex-notification", {
+                detail: {
+                    title: "Offer Accepted",
+                    message: "Congratulations! The hiring manager has been notified of your acceptance.",
+                    type: "success"
+                }
+            })
+        );
         navigate(`/trials/submitted/${offerId}`);
     };
 
@@ -98,23 +110,29 @@ const OfferAcceptanceView = () => {
                         {/* Acceptance Form */}
                         <div className="bg-emerald-900/50 border border-emerald-500/30 rounded-xl p-8">
                             <div className="flex items-center gap-3 mb-4">
-                               <span className="material-symbols-outlined !text-xl text-emerald-400">edit</span>
-                               <h3 className="text-lg font-bold text-white">Ready to join the team?</h3>
+                                <span className="material-symbols-outlined !text-xl text-emerald-400">edit</span>
+                                <h3 className="text-lg font-bold text-white">Ready to join the team?</h3>
                             </div>
                             <p className="text-sm text-emerald-200 mb-6">By typing your name below, you are providing a legally binding electronic signature.</p>
                             <form onSubmit={handleAccept} className="grid grid-cols-[1fr_200px] gap-4">
                                 <div>
-                                    <label className="text-xs font-bold text-emerald-300 uppercase">Full Name</label>
-                                    <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Type your full legal name" className="w-full mt-1 bg-emerald-950/50 border border-emerald-500/50 rounded-lg p-3 text-white focus:ring-emerald-400" />
+                                    <label htmlFor="fullName" className="text-xs font-bold text-emerald-300 uppercase">Full Name</label>
+                                    <input type="text" id="fullName" name="fullName" title="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Type your full legal name" className="w-full mt-1 bg-emerald-950/50 border border-emerald-500/50 rounded-lg p-3 text-white focus:ring-emerald-400" />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-emerald-300 uppercase">Date</label>
-                                    <input type="text" readOnly value={today} className="w-full mt-1 bg-emerald-950/50 border border-emerald-500/50 rounded-lg p-3 text-white" />
+                                    <label htmlFor="acceptanceDate" className="text-xs font-bold text-emerald-300 uppercase">Date</label>
+                                    <input type="text" id="acceptanceDate" name="acceptanceDate" title="Acceptance Date" placeholder="Date" readOnly value={today} className="w-full mt-1 bg-emerald-950/50 border border-emerald-500/50 rounded-lg p-3 text-white" />
                                 </div>
                             </form>
                             <div className="flex items-center gap-4 mt-6">
                                 <button onClick={handleAccept} className="px-6 py-3 bg-emerald-500 text-white font-bold rounded-lg hover:bg-emerald-400">Sign and Accept Offer</button>
-                                <button className="text-emerald-200 hover:underline">Decline Offer</button>
+                                <button onClick={(e) => {
+                                    e.preventDefault();
+                                    window.dispatchEvent(new CustomEvent("trackcodex-notification", {
+                                        detail: { title: "Offer Declined", message: "The hiring manager has been notified of your decision.", type: "info" }
+                                    }));
+                                    navigate('/workspaces');
+                                }} className="text-emerald-200 hover:underline">Decline Offer</button>
                             </div>
                         </div>
                     </div>
@@ -150,18 +168,18 @@ const OfferAcceptanceView = () => {
                                 ))}
                             </ul>
                         </div>
-                         <div className="text-center text-sm text-slate-500">
+                        <div className="text-center text-sm text-slate-500">
                             Have questions about the vesting schedule or health plans? <a href="#" className="text-primary hover:underline">Schedule a 15-min call</a> with our HR lead, Diana.
                         </div>
                     </aside>
                 </div>
-                
+
                 <footer className="text-center mt-12 pt-8 border-t border-gh-border text-xs text-slate-600">
                     <p>© {new Date().getFullYear()} TrackCodex Inc. All documents are encrypted and legally binding.</p>
                     <div className="flex items-center justify-center gap-4 mt-4">
-                       <a href="#" className="hover:text-slate-400">Privacy Policy</a>
-                       <a href="#" className="hover:text-slate-400">Terms of Service</a>
-                       <a href="#" className="hover:text-slate-400">Contact Support</a>
+                        <a href="#" className="hover:text-slate-400">Privacy Policy</a>
+                        <a href="#" className="hover:text-slate-400">Terms of Service</a>
+                        <a href="#" className="hover:text-slate-400">Contact Support</a>
                     </div>
                 </footer>
             </div>

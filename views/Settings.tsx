@@ -36,29 +36,7 @@ const SettingsView = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gh-border">
-              {[
-                {
-                  name: "Alex Rivers",
-                  email: "alex@trackcodex.io",
-                  role: "Owner",
-                  status: "Active",
-                  avatar: "https://picsum.photos/seed/alex/64",
-                },
-                {
-                  name: "Sarah Chen",
-                  email: "sarah.c@trackcodex.io",
-                  role: "Admin",
-                  status: "Active",
-                  avatar: "https://picsum.photos/seed/sarah/64",
-                },
-                {
-                  name: "Marcus Thorne",
-                  email: "m.thorne@partner.com",
-                  role: "Member",
-                  status: "Invited",
-                  avatar: "https://picsum.photos/seed/marcus/64",
-                },
-              ].map((member) => (
+              {[].map((member) => (
                 <tr
                   key={member.email}
                   className="hover:bg-white/[0.02] transition-colors"

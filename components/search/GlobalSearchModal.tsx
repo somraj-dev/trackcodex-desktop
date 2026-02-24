@@ -118,14 +118,14 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     const items = query.trim()
       ? results
       : recentRepos.map((r) => ({
-          id: r.id,
-          type: "repo",
-          label: r.name,
-          subLabel: r.fullName,
-          icon: "book",
-          group: "Repositories",
-          url: `/repo/${r.owner}/${r.name}`,
-        }));
+        id: r.id,
+        type: "repo",
+        label: r.name,
+        subLabel: r.fullName,
+        icon: "book",
+        group: "Repositories",
+        url: `/${r.owner}/${r.name}`,
+      }));
 
     if (items[selectedIndex]) {
       jumpTo(items[selectedIndex].url);
@@ -226,7 +226,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                     <div
                       key={repo.id}
                       className={`search-result-item ${selectedIndex === idx ? "selected" : ""}`}
-                      onClick={() => jumpTo(`/repo/${repo.owner}/${repo.name}`)}
+                      onClick={() => jumpTo(`/${repo.owner}/${repo.name}`)}
                       onMouseEnter={() => setSelectedIndex(idx)}
                     >
                       <span className="material-icons result-icon">book</span>

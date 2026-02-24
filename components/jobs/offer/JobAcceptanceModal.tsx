@@ -19,7 +19,7 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
     equity: "0.1%",
     signOnBonus: "$10,000",
     startDate: "October 15, 2024",
-    reportingManager: "Alex Rivera",
+    reportingManager: "Hiring Manager",
     officeLocation: "Remote",
     includeRelocation: false,
     customNDA: false,
@@ -231,14 +231,33 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
             </div>
             <div className="flex gap-4">
               <button
-                onClick={onClose}
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("trackcodex-notification", {
+                      detail: {
+                        title: "Offer Declined",
+                        message: "The hiring manager has been notified of your decision.",
+                        type: "info",
+                      },
+                    })
+                  );
+                  onClose();
+                }}
                 className="px-6 py-3 font-bold text-slate-600 hover:text-slate-900"
               >
                 Decline Offer
               </button>
               <button
                 onClick={() => {
-                  alert("Offer Accepted! Welcome aboard.");
+                  window.dispatchEvent(
+                    new CustomEvent("trackcodex-notification", {
+                      detail: {
+                        title: "Offer Accepted",
+                        message: "Congratulations! The hiring manager has been notified of your acceptance.",
+                        type: "success",
+                      },
+                    })
+                  );
                   onClose();
                 }}
                 className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5"

@@ -20,13 +20,15 @@ const DeveloperProfileView = () => {
           <p className="text-xl text-gh-text-secondary">Viewing profile for user ID: <span className="text-primary font-mono">{id}</span></p>
         </div>
         <div>
-          <button
-            onClick={() => setShowChat(true)}
-            className="px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20"
-          >
-            <span className="material-symbols-outlined !text-[20px]">chat</span>
-            Message
-          </button>
+          {currentUser?.id !== id && currentUser?.username !== id && (
+            <button
+              onClick={() => setShowChat(true)}
+              className="px-6 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20"
+            >
+              <span className="material-symbols-outlined !text-[20px]">chat</span>
+              Message
+            </button>
+          )}
         </div>
       </div>
 
