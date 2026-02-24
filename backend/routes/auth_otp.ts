@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from "../services/prisma";
 import crypto from 'crypto';
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 // Helper to generate 6 digit code
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();

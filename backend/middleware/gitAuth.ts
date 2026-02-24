@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function verifyGitAuth(req: FastifyRequest, reply: FastifyReply) {
   const authHeader = req.headers.authorization;

@@ -1,10 +1,10 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { requireAuth } from "./auth";
 import { IAMService, EnterpriseRole } from "../services/iamService";
 import { PolicyService, PolicyType } from "../services/policyService";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Middleware to require Enterprise Membership/Role

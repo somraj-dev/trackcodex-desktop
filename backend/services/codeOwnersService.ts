@@ -1,9 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { GitServer } from "./git/gitServer.js";
 import { minimatch } from "minimatch";
 import fs from "fs";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 const gitServer = new GitServer();
 
 interface CodeOwnerRule {

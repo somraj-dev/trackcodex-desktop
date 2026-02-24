@@ -1,9 +1,10 @@
 import crypto from "crypto";
 import axios from "axios";
-import { PrismaClient, Webhook } from "@prisma/client";
+import { prisma } from "./prisma";
+import type { Webhook } from "@prisma/client";
 import { AuditService } from "./audit";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Integravity Webhook Service

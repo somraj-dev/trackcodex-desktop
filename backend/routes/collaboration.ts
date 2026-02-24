@@ -1,11 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { requireRepoPermission } from "../middleware/repoAuth";
 import { RepoLevel } from "../services/iamService";
 import { CollaborationService } from "../services/collaborationService";
 import { SCMService } from "../services/scmService";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Collaboration API: Issues & Pull Requests

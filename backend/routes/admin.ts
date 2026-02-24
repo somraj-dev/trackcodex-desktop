@@ -1,11 +1,11 @@
 
 import { FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from "../services/prisma";
 import { requireAuth, requireRole } from '../middleware/auth';
 import { logSensitiveOperation } from '../services/auditLogger';
 import { revokeAllUserSessions } from '../services/session';
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function adminRoutes(fastify: FastifyInstance) {
 

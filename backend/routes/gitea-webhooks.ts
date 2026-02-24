@@ -4,10 +4,10 @@
  */
 
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { RealtimeService } from "../services/realtime";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function giteaWebhookRoutes(fastify: FastifyInstance) {
   /**

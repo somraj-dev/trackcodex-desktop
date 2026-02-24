@@ -1,7 +1,5 @@
 import { Socket } from "socket.io";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const Docker = require("dockerode");
+import Docker from "dockerode";
 import process from "process";
 import fs from "fs";
 import path from "path";
@@ -103,18 +101,20 @@ export class TerminalService {
         // Better: provide a broadcast mechanism
       });
       // Emit to a room named after the workspace terminal
-      const { RealtimeService } = require("./realtime");
-      RealtimeService.broadcastToRoom(`terminal-${workspaceId}`, {
-        type: "TERMINAL_OUTPUT",
-        data,
+      import("./realtime").then(({ RealtimeService }) => {
+        RealtimeService.broadcastToRoom(`terminal-${workspaceId}`, {
+          type: "TERMINAL_OUTPUT",
+          data,
+        });
       });
     });
 
     stream.on("end", () => {
-      const { RealtimeService } = require("./realtime");
-      RealtimeService.broadcastToRoom(`terminal-${workspaceId}`, {
-        type: "TERMINAL_OUTPUT",
-        data: "\r\n[System] PTY Session Ended.\r\n",
+      import("./realtime").then(({ RealtimeService }) => {
+        RealtimeService.broadcastToRoom(`terminal-${workspaceId}`, {
+          type: "TERMINAL_OUTPUT",
+          data: "\r\n[System] PTY Session Ended.\r\n",
+        });
       });
       this.sessions.delete(workspaceId);
     });

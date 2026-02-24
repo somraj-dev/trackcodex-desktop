@@ -237,8 +237,8 @@ export async function profileRoutes(server: FastifyInstance) {
       const { userId } = req.params;
 
       try {
-        const { PrismaClient } = await import("@prisma/client");
-        const prisma = new PrismaClient();
+        const { prisma } = await import("../services/prisma");
+        // Shared prisma instance
 
         const user = await prisma.user.findUnique({
           where: { id: userId },

@@ -1,10 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 const ARTIFACT_STORAGE_PATH = path.join(process.cwd(), "data", "artifacts");
 
 if (!fs.existsSync(ARTIFACT_STORAGE_PATH)) {

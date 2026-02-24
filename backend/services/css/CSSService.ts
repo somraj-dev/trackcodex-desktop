@@ -13,12 +13,12 @@
  *  7. Radar/Governance integration
  */
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../prisma";
 import { VulnerabilityDetector, VulnerabilityHypothesis } from "./VulnerabilityDetector";
 import { AHIService, AHIInput } from "./AHIService";
 import { shannonAdapter, ShannonCategory, ShannonFinding } from "../shannon-adapter/ShannonAdapter";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 // --- Configuration ---
 

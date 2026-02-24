@@ -1,12 +1,12 @@
 import { FastifyInstance, FastifyRequest } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
 import { requireEnterpriseMember } from "../middleware/enterpriseAuth";
 import { EnterpriseService } from "../services/enterpriseService";
 import { EnterpriseRole } from "../services/iamService";
 import { AuditService } from "../services/audit";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Enterprise Routes (GitHub Parity)

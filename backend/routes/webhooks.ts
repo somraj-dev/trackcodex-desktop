@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { WebhookService } from "../services/webhookService";
 import { requireRepoPermission, RepoLevel } from "../middleware/repoAuth";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Webhooks API: External Notification Management

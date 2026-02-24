@@ -4,9 +4,9 @@
  * Manages per-user extension install/uninstall/enable/disable state.
  * Persists to UserExtension table.
  */
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export class ExtensionManager {
     /**

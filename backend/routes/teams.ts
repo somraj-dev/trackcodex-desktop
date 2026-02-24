@@ -1,11 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { requireAuth, requireOrgRole } from "../middleware/auth"; // We might need to implement requireOrgRole
 import { AuditService } from "../services/audit";
 import { AppError, BadRequest, NotFound, Forbidden } from "../utils/AppError";
 import { TeamRole, OrgRole } from "../types";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Team Management Routes

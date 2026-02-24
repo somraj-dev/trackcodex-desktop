@@ -1,10 +1,10 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { requireAuth } from "../middleware/auth";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 // Helper function to log collaboration activities
 async function logCollaborationActivity(

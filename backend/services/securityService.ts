@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { AuditService } from "./audit";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Integravity Security Service

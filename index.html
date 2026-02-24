@@ -169,6 +169,14 @@
         background: rgba(139, 92, 246, 0.5); /* Neon hover */
       }
 
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
       /* Utilitarian Transitions */
       html.anim-standard * {
         transition:

@@ -1,7 +1,7 @@
 # Integravity Production Dockerfile
 # Optimized for Node.js, security, and scalability.
 
-FROM node:18-alpine AS builder
+FROM node:20.20.0-alpine AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN npx prisma generate --schema=backend/schema.prisma
 RUN npm run build:backend
 
 # --- Production Stage ---
-FROM node:18-alpine
+FROM node:20.20.0-alpine
 
 WORKDIR /app
 

@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { getSession } from "../services/session";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 /**
  * Authentication middleware - reads session from HttpOnly cookie

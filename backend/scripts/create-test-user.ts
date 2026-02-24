@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 async function createTestUser() {
   try {

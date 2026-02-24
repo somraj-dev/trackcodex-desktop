@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { PortfolioService } from "../services/portfolioService";
+import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
 
 interface CreatePortfolioBody {

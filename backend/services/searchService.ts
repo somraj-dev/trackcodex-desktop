@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 interface SearchResult {
   owners: Array<{
@@ -101,16 +101,16 @@ export const searchService = {
     return {
       owners: owners.map((user) => ({
         id: user.id,
-        username: user.username,
-        name: user.name,
+        username: user.username || "",
+        name: user.name || "",
         avatar: user.avatar,
         type: user.role === "organization" ? "organization" : "user",
       })),
       repositories: repositories.map((repo) => ({
         id: repo.id,
         name: repo.name,
-        fullName: `${repo.owner.username}/${repo.name}`,
-        owner: repo.owner.username,
+        fullName: `${repo.owner?.username || "unknown"}/${repo.name}`,
+        owner: repo.owner?.username || "unknown",
         description: repo.description,
         visibility: repo.visibility,
         stars: repo.stars,

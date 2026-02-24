@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { WorkflowService } from "../services/workflowService";
 import { MOCK_WORKFLOW_RUNS } from "../../data/mockPipelines"; // Fallback
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export default async function (server: FastifyInstance) {
   // Get Workflows for a Repo
@@ -133,7 +133,7 @@ export default async function (server: FastifyInstance) {
           artifacts: true,
         },
       });
-    } catch (e) {}
+    } catch (e) { }
 
     // Fallback Mock
     if (!run) {

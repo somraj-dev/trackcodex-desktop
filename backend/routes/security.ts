@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { prisma } from "../services/prisma";
 import { SecurityService } from "../services/securityService";
 import { requireRepoPermission, RepoLevel } from "../middleware/repoAuth";
 
@@ -7,6 +8,7 @@ import { requireRepoPermission, RepoLevel } from "../middleware/repoAuth";
  * Provides endpoints for managing repository security alerts and scans.
  */
 export async function securityRoutes(fastify: FastifyInstance) {
+  //// Shared prisma instance
   // List Security Alerts
   fastify.get(
     "/repositories/:id/security/alerts",

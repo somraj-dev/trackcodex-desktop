@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function communityRoutes(fastify: FastifyInstance) {
   // List Posts

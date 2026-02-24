@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./prisma";
 import { RealtimeService } from "./realtime";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export class ActivityService {
   /**

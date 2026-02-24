@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import fs from "fs";
@@ -29,7 +29,7 @@ import {
   Forbidden,
 } from "../utils/AppError";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function authRoutes(fastify: FastifyInstance) {
   // Health Check

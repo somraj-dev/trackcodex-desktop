@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify';
+import { prisma } from "../services/prisma";
 import { NotificationService } from '../services/notification';
 
 export async function notificationRoutes(fastify: FastifyInstance) {
@@ -9,6 +10,7 @@ export async function notificationRoutes(fastify: FastifyInstance) {
         if (!userId) return reply.code(400).send({ error: "UserId required" });
 
         try {
+            // Shared prisma instance
             const list = await NotificationService.getAll(userId);
             return list;
         } catch (error: any) {

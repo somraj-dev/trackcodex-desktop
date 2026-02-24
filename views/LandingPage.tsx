@@ -14,23 +14,23 @@ const LandingPage = () => {
 
   return (
     <div className="landing-container min-h-screen w-full flex bg-[#f5f5f7] relative overflow-hidden font-sans">
-      
+
       {/* Background Subtle Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-[#f5f5f7] pointer-events-none" />
 
       {/* Main Content Wrapper - Split Layout */}
       <main className="relative z-10 w-full max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center justify-between px-6 py-12 lg:p-20 gap-16">
-        
+
         {/* LEFT COLUMN: Copy & Testimonial */}
         <div className="flex-1 flex flex-col items-start justify-center max-w-xl">
           <span className="text-gray-500 font-medium text-sm mb-4 uppercase tracking-wider">
             End to End Encryption
           </span>
-          
+
           <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] mb-6 tracking-tight">
             Accelerate your Development with TrackCodex
           </h1>
-          
+
           <p className="text-xl text-gray-600 mb-12 leading-relaxed max-w-[90%]">
             Build. Collaborate. Ship with confidence. TrackCodex turns your ideas into production ready code.
           </p>
@@ -53,7 +53,7 @@ const LandingPage = () => {
         {/* RIGHT COLUMN: Interactive Code Editor Mockup */}
         <div className="flex-1 flex w-full justify-center lg:justify-end items-center">
           <div className="w-full max-w-[600px] rounded-2xl bg-[#111111] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#222] overflow-hidden flex flex-col h-[580px]">
-            
+
             {/* Editor Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#222]">
               {/* Mac OS Window Controls */}
@@ -71,7 +71,7 @@ const LandingPage = () => {
             </div>
 
             {/* Editor Body */}
-            <div className="flex-1 p-6 font-mono text-[14px] leading-7 overflow-y-auto">
+            <div className="flex-1 p-6 font-mono text-[14px] leading-7 overflow-y-auto no-scrollbar">
               <pre className="text-gray-300">
                 <span className="text-[#ff7b72]">provider</span> <span className="text-[#a5d6ff]">"TrackCodex"</span> <span className="text-gray-400">{'{'}</span>
                 <br />
@@ -104,13 +104,13 @@ const LandingPage = () => {
 
             {/* Editor Footer Actions */}
             <div className="border-t border-[#222] p-4 flex items-center justify-between">
-              <button 
+              <button
                 onClick={() => navigate("/login")}
                 className="px-6 py-2 rounded-full bg-[#1b2b22] text-[#4ade80] text-sm font-medium hover:bg-[#253b2e] border border-[#2d4d38] transition-colors"
               >
                 Login
               </button>
-              <button 
+              <button
                 onClick={() => navigate("/signup")}
                 className="px-6 py-2 rounded-full bg-white text-black text-sm font-bold hover:bg-gray-100 transition-colors"
               >

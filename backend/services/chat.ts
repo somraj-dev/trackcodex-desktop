@@ -1,9 +1,7 @@
 import { SocketStream } from '@fastify/websocket';
 import { FastifyRequest, FastifyInstance } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from "./prisma";
 import { WebSocket } from 'ws';
-
-const prisma = new PrismaClient();
 
 // In-memory store of connected users: userId -> WebSocket[]
 const connections = new Map<string, Set<WebSocket>>();

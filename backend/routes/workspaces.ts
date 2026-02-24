@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../services/prisma";
 import { gitService } from "../services/gitService";
 import bcrypt from "bcryptjs";
 import {
@@ -9,7 +9,7 @@ import {
   InternalError,
 } from "../utils/AppError";
 
-const prisma = new PrismaClient();
+// Shared prisma instance
 
 export async function workspaceRoutes(fastify: FastifyInstance) {
   // List Workspaces

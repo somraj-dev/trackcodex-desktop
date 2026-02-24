@@ -1073,6 +1073,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
 
 const AppContent = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
   const [isAppLoading] = useState(false);
 
   if (isLoading || isAppLoading) {
@@ -1082,7 +1083,7 @@ const AppContent = () => {
   return (
     <React.Suspense fallback={<SplashScreen />}>
       <div className="flex flex-col h-screen overflow-hidden">
-        <main className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar">
+        <main className={`flex-1 flex flex-col min-h-0 overflow-y-auto ${location.pathname === "/" ? "no-scrollbar" : "custom-scrollbar"}`}>
           <Routes>
             {/* Public Pages with Static Footer */}
             <Route
