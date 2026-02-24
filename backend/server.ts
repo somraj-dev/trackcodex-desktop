@@ -1,3 +1,7 @@
+// Fix: Global SSL bypass for self-signed certificates (Supabase/Render networking)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+console.warn("☢️  [INIT] NODE_TLS_REJECT_UNAUTHORIZED set to '0' (SSL Bypass Active)");
+
 // Fix: Import process from 'process' to ensure the Node.js process object is correctly typed
 import process from "process";
 import fs from "fs";
