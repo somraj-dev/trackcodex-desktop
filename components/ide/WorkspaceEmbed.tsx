@@ -27,6 +27,7 @@ const WorkspaceEmbed: React.FC = () => {
             window.location.hostname !== "127.0.0.1"
           ) {
             parsed.hostname = window.location.hostname;
+            parsed.protocol = window.location.protocol;
             url = parsed.toString();
           }
         } catch (e) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import VSCodeWebBridge from "../../components/ide/VSCodeWebBridge";
 import { useTheme } from "../../context/ThemeContext";
-import { API_BASE } from "../../services/api";
+import { api } from "../../services/api";
 
 /**
  * VSCodeWorkspaceView — Full VS Code Web Integration
@@ -30,11 +30,7 @@ const VSCodeWorkspaceView: React.FC = () => {
     useEffect(() => {
         const syncTheme = async () => {
             try {
-                await fetch(`${API_BASE}/ide/theme`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ theme: resolvedTheme.type })
-                });
+                await api.post(`/ide/theme`, { theme: resolvedTheme.type });
             } catch (err) {
                 console.warn("Failed to sync theme with IDE:", err);
             }
@@ -53,58 +49,53 @@ const VSCodeWorkspaceView: React.FC = () => {
             // First, try to get repo details (when launched from Repositories page)
             let repoName: string | null = null;
             try {
-                const repoRes = await fetch(`${API_BASE}/repositories/${id}`);
-                if (repoRes.ok) {
-                    const repo = await repoRes.json();
-                    repoName = repo.name || null;
-                    setWorkspaceName(repo.name || "Workspace");
-                }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const repo = await api.get<any>(`/repositories/${id}`);
+                repoName = repo.name || null;
+                setWorkspaceName(repo.name || "Workspace");
             } catch {
                 // Not a repo-based launch, try workspace details
             }
 
             // If not a repo, fetch workspace details
             if (!repoName) {
-                const detailRes = await fetch(`${API_BASE}/workspaces/${id}`);
-                if (detailRes.ok) {
-                    const detail = await detailRes.json();
+                try {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const detail = await api.get<any>(`/workspaces/${id}`);
                     setWorkspaceName(detail.name || "Workspace");
+                } catch {
+                    // Ignore
                 }
             }
 
             // Start workspace — pass repoId so backend clones from Gitea
-            const startRes = await fetch(`${API_BASE}/workspaces/${id}/start`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ repoId: id }),
-            });
-
-            if (startRes.ok) {
-                const data = await startRes.json();
-                let url = data.url || "http://localhost:8080";
-
-                // Fast fallback: If backend returned localhost but we are on a remote domain,
-                // try rewriting it to the current window's hostname.
-                try {
-                    const parsed = new URL(url);
-                    if (
-                        (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
-                        window.location.hostname !== "localhost" &&
-                        window.location.hostname !== "127.0.0.1"
-                    ) {
-                        parsed.hostname = window.location.hostname;
-                        url = parsed.toString();
-                    }
-                } catch (e) {
-                    // Ignore URL parsing errors
-                }
-
-                setVsCodeUrl(url);
-            } else {
-                console.warn("Workspace start API returned error, using default VS Code Web URL");
-                setVsCodeUrl("http://localhost:8080");
+            let url = "http://localhost:8080";
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const data = await api.post<any>(`/workspaces/${id}/start`, { repoId: id });
+                url = data.url || "http://localhost:8080";
+            } catch (err) {
+                console.warn("Workspace start API returned error, using default VS Code Web URL", err);
             }
 
+            // Fast fallback: If backend returned localhost but we are on a remote domain,
+            // try rewriting it to the current window's hostname.
+            try {
+                const parsed = new URL(url);
+                if (
+                    (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+                    window.location.hostname !== "localhost" &&
+                    window.location.hostname !== "127.0.0.1"
+                ) {
+                    parsed.hostname = window.location.hostname;
+                    parsed.protocol = window.location.protocol;
+                    url = parsed.toString();
+                }
+            } catch (e) {
+                // Ignore URL parsing errors
+            }
+
+            setVsCodeUrl(url);
             setStatus("ready");
         } catch (err) {
             console.error("Failed to start workspace:", err);
