@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import VSCodeWebBridge from "../../components/ide/VSCodeWebBridge";
 import { useTheme } from "../../context/ThemeContext";
 import { api } from "../../services/api";
+import IDEShim from "./IDEShim";
 
 /**
  * VSCodeWorkspaceView — Full VS Code Web Integration
@@ -78,23 +79,7 @@ const VSCodeWorkspaceView: React.FC = () => {
                 console.warn("Workspace start API returned error, using default VS Code Web URL", err);
             }
 
-            // Fast fallback: If backend returned localhost but we are on a remote domain,
-            // try rewriting it to the current window's hostname.
-            try {
-                const parsed = new URL(url);
-                if (
-                    (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
-                    window.location.hostname !== "localhost" &&
-                    window.location.hostname !== "127.0.0.1"
-                ) {
-                    parsed.hostname = window.location.hostname;
-                    parsed.protocol = window.location.protocol;
-                    parsed.port = window.location.port; // Clear port 8080 or use window's port
-                    url = parsed.toString();
-                }
-            } catch (e) {
-                // Ignore URL parsing errors
-            }
+
 
             setVsCodeUrl(url);
             setStatus("ready");
@@ -189,6 +174,27 @@ const VSCodeWorkspaceView: React.FC = () => {
                 </div>
             </div>
         );
+    }
+
+    // ── Fallback to Monaco IDEShim if OpenVSCode is Localhost on a Remote Domain ──
+    let useFallbackShim = false;
+    try {
+        if (vsCodeUrl) {
+            const parsed = new URL(vsCodeUrl);
+            if (
+                (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+                window.location.hostname !== "localhost" &&
+                window.location.hostname !== "127.0.0.1"
+            ) {
+                useFallbackShim = true;
+            }
+        }
+    } catch (e) {
+        // Ignore URL parsing errors
+    }
+
+    if (useFallbackShim) {
+        return <IDEShim />;
     }
 
     // ── VS Code Web iframe ─────────────────────────────────────

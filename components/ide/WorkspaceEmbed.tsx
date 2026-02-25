@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../../context/AuthContext";
+import IDEShim from "../../views/ide/IDEShim";
 
 const WorkspaceEmbed: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,23 +18,7 @@ const WorkspaceEmbed: React.FC = () => {
         const response = await api.post(`/workspaces/${id}/start`);
         let url = response.data.url;
 
-        // Fast fallback: If backend returned localhost but we are on a remote domain,
-        // try rewriting it to the current window's hostname.
-        try {
-          const parsed = new URL(url);
-          if (
-            (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
-            window.location.hostname !== "localhost" &&
-            window.location.hostname !== "127.0.0.1"
-          ) {
-            parsed.hostname = window.location.hostname;
-            parsed.protocol = window.location.protocol;
-            parsed.port = window.location.port; // Clear port 8080 or use window's port
-            url = parsed.toString();
-          }
-        } catch (e) {
-          // Ignore URL parsing errors
-        }
+
 
         setIdeUrl(url);
       } catch (err: any) {
@@ -97,6 +82,26 @@ const WorkspaceEmbed: React.FC = () => {
         </button>
       </div>
     );
+  }
+
+  let useFallbackShim = false;
+  try {
+    if (ideUrl) {
+      const parsed = new URL(ideUrl);
+      if (
+        (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+        window.location.hostname !== "localhost" &&
+        window.location.hostname !== "127.0.0.1"
+      ) {
+        useFallbackShim = true;
+      }
+    }
+  } catch (e) {
+    // Ignore URL parsing errors
+  }
+
+  if (useFallbackShim) {
+    return <IDEShim />;
   }
 
   return (
