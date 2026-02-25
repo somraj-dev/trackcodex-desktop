@@ -6,15 +6,15 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
-// Target the new code-server installation
-const CODE_SERVER_DIR = path.join(ROOT_DIR, 'vscode-engine', 'node_modules', 'code-server');
+// Target the new code-server installation or read from env for Docker
+const CODE_SERVER_DIR = process.env.CODE_SERVER_DIR || path.join(ROOT_DIR, 'vscode-engine', 'node_modules', 'code-server');
 const VSCODE_LIB_DIR = path.join(CODE_SERVER_DIR, 'lib', 'vscode');
 
 async function rebrandIDE() {
     console.log('🎨 Starting IDE Rebranding (Code-Server Edition) to TrackCodex...');
 
     if (!fs.existsSync(CODE_SERVER_DIR)) {
-        console.error('❌ vscode-engine/node_modules/code-server not found. Please run yarn install first.');
+        console.error(`❌ code-server not found at ${CODE_SERVER_DIR}. Please run yarn install first or set CODE_SERVER_DIR.`);
         process.exit(1);
     }
 

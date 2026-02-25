@@ -64,9 +64,11 @@ services:
 
   # ── OpenVSCode Server: Self-Hosted IDE ──
   openvscode:
-    image: gitpod/openvscode-server:latest
+    build:
+      context: .
+      dockerfile: docker/ide.Dockerfile
     ports:
-      - "8080:3000"   # OpenVSCode Web UI
+      - "8080:8080"   # OpenVSCode Web UI (TrackCodex Custom)
     volumes:
       - ./workspaces:/home/workspace   # Bind mount so backend + container share files
     environment:
