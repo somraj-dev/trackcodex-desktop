@@ -54,7 +54,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [csrfToken, setCsrfToken] = useState<string | null>(
     localStorage.getItem("csrf_token"),
   );
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    const hasSession = !!localStorage.getItem("session_id") || !!localStorage.getItem("csrf_token");
+    return hasSession;
+  });
 
   // Configure axios interceptor to attach CSRF token and Session ID
   useEffect(() => {
@@ -84,7 +87,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const checkAuthStatus = async () => {
       console.log("AuthContext: Starting checkAuthStatus");
       try {
-        const res = await api.get("/auth/me");
+        const res = await api.get("/auth/me", {
+          timeout: 5000,
+        });
         console.log("AuthContext: checkAuthStatus returned", res);
         if (res.data.user) {
           console.log("AuthContext: User found", res.data.user);

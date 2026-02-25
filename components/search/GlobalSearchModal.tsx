@@ -86,6 +86,29 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     return () => clearTimeout(timer);
   }, [query]);
 
+  const jumpTo = useCallback((url: string) => {
+    navigate(url);
+    onClose();
+  }, [navigate, onClose]);
+
+  const handleSelect = useCallback(() => {
+    const items = query.trim()
+      ? results
+      : recentRepos.map((r) => ({
+        id: r.id,
+        type: "repo",
+        label: r.name,
+        subLabel: r.fullName,
+        icon: "book",
+        group: "Repositories",
+        url: `/${r.owner}/${r.name}`,
+      }));
+
+    if (items[selectedIndex]) {
+      jumpTo(items[selectedIndex].url);
+    }
+  }, [query, results, recentRepos, selectedIndex, jumpTo]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -112,30 +135,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, results, recentRepos, selectedIndex]);
-
-  const handleSelect = () => {
-    const items = query.trim()
-      ? results
-      : recentRepos.map((r) => ({
-        id: r.id,
-        type: "repo",
-        label: r.name,
-        subLabel: r.fullName,
-        icon: "book",
-        group: "Repositories",
-        url: `/${r.owner}/${r.name}`,
-      }));
-
-    if (items[selectedIndex]) {
-      jumpTo(items[selectedIndex].url);
-    }
-  };
-
-  const jumpTo = (url: string) => {
-    navigate(url);
-    onClose();
-  };
+  }, [isOpen, results, recentRepos, selectedIndex, handleSelect, onClose]);
 
   const submitFeedback = async (message: string) => {
     try {
@@ -214,7 +214,11 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                 </div>
               ))
             ) : (
-              <div className="no-results">No results found</div>
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <span className="material-symbols-outlined !text-4xl text-[#8b949e] mb-2">search</span>
+                <h3 className="text-[#c9d1d9] text-sm font-semibold mb-1">No results matched your search.</h3>
+                <p className="text-[#8b949e] text-xs">Try different keywords or filters.</p>
+              </div>
             )
           ) : (
             // Recent repositories
@@ -312,7 +316,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               rows={5}
               id="feedback-input"
             />
-            <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+            <div className="mt-3 flex gap-2">
               <button
                 onClick={() => {
                   const input = document.getElementById(
