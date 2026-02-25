@@ -93,6 +93,16 @@ export async function workspaceRoutes(fastify: FastifyInstance) {
       },
     });
 
+    const { NotificationService } = await import("../services/notification");
+    await NotificationService.create(
+      finalOwnerId,
+      "system",
+      "Workspace Provisioned",
+      `New cloud development environment allocated for: ${workspace.name}`,
+      `/workspaces/${workspace.id}`,
+      { workspaceId: workspace.id }
+    );
+
     // If repository URL provided, trigger real cloning in background
     if (setupMode === "import" && repositoryUrl) {
       // Log the cloning request

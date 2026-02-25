@@ -171,6 +171,16 @@ export async function repositoryRoutes(fastify: FastifyInstance) {
           ipAddress: request.ip,
         });
 
+        const { NotificationService } = await import("../services/notification");
+        await NotificationService.create(
+          user.userId,
+          "system",
+          "Repository Created",
+          `Successfully initialized repository: ${name}`,
+          `/repo/${user.username || 'me'}/${name}`,
+          { repoId: repoData.id }
+        );
+
         // Create real Git repository in Gitea
         try {
           const { GiteaService } = await import("../services/giteaService");
