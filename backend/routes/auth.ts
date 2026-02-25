@@ -103,6 +103,16 @@ export async function authRoutes(fastify: FastifyInstance) {
           },
         );
 
+        // Determine the domain dynamically
+        let cookieDomain: string | undefined = undefined;
+        if (process.env.FRONTEND_URL) {
+          try {
+            const urlObj = new URL(process.env.FRONTEND_URL);
+            const hostParts = urlObj.hostname.split('.');
+            if (hostParts.length >= 2) cookieDomain = '.' + hostParts.slice(-2).join('.');
+          } catch (e) { }
+        }
+
         // 5. Set Cookie
         const isProduction = process.env.NODE_ENV === "production";
         reply.setCookie("session_id", sessionId, {
@@ -110,6 +120,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           httpOnly: true,
           secure: isProduction,
           sameSite: isProduction ? "none" : "lax",
+          domain: isProduction ? cookieDomain : undefined,
           maxAge: 7 * 24 * 60 * 60,
         });
 
@@ -205,12 +216,22 @@ export async function authRoutes(fastify: FastifyInstance) {
           },
         );
 
+        let cookieDomain: string | undefined = undefined;
+        if (process.env.FRONTEND_URL) {
+          try {
+            const urlObj = new URL(process.env.FRONTEND_URL);
+            const hostParts = urlObj.hostname.split('.');
+            if (hostParts.length >= 2) cookieDomain = '.' + hostParts.slice(-2).join('.');
+          } catch (e) { }
+        }
+
         const isProduction = process.env.NODE_ENV === "production";
         reply.setCookie("session_id", sessionId, {
           path: "/",
           httpOnly: true,
           secure: isProduction,
           sameSite: isProduction ? "none" : "lax",
+          domain: isProduction ? cookieDomain : undefined,
           maxAge: 7 * 24 * 60 * 60,
         });
 
@@ -397,6 +418,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           httpOnly: true,
           secure: isProduction,
           sameSite: isProduction ? "none" : "lax",
+          domain: isProduction ? cookieDomain : undefined,
           maxAge: 7 * 24 * 60 * 60, // 7 days
         });
 
@@ -438,6 +460,17 @@ export async function authRoutes(fastify: FastifyInstance) {
       };
       const ip = request.ip;
       const userAgent = request.headers["user-agent"] || "unknown";
+
+      let cookieDomain: string | undefined = undefined;
+      if (process.env.FRONTEND_URL) {
+        try {
+          const urlObj = new URL(process.env.FRONTEND_URL);
+          const hostParts = urlObj.hostname.split('.');
+          if (hostParts.length >= 2) {
+            cookieDomain = '.' + hostParts.slice(-2).join('.');
+          }
+        } catch (e) { }
+      }
 
       try {
         if (!code) {
@@ -582,6 +615,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           httpOnly: true,
           secure: isProduction,
           sameSite: isProduction ? "none" : "lax",
+          domain: isProduction ? cookieDomain : undefined,
           maxAge: 7 * 24 * 60 * 60,
         });
 
@@ -632,6 +666,17 @@ export async function authRoutes(fastify: FastifyInstance) {
       };
       const ip = request.ip;
       const userAgent = request.headers["user-agent"] || "unknown";
+
+      let cookieDomain: string | undefined = undefined;
+      if (process.env.FRONTEND_URL) {
+        try {
+          const urlObj = new URL(process.env.FRONTEND_URL);
+          const hostParts = urlObj.hostname.split('.');
+          if (hostParts.length >= 2) {
+            cookieDomain = '.' + hostParts.slice(-2).join('.');
+          }
+        } catch (e) { }
+      }
 
       try {
         if (!code) throw BadRequest("Authorization code required");
@@ -758,6 +803,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           httpOnly: true,
           secure: isProduction,
           sameSite: isProduction ? "none" : "lax",
+          domain: isProduction ? cookieDomain : undefined,
           maxAge: 7 * 24 * 60 * 60,
         });
 
@@ -796,8 +842,21 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
 
       if (sessionId) {
+        let cookieDomain: string | undefined = undefined;
+        if (process.env.FRONTEND_URL) {
+          try {
+            const urlObj = new URL(process.env.FRONTEND_URL);
+            const hostParts = urlObj.hostname.split('.');
+            if (hostParts.length >= 2) cookieDomain = '.' + hostParts.slice(-2).join('.');
+          } catch (e) { }
+        }
+
         await revokeSession(sessionId);
-        reply.clearCookie("session_id", { path: "/" });
+        const isProduction = process.env.NODE_ENV === "production";
+        reply.clearCookie("session_id", {
+          path: "/",
+          domain: isProduction ? cookieDomain : undefined
+        });
 
         // Log logout
         const user = (request as any).user;
@@ -828,10 +887,23 @@ export async function authRoutes(fastify: FastifyInstance) {
           data: { tokenVersion: { increment: 1 } },
         });
 
+        let cookieDomain: string | undefined = undefined;
+        if (process.env.FRONTEND_URL) {
+          try {
+            const urlObj = new URL(process.env.FRONTEND_URL);
+            const hostParts = urlObj.hostname.split('.');
+            if (hostParts.length >= 2) cookieDomain = '.' + hostParts.slice(-2).join('.');
+          } catch (e) { }
+        }
+
         // Also revoke physical session records for good measure
         await revokeAllUserSessions(user.userId);
 
-        reply.clearCookie("session_id", { path: "/" });
+        const isProduction = process.env.NODE_ENV === "production";
+        reply.clearCookie("session_id", {
+          path: "/",
+          domain: isProduction ? cookieDomain : undefined
+        });
         return { message: "Logged out from all devices successfully" };
       } catch (error) {
         request.log.error(error);
