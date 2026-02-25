@@ -89,6 +89,7 @@ const VSCodeWorkspaceView: React.FC = () => {
                 ) {
                     parsed.hostname = window.location.hostname;
                     parsed.protocol = window.location.protocol;
+                    parsed.port = window.location.port; // Clear port 8080 or use window's port
                     url = parsed.toString();
                 }
             } catch (e) {
