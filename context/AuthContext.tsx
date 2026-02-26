@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (supabase) {
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((event, session) => {
+      } = supabase.auth.onAuthStateChange((event: any, session: any) => {
         console.log(`[AuthContext] Auth event: ${event}`);
         if (session) {
           const mappedUser: User = {
