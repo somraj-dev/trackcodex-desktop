@@ -84,7 +84,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (supabase) {
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
+      } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log(`[AuthContext] Auth event: ${event}`);
         if (session) {
           const mappedUser: User = {
             id: session.user.id,
@@ -96,7 +97,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           };
           setUser(mappedUser);
           profileService.initFromAuth(mappedUser);
-        } else {
+        } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+          // Only clear if we explicitly got a sign out event
           setUser(null);
           profileService.clearProfile();
         }

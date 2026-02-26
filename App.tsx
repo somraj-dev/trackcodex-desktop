@@ -1103,14 +1103,14 @@ const AppContent = () => {
               <Route path="/security" element={<Security />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/cookies" element={<CookiePolicy />} />
+              <Route
+                path="/auth/callback/:provider"
+                element={<OAuthCallback />}
+              />
               {!isAuthenticated && (
                 <>
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
-                  <Route
-                    path="/auth/callback/:provider"
-                    element={<OAuthCallback />}
-                  />
                   <Route path="/" element={<LandingPage />} />
                   <Route path="*" element={<RedirectToLogin />} />
                 </>
