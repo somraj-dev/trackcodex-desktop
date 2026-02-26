@@ -36,27 +36,49 @@ const OAuthCallback: React.FC = () => {
         }
 
         if (!code) {
-          throw new Error("No authorization code received");
+          throw new Error("No authorization code received from the auth provider.");
         }
 
         // Exchange code for session
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (exchangeError) throw exchangeError;
 
-        // Redirect to dashboard or saved path
-        const redirectPath = localStorage.getItem("redirect_after_login") || "/dashboard/home";
-        localStorage.removeItem("redirect_after_login");
+        if (!data.session) {
+          throw new Error("Session exchange completed but no session was returned.");
+        }
 
-        navigate(redirectPath);
+        // We wait a brief moment for the AuthContext to pick up the new session
+        // This prevents the race condition where we navigate to a protected route
+        // before the state update has finished.
+        let attempts = 0;
+        const checkAuth = setInterval(async () => {
+          attempts++;
+          const { data: { session } } = await supabase.auth.getSession();
+
+          if (session) { // We check if Supabase now has a stable session
+            clearInterval(checkAuth);
+
+            // Redirect to dashboard or saved path
+            const redirectPath = localStorage.getItem("redirect_after_login") || "/dashboard/home";
+            localStorage.removeItem("redirect_after_login");
+            navigate(redirectPath, { replace: true });
+          } else if (attempts > 30) { // Timeout after 3 seconds
+            clearInterval(checkAuth);
+            // Even if session isn't immediately visible, we try to navigate to home
+            // AuthContext will handle the secondary redirect if it's still missing
+            navigate("/dashboard/home", { replace: true });
+          }
+        }, 150);
+
       } catch (err: any) {
         console.error("OAuth callback error:", err);
-        setError(err.message || "Authentication failed");
+        setError(err.message || "Authentication failed. Please try again.");
         setTimeout(() => navigate("/login"), 5000);
       }
     };
 
     handleCallback();
-  }, [provider, navigate, login, location.search]);
+  }, [provider, navigate, login]);
 
   if (error) {
     return (

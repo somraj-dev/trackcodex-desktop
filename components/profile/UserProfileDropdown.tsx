@@ -40,11 +40,13 @@ const MenuItem = ({
 interface UserProfileDropdownProps {
   profile: UserProfile;
   onClose: () => void;
+  logout?: () => void;
 }
 
 const UserProfileDropdown = ({
   profile,
   onClose,
+  logout,
 }: UserProfileDropdownProps) => {
   const navigate = useNavigate();
   const [stratas, setStratas] = React.useState<Strata[]>([]);
