@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
+  BrowserRouter,
   HashRouter,
   Routes,
   Route,
@@ -1147,16 +1148,22 @@ const AppWithProviders = () => {
   );
 };
 
-const App = () => (
-  <ThemeProvider>
-    <HashRouter
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
-      <AuthProvider>
-        <AppWithProviders />
-      </AuthProvider>
-    </HashRouter>
-  </ThemeProvider>
-);
+const App = () => {
+  // Use HashRouter for Electron/Standalone, BrowserRouter for web
+  const isElectron = window.navigator.userAgent.toLowerCase().includes('electron');
+  const Router = isElectron ? HashRouter : BrowserRouter;
+
+  return (
+    <ThemeProvider>
+      <Router
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <AuthProvider>
+          <AppWithProviders />
+        </AuthProvider>
+      </Router>
+    </ThemeProvider>
+  );
+};
 
 export default App;

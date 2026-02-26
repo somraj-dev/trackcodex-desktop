@@ -18,14 +18,21 @@ const OAuthCallback: React.FC = () => {
 
     const handleCallback = async () => {
       try {
-        // In HashRouter, the code might be in the query params of the hash
+        // Root fix extraction: Check search params (modern/clean), and fallback to hash (legacy/desktop)
         const queryParams = new URLSearchParams(window.location.search);
         let code = queryParams.get("code");
 
-        if (!code && window.location.hash.includes("?")) {
-          const hashQuery = window.location.hash.split("?")[1];
+        // Fallback 1: Check if it's in the hash (HashRouter legacy)
+        if (!code && window.location.hash.includes("code=")) {
+          const hashQuery = window.location.hash.split("?")[1] || window.location.hash.split("#")[1];
           const hashParams = new URLSearchParams(hashQuery);
           code = hashParams.get("code");
+        }
+
+        // Fallback 2: Manual regex check on full URL as extreme fallback
+        if (!code) {
+          const codeMatch = window.location.href.match(/[?&]code=([^&#]+)/);
+          code = codeMatch ? codeMatch[1] : null;
         }
 
         if (!code) {
