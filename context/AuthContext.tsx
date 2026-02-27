@@ -59,9 +59,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Supabase Auth Listener
   useEffect(() => {
+    let isMounted = true;
+
+    // Safety net: Force loading to false after 10 seconds to prevent
+    // infinite black screen if auth initialization hangs
+    const loadingTimeout = setTimeout(() => {
+      if (isMounted && isLoading) {
+        console.warn("[AuthContext] Auth initialization timed out after 10s, forcing isLoading=false");
+        setIsLoading(false);
+      }
+    }, 10000);
+
     // 1. Get initial session
     if (supabase) {
       supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!isMounted) return;
+        console.log("[AuthContext] getSession result:", session ? "Session found" : "No session");
         if (session) {
           const mappedUser: User = {
             id: session.user.id,
@@ -75,17 +88,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           profileService.initFromAuth(mappedUser);
         }
         setIsLoading(false);
+      }).catch((err) => {
+        console.error("[AuthContext] getSession failed:", err);
+        if (isMounted) setIsLoading(false);
       });
     } else {
+      console.warn("[AuthContext] Supabase client is null, skipping auth");
       setIsLoading(false);
     }
 
     // 2. Listen for auth changes
+    let subscription: any = null;
     if (supabase) {
       const {
-        data: { subscription },
+        data: { subscription: sub },
       } = supabase.auth.onAuthStateChange((event: any, session: any) => {
-        console.log(`[AuthContext] Auth event: ${event}`);
+        console.log(`[AuthContext] Auth event: ${event}, session: ${session ? "present" : "null"}`);
+        if (!isMounted) return;
         if (session) {
           const mappedUser: User = {
             id: session.user.id,
@@ -104,9 +123,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         setIsLoading(false);
       });
-
-      return () => subscription.unsubscribe();
+      subscription = sub;
     }
+
+    return () => {
+      isMounted = false;
+      clearTimeout(loadingTimeout);
+      if (subscription) subscription.unsubscribe();
+    };
   }, []);
 
   // Configure axios interceptor to attach Supabase JWT or legacy Session ID
