@@ -124,12 +124,32 @@ const IntegrationsSettings = () => {
     },
   ]);
 
-  // Load from local storage on mount
+  // Load from local storage on mount + auto-detect OAuth provider tokens
   useEffect(() => {
     const saved = localStorage.getItem("trackcodex_integrations");
+    let current = integrations;
     if (saved) {
-      setIntegrations(JSON.parse(saved));
+      current = JSON.parse(saved);
     }
+
+    // Auto-detect GitHub connection from OAuth login
+    const ghToken = localStorage.getItem("trackcodex_github_token");
+    if (ghToken) {
+      current = current.map((int) =>
+        int.id === "github" ? { ...int, connected: true } : int
+      );
+    }
+
+    // Auto-detect Google connection from OAuth login
+    const googleToken = localStorage.getItem("trackcodex_google_token");
+    if (googleToken) {
+      current = current.map((int) =>
+        int.id === "google" ? { ...int, connected: true } : int
+      );
+    }
+
+    setIntegrations(current);
+    localStorage.setItem("trackcodex_integrations", JSON.stringify(current));
   }, []);
 
   const toggleConnection = (id: string) => {

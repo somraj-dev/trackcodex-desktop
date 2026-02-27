@@ -79,13 +79,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const mappedUser: User = {
             id: session.user.id,
             email: session.user.email || "",
-            username: session.user.user_metadata?.username || "",
-            name: session.user.user_metadata?.full_name || "",
+            username: session.user.user_metadata?.username || session.user.user_metadata?.user_name || "",
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || "",
             avatar: session.user.user_metadata?.avatar_url || "",
             role: session.user.user_metadata?.role || "user",
           };
           setUser(mappedUser);
           profileService.initFromAuth(mappedUser);
+
+          // Auto-connect GitHub/Google integration if user logged in via OAuth
+          const provider = session.user.app_metadata?.provider;
+          const providerToken = session.provider_token;
+          if (provider === "github") {
+            if (providerToken) {
+              localStorage.setItem("trackcodex_github_token", providerToken);
+            }
+            const ghUsername = session.user.user_metadata?.user_name || session.user.user_metadata?.preferred_username || "";
+            if (ghUsername) {
+              localStorage.setItem("trackcodex_github_username", ghUsername);
+            }
+          } else if (provider === "google") {
+            if (providerToken) {
+              localStorage.setItem("trackcodex_google_token", providerToken);
+            }
+          }
         }
         setIsLoading(false);
       }).catch((err) => {
@@ -109,13 +126,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const mappedUser: User = {
             id: session.user.id,
             email: session.user.email || "",
-            username: session.user.user_metadata?.username || "",
-            name: session.user.user_metadata?.full_name || "",
+            username: session.user.user_metadata?.username || session.user.user_metadata?.user_name || "",
+            name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || "",
             avatar: session.user.user_metadata?.avatar_url || "",
             role: session.user.user_metadata?.role || "user",
           };
           setUser(mappedUser);
           profileService.initFromAuth(mappedUser);
+
+          // Auto-connect integrations on SIGNED_IN event
+          if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+            const provider = session.user.app_metadata?.provider;
+            const providerToken = session.provider_token;
+            if (provider === "github") {
+              if (providerToken) {
+                localStorage.setItem("trackcodex_github_token", providerToken);
+              }
+              const ghUsername = session.user.user_metadata?.user_name || session.user.user_metadata?.preferred_username || "";
+              if (ghUsername) {
+                localStorage.setItem("trackcodex_github_username", ghUsername);
+              }
+            } else if (provider === "google") {
+              if (providerToken) {
+                localStorage.setItem("trackcodex_google_token", providerToken);
+              }
+            }
+          }
         } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
           // Only clear if we explicitly got a sign out event
           setUser(null);
