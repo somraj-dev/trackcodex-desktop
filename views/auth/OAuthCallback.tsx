@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 
 const OAuthCallback: React.FC = () => {
-  const { provider } = useParams<{ provider: "google" | "github" }>();
+  const { provider } = useParams<{ provider: "google" | "github" | "gitlab" }>();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
@@ -95,8 +95,12 @@ const OAuthCallback: React.FC = () => {
 
         login(mappedUser, session.access_token, session.access_token);
 
-        // Redirect to dashboard or saved path
-        const redirectPath = localStorage.getItem("redirect_after_login") || "/dashboard/home";
+        // Redirect: If user came from integrations page, go back there
+        const integrationReturnPath = localStorage.getItem("integration_return_path");
+        localStorage.removeItem("integration_return_path");
+        localStorage.removeItem("integration_pending_provider");
+
+        const redirectPath = integrationReturnPath || localStorage.getItem("redirect_after_login") || "/dashboard/home";
         localStorage.removeItem("redirect_after_login");
         navigate(redirectPath, { replace: true });
 
@@ -131,7 +135,7 @@ const OAuthCallback: React.FC = () => {
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-500 mx-auto mb-4"></div>
         <h1 className="text-xl font-bold mb-2">Completing Sign In</h1>
         <p className="text-gh-text-secondary">
-          Authenticating with {provider === "google" ? "Google" : "GitHub"}...
+          Authenticating with {provider === "google" ? "Google" : provider === "gitlab" ? "GitLab" : "GitHub"}...
         </p>
       </div>
     </div>

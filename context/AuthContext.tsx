@@ -102,6 +102,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             if (providerToken) {
               localStorage.setItem("trackcodex_google_token", providerToken);
             }
+          } else if (provider === "gitlab") {
+            if (providerToken) {
+              localStorage.setItem("trackcodex_gitlab_token", providerToken);
+            }
           }
         }
         setIsLoading(false);
@@ -149,6 +153,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             } else if (provider === "google") {
               if (providerToken) {
                 localStorage.setItem("trackcodex_google_token", providerToken);
+              }
+            } else if (provider === "gitlab") {
+              if (providerToken) {
+                localStorage.setItem("trackcodex_gitlab_token", providerToken);
               }
             }
           }

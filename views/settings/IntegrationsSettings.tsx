@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { supabase } from "../../lib/supabase";
 import { githubService } from "../../services/github";
 import { gitlabService } from "../../services/gitlab";
 import IntegrationPermissionModal from "../../components/settings/IntegrationPermissionModal";
@@ -148,6 +149,14 @@ const IntegrationsSettings = () => {
       );
     }
 
+    // Auto-detect GitLab connection from OAuth
+    const glToken = localStorage.getItem("trackcodex_gitlab_token");
+    if (glToken) {
+      current = current.map((int) =>
+        int.id === "gitlab" ? { ...int, connected: true } : int
+      );
+    }
+
     setIntegrations(current);
     localStorage.setItem("trackcodex_integrations", JSON.stringify(current));
   }, []);
@@ -234,49 +243,43 @@ const IntegrationsSettings = () => {
     }
   };
 
-  const handlePermissionConfirm = () => {
+  const handlePermissionConfirm = async () => {
     setShowPermissionModal(false);
     if (!pendingIntegration) return;
 
-    // Check for valid Client ID
-    const ghClientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-    const glClientId = import.meta.env.VITE_GITLAB_CLIENT_ID;
+    // Use Supabase OAuth to link GitHub/GitLab identity
+    if (pendingIntegration.id === "github" || pendingIntegration.id === "gitlab") {
+      try {
+        const provider = pendingIntegration.id as "github" | "gitlab";
+        const scopes = provider === "github"
+          ? "repo read:user read:org"
+          : "api read_user read_repository";
 
-    // Determine if we can do OAuth or fallback to manual token
-    let canDoOAuth = false;
-    // Check if client ID is valid (not undefined, empty, or placeholder)
-    if (pendingIntegration.id === "github" && ghClientId && ghClientId !== "Iv1.8a61f9b3a7c42c2e" && ghClientId !== "YOUR_GITHUB_CLIENT_ID") canDoOAuth = true;
-    if (pendingIntegration.id === "gitlab" && glClientId && glClientId !== "APP_ID") canDoOAuth = true;
+        // Save return path so we come back to integrations after OAuth
+        localStorage.setItem("integration_return_path", window.location.pathname);
+        localStorage.setItem("integration_pending_provider", provider);
 
-    if (canDoOAuth) {
-      // Initiate OAuth Flow
-      const state = Math.random().toString(36).substring(7);
-      localStorage.setItem("oauth_state", state);
-      localStorage.setItem("integration_return_path", window.location.pathname);
-
-      if (pendingIntegration.id === "github") {
-        const params = new URLSearchParams({
-          client_id: ghClientId,
-          redirect_uri: "http://localhost:3000/auth/callback/integration/github",
-          scope: "repo read:user",
-          state,
-          allow_signup: "true"
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback/${provider}`,
+            scopes,
+            queryParams: {
+              prompt: "consent",
+            },
+          },
         });
-        window.location.href = `https://github.com/login/oauth/authorize?${params.toString()}`;
-      } else if (pendingIntegration.id === "gitlab") {
-        const params = new URLSearchParams({
-          client_id: glClientId,
-          redirect_uri: "http://localhost:3000/auth/callback/integration/gitlab",
-          response_type: "code",
-          scope: "api",
-          state,
-        });
-        window.location.href = `https://gitlab.com/oauth/authorize?${params.toString()}`;
+
+        if (error) throw error;
+      } catch (err: any) {
+        console.error("OAuth link failed:", err);
+        // Fallback to manual token entry
+        setActiveIntegrationId(pendingIntegration.id);
+        setShowTokenModal(true);
       }
     } else {
-      // FALLBACK: Show Manual Token Entry
-      setActiveIntegrationId(pendingIntegration.id);
-      setShowTokenModal(true);
+      // For non-VCS integrations, just toggle
+      toggleConnection(pendingIntegration.id);
     }
     setPendingIntegration(null);
   };
