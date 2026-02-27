@@ -3,6 +3,7 @@ import { api } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { Repository } from "../types";
 import { githubService, GitHubRepo } from "../services/github";
+import { gitlabService, GitLabRepo } from "../services/gitlab";
 import EmptyState from "../components/common/EmptyState";
 
 // ... existing helper components (AIHealthIndicator, SecurityIndicator) ...
@@ -89,11 +90,8 @@ const Repositories = () => {
     const loadRepos = async () => {
       setLoading(true);
       try {
-        const data = await api.repositories.list();
-        const safeData = Array.isArray(data) ? data : [];
-
-        // Enrich backend data with UI indicators if missing
-        const enriched = safeData.map((repo: any) => ({
+        // Helper to enrich repo data with UI indicators
+        const enrichRepo = (repo: any): Repository => ({
           ...repo,
           aiHealth: repo.aiHealth || (repo.stars > 500 ? "A+" : "B"),
           aiHealthLabel:
@@ -107,41 +105,99 @@ const Repositories = () => {
           visibility: (repo.isPublic ? "PUBLIC" : "PRIVATE") as
             | "PUBLIC"
             | "PRIVATE",
-        }));
+        });
 
-        if (enriched.length === 0) {
-          // Auto-sync if empty (first time user)
+        // 1. Try backend API first
+        let allRepos: Repository[] = [];
+        try {
+          const data = await api.repositories.list();
+          const safeData = Array.isArray(data) ? data : [];
+          allRepos = safeData.map(enrichRepo);
+        } catch (e) {
+          console.warn("Backend repo list failed, trying direct fetch:", e);
+        }
+
+        // 2. If backend is empty, try auto-sync via backend
+        if (allRepos.length === 0) {
           try {
             const syncResponse = await api.repositories.sync();
-            if (syncResponse.repositories.length > 0) {
-              // Reload with new data
-              const enrichedSync = syncResponse.repositories.map((repo) => ({
-                ...repo,
-                aiHealth: repo.aiHealth || (repo.stars > 500 ? "A+" : "B"),
-                aiHealthLabel:
-                  repo.aiHealthLabel ||
-                  (repo.stars > 500 ? "Excellent" : "Stable"),
-                securityStatus: repo.securityStatus || "Passing",
-                lastUpdated: repo.updatedAt
-                  ? new Date(repo.updatedAt).toLocaleDateString()
-                  : "Recent",
-                techStack: repo.language || "TypeScript",
-                techColor: repo.language === "Python" ? "#facc15" : "#3178c6",
-                visibility: (repo.isPublic ? "PUBLIC" : "PRIVATE") as
-                  | "PUBLIC"
-                  | "PRIVATE",
-              }));
-              setRepos(enrichedSync);
-              return;
+            if (syncResponse?.repositories?.length > 0) {
+              allRepos = syncResponse.repositories.map(enrichRepo);
             }
           } catch (syncErr) {
-            console.warn("Auto-sync failed", syncErr);
+            console.warn("Backend sync failed:", syncErr);
           }
         }
 
-        setRepos(enriched);
+        // 3. Client-side fallback: directly fetch from GitHub using saved token
+        if (allRepos.length === 0) {
+          const ghToken = localStorage.getItem("trackcodex_github_token");
+          if (ghToken) {
+            try {
+              console.log("[Repositories] Fetching repos directly from GitHub...");
+              const ghRepos = await githubService.getRepos(ghToken);
+              const mapped = ghRepos.map((repo: GitHubRepo): Repository => ({
+                id: `gh-${repo.id}`,
+                name: repo.name,
+                description: repo.description || "No description",
+                stars: repo.stargazers_count,
+                forks: repo.forks_count,
+                language: repo.language || "Unknown",
+                isPublic: !repo.private,
+                visibility: repo.private ? "PRIVATE" : "PUBLIC",
+                updatedAt: repo.updated_at,
+                lastUpdated: new Date(repo.updated_at).toLocaleDateString(),
+                htmlUrl: repo.html_url,
+                logo: repo.owner?.avatar_url || "",
+                aiHealth: repo.stargazers_count > 500 ? "A+" : "B",
+                aiHealthLabel: repo.stargazers_count > 500 ? "Excellent" : "Stable",
+                securityStatus: "Passing",
+                techStack: repo.language || "Unknown",
+                techColor: repo.language === "Python" ? "#facc15" : "#3178c6",
+                source: "github",
+              } as any));
+              allRepos = [...allRepos, ...mapped];
+            } catch (ghErr) {
+              console.warn("GitHub direct fetch failed:", ghErr);
+            }
+          }
+        }
+
+        // 4. Client-side fallback: directly fetch from GitLab using saved token
+        const glToken = localStorage.getItem("trackcodex_gitlab_token");
+        if (glToken) {
+          try {
+            console.log("[Repositories] Fetching repos directly from GitLab...");
+            const glRepos = await gitlabService.getRepos(glToken);
+            const mapped = glRepos.map((repo: GitLabRepo): Repository => ({
+              id: `gl-${repo.id}`,
+              name: repo.name,
+              description: repo.description || "No description",
+              stars: repo.star_count,
+              forks: repo.forks_count,
+              language: "Unknown",
+              isPublic: repo.visibility === "public",
+              visibility: repo.visibility === "public" ? "PUBLIC" : "PRIVATE",
+              updatedAt: repo.last_activity_at,
+              lastUpdated: new Date(repo.last_activity_at).toLocaleDateString(),
+              htmlUrl: repo.web_url,
+              logo: repo.namespace?.avatar_url || "",
+              aiHealth: repo.star_count > 100 ? "A+" : "B",
+              aiHealthLabel: repo.star_count > 100 ? "Excellent" : "Stable",
+              securityStatus: "Passing",
+              techStack: "Unknown",
+              techColor: "#e24329",
+              source: "gitlab",
+            } as any));
+            allRepos = [...allRepos, ...mapped];
+          } catch (glErr) {
+            console.warn("GitLab direct fetch failed:", glErr);
+          }
+        }
+
+        setRepos(allRepos);
       } catch (e) {
-        console.error("❌ Failed to fetch hardware Repositories:", e);
+        console.error("❌ Failed to fetch Repositories:", e);
       } finally {
         setLoading(false);
       }
