@@ -129,69 +129,120 @@ const Repositories = () => {
           }
         }
 
-        // 3. Client-side fallback: directly fetch from GitHub using saved token
+        // Helper: map GitHub repos to Repository format
+        const mapGitHubRepos = (ghRepos: GitHubRepo[]): Repository[] =>
+          ghRepos.map((repo) => ({
+            id: `gh-${repo.id}`,
+            name: repo.name,
+            description: repo.description || "No description",
+            stars: repo.stargazers_count,
+            forks: repo.forks_count,
+            language: repo.language || "Unknown",
+            isPublic: !repo.private,
+            visibility: repo.private ? "PRIVATE" : "PUBLIC",
+            updatedAt: repo.updated_at,
+            lastUpdated: new Date(repo.updated_at).toLocaleDateString(),
+            htmlUrl: repo.html_url,
+            logo: repo.owner?.avatar_url || "",
+            aiHealth: repo.stargazers_count > 500 ? "A+" : "B",
+            aiHealthLabel: repo.stargazers_count > 500 ? "Excellent" : "Stable",
+            securityStatus: "Passing",
+            techStack: repo.language || "Unknown",
+            techColor: repo.language === "Python" ? "#facc15" : "#3178c6",
+            source: "github",
+          } as any));
+
+        // Helper: map GitLab repos to Repository format
+        const mapGitLabRepos = (glRepos: GitLabRepo[]): Repository[] =>
+          glRepos.map((repo) => ({
+            id: `gl-${repo.id}`,
+            name: repo.name,
+            description: repo.description || "No description",
+            stars: repo.star_count,
+            forks: repo.forks_count,
+            language: "Unknown",
+            isPublic: repo.visibility === "public",
+            visibility: repo.visibility === "public" ? "PUBLIC" : "PRIVATE",
+            updatedAt: repo.last_activity_at,
+            lastUpdated: new Date(repo.last_activity_at).toLocaleDateString(),
+            htmlUrl: repo.web_url,
+            logo: repo.namespace?.avatar_url || "",
+            aiHealth: repo.star_count > 100 ? "A+" : "B",
+            aiHealthLabel: repo.star_count > 100 ? "Excellent" : "Stable",
+            securityStatus: "Passing",
+            techStack: "Unknown",
+            techColor: "#e24329",
+            source: "gitlab",
+          } as any));
+
+        // 3. Client-side: fetch GitHub repos (localStorage token → backend fallback)
         if (allRepos.length === 0) {
-          const ghToken = localStorage.getItem("trackcodex_github_token");
+          let ghToken = localStorage.getItem("trackcodex_github_token");
           if (ghToken) {
             try {
-              console.log("[Repositories] Fetching repos directly from GitHub...");
               const ghRepos = await githubService.getRepos(ghToken);
-              const mapped = ghRepos.map((repo: GitHubRepo): Repository => ({
-                id: `gh-${repo.id}`,
-                name: repo.name,
-                description: repo.description || "No description",
-                stars: repo.stargazers_count,
-                forks: repo.forks_count,
-                language: repo.language || "Unknown",
-                isPublic: !repo.private,
-                visibility: repo.private ? "PRIVATE" : "PUBLIC",
-                updatedAt: repo.updated_at,
-                lastUpdated: new Date(repo.updated_at).toLocaleDateString(),
-                htmlUrl: repo.html_url,
-                logo: repo.owner?.avatar_url || "",
-                aiHealth: repo.stargazers_count > 500 ? "A+" : "B",
-                aiHealthLabel: repo.stargazers_count > 500 ? "Excellent" : "Stable",
-                securityStatus: "Passing",
-                techStack: repo.language || "Unknown",
-                techColor: repo.language === "Python" ? "#facc15" : "#3178c6",
-                source: "github",
-              } as any));
-              allRepos = [...allRepos, ...mapped];
+              allRepos = [...allRepos, ...mapGitHubRepos(ghRepos)];
             } catch (ghErr) {
-              console.warn("GitHub direct fetch failed:", ghErr);
+              console.warn("GitHub localStorage token failed, trying backend:", ghErr);
+              // Token expired — try backend's permanently stored token
+              try {
+                const backendToken = await api.integrations.getToken("github");
+                if (backendToken.connected && backendToken.accessToken) {
+                  ghToken = backendToken.accessToken;
+                  localStorage.setItem("trackcodex_github_token", ghToken);
+                  const ghRepos = await githubService.getRepos(ghToken);
+                  allRepos = [...allRepos, ...mapGitHubRepos(ghRepos)];
+                }
+              } catch (backendErr) {
+                console.warn("GitHub backend token also failed:", backendErr);
+              }
+            }
+          } else {
+            // No localStorage token — try backend directly
+            try {
+              const backendToken = await api.integrations.getToken("github");
+              if (backendToken.connected && backendToken.accessToken) {
+                localStorage.setItem("trackcodex_github_token", backendToken.accessToken);
+                const ghRepos = await githubService.getRepos(backendToken.accessToken);
+                allRepos = [...allRepos, ...mapGitHubRepos(ghRepos)];
+              }
+            } catch {
+              // No GitHub token at all — skip
             }
           }
         }
 
-        // 4. Client-side fallback: directly fetch from GitLab using saved token
-        const glToken = localStorage.getItem("trackcodex_gitlab_token");
+        // 4. Client-side: fetch GitLab repos (localStorage token → backend fallback)
+        let glToken = localStorage.getItem("trackcodex_gitlab_token");
         if (glToken) {
           try {
-            console.log("[Repositories] Fetching repos directly from GitLab...");
             const glRepos = await gitlabService.getRepos(glToken);
-            const mapped = glRepos.map((repo: GitLabRepo): Repository => ({
-              id: `gl-${repo.id}`,
-              name: repo.name,
-              description: repo.description || "No description",
-              stars: repo.star_count,
-              forks: repo.forks_count,
-              language: "Unknown",
-              isPublic: repo.visibility === "public",
-              visibility: repo.visibility === "public" ? "PUBLIC" : "PRIVATE",
-              updatedAt: repo.last_activity_at,
-              lastUpdated: new Date(repo.last_activity_at).toLocaleDateString(),
-              htmlUrl: repo.web_url,
-              logo: repo.namespace?.avatar_url || "",
-              aiHealth: repo.star_count > 100 ? "A+" : "B",
-              aiHealthLabel: repo.star_count > 100 ? "Excellent" : "Stable",
-              securityStatus: "Passing",
-              techStack: "Unknown",
-              techColor: "#e24329",
-              source: "gitlab",
-            } as any));
-            allRepos = [...allRepos, ...mapped];
+            allRepos = [...allRepos, ...mapGitLabRepos(glRepos)];
           } catch (glErr) {
-            console.warn("GitLab direct fetch failed:", glErr);
+            console.warn("GitLab localStorage token failed, trying backend:", glErr);
+            try {
+              const backendToken = await api.integrations.getToken("gitlab");
+              if (backendToken.connected && backendToken.accessToken) {
+                glToken = backendToken.accessToken;
+                localStorage.setItem("trackcodex_gitlab_token", glToken);
+                const glRepos = await gitlabService.getRepos(glToken);
+                allRepos = [...allRepos, ...mapGitLabRepos(glRepos)];
+              }
+            } catch (backendErr) {
+              console.warn("GitLab backend token also failed:", backendErr);
+            }
+          }
+        } else {
+          // No localStorage token — try backend directly
+          try {
+            const backendToken = await api.integrations.getToken("gitlab");
+            if (backendToken.connected && backendToken.accessToken) {
+              localStorage.setItem("trackcodex_gitlab_token", backendToken.accessToken);
+              const glRepos = await gitlabService.getRepos(backendToken.accessToken);
+              allRepos = [...allRepos, ...mapGitLabRepos(glRepos)];
+            }
+          } catch {
+            // No GitLab token at all — skip
           }
         }
 
