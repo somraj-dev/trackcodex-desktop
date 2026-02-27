@@ -46,6 +46,7 @@ const Login = () => {
         provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/auth/callback/github`,
+          scopes: 'repo read:user read:org',
           queryParams: {
             prompt: 'consent',
           },
