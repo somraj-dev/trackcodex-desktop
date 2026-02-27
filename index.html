@@ -4,14 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TrackCodex</title>
-    <script>
-      // SPA Redirect for OAuth Callbacks (path -> hash)
-      if (window.location.pathname.startsWith("/auth/")) {
-        const newPath =
-          "/#" + window.location.pathname + window.location.search;
-        window.history.replaceState(null, "", newPath);
-      }
-    </script>
+    <!-- Legacy hash redirect removed: App uses BrowserRouter, not HashRouter.
+         The old script broke OAuth by moving the code param into the hash fragment. -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
