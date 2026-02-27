@@ -1,8 +1,21 @@
 import nodemailer from "nodemailer";
 
 // Create transporter
-// For development, we'll use Ethereal Email (fake SMTP service) if no real SMTP details provided
+// Automatically use Resend SMTP if an API key is provided, 
+// otherwise check for generic SMTP, and fallback to Ethereal Email for Dev.
 const createTransporter = async () => {
+  if (process.env.RESEND_API_KEY) {
+    return nodemailer.createTransport({
+      host: "smtp.resend.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "resend",
+        pass: process.env.RESEND_API_KEY,
+      },
+    });
+  }
+
   if (process.env.SMTP_HOST) {
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -56,7 +69,7 @@ export const emailService = {
       const inviteLink = `http://localhost:3000/accept-invite?token=${inviteToken}`;
 
       const info = await transport.sendMail({
-        from: '"TrackCodex" <noreply@trackcodex.com>',
+        from: '"TrackCodex" <onboarding@resend.dev>', // Resend domains must be verified, fallback to onboarding@resend.dev for testing
         to,
         subject: `You've been invited to join ${workspaceName} on TrackCodex`,
         html: `
@@ -77,11 +90,59 @@ export const emailService = {
       });
 
       console.log(`📧 Invite email sent to ${to}`);
-      console.log(`🔗 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+      if (!process.env.RESEND_API_KEY && !process.env.SMTP_HOST) {
+        console.log(`🔗 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+      }
 
       return true;
     } catch (error) {
       console.error("Failed to send invite email:", error);
+      return false;
+    }
+  },
+
+  /**
+   * Send a general application notification email (Job Offers, Updates, etc.)
+   */
+  sendAppNotification: async (
+    to: string,
+    title: string,
+    message: string,
+    link?: string
+  ) => {
+    try {
+      const transport = await getTransporter();
+      const actionHtml = link
+        ? `<div style="text-align: center; margin: 30px 0;">
+             <a href="${link}" style="background-color: #0969da; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">View Details</a>
+           </div>`
+        : "";
+
+      const info = await transport.sendMail({
+        from: '"TrackCodex" <onboarding@resend.dev>', // Resend testing domain
+        to,
+        subject: title,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 6px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #24292e;">${title}</h2>
+            </div>
+            <p style="color: #24292e; font-size: 16px; line-height: 1.5;">${message}</p>
+            ${actionHtml}
+            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin-top: 30px; margin-bottom: 20px;" />
+            <p style="color: #586069; font-size: 12px; text-align: center;">This is an automated notification from TrackCodex.</p>
+          </div>
+        `,
+      });
+
+      console.log(`📧 Notification email sent to ${to}`);
+      if (!process.env.RESEND_API_KEY && !process.env.SMTP_HOST) {
+        console.log(`🔗 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Failed to send notification email:", error);
       return false;
     }
   },

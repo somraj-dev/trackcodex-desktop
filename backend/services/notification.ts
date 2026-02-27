@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { ChatService } from './chat';
+import { emailService } from './emailService';
 
 // Shared prisma instance
 
@@ -23,6 +24,26 @@ export class NotificationService {
 
             // 2. Push via WebSocket (Using ChatService's connection map)
             ChatService.sendNotification(userId, notif);
+
+            // 3. Send Email Notification asynchronously
+            // We shouldn't await this so it doesn't block the caller
+            prisma.user.findUnique({
+                where: { id: userId },
+                select: { email: true }
+            }).then(user => {
+                if (user && user.email) {
+                    emailService.sendAppNotification(
+                        user.email,
+                        title,
+                        message,
+                        link
+                    ).catch(err => {
+                        console.error("[NotificationService] Failed to send email for notification", err);
+                    });
+                }
+            }).catch(e => {
+                console.error("[NotificationService] Failed to fetch user email for notification", e);
+            });
 
             return notif;
         } catch (e) {
