@@ -60,19 +60,35 @@ export async function jobRoutes(fastify: FastifyInstance) {
             finalCreatorId = user.id;
         }
 
-        const job = await prisma.job.create({
-            data: {
-                title,
-                description,
-                budget,
-                type,
-                techStack: techStack || [], // Array of strings
-                status: 'Open',
-                creatorId: finalCreatorId,
-                orgId: orgId,
-                repositoryId: repoId
-            }
-        });
+        const [job] = await prisma.$transaction([
+            prisma.job.create({
+                data: {
+                    title,
+                    description,
+                    budget,
+                    type,
+                    techStack: techStack || [], // Array of strings
+                    status: 'Open',
+                    creatorId: finalCreatorId,
+                    orgId: orgId,
+                    repositoryId: repoId
+                }
+            }),
+            prisma.outboxEvent.create({
+                data: {
+                    topic: "job",
+                    payload: {
+                        title,
+                        description,
+                        budget,
+                        type,
+                        techStack: techStack || [],
+                        status: 'Open',
+                        creatorId: finalCreatorId,
+                    }
+                }
+            })
+        ]);
 
         return job;
     });

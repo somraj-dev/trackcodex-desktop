@@ -91,16 +91,31 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         // 3. Create user in our database
         const hashedPassword = await bcrypt.hash(password, 12);
-        await prisma.user.create({
-          data: {
-            id: firebaseUid,
-            email,
-            username,
-            name: name || username,
-            password: hashedPassword,
-            role: "user",
-          },
-        });
+
+        const [newUser] = await prisma.$transaction([
+          prisma.user.create({
+            data: {
+              id: firebaseUid,
+              email,
+              username,
+              name: name || username,
+              password: hashedPassword,
+              role: "user",
+            },
+          }),
+          prisma.outboxEvent.create({
+            data: {
+              topic: "user",
+              payload: {
+                id: firebaseUid,
+                email,
+                username,
+                name: name || username,
+                role: "user"
+              }
+            }
+          })
+        ]);
 
         // 4. Create Session
         const sessionId = crypto.randomUUID();
@@ -438,16 +453,31 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         if (!user) {
           // Auto-create user from Firebase OAuth data
-          user = await prisma.user.create({
-            data: {
-              id: firebaseUser.uid,
-              email: firebaseUser.email || "",
-              name: firebaseUser.displayName || "",
-              username: (firebaseUser.email || "").split("@")[0],
-              password: "", // OAuth users have no password
-              role: "user",
-            },
-          });
+          const [newUser] = await prisma.$transaction([
+            prisma.user.create({
+              data: {
+                id: firebaseUser.uid,
+                email: firebaseUser.email || "",
+                name: firebaseUser.displayName || "",
+                username: (firebaseUser.email || "").split("@")[0],
+                password: "", // OAuth users have no password
+                role: "user",
+              },
+            }),
+            prisma.outboxEvent.create({
+              data: {
+                topic: "user",
+                payload: {
+                  id: firebaseUser.uid,
+                  email: firebaseUser.email || "",
+                  name: firebaseUser.displayName || "",
+                  username: (firebaseUser.email || "").split("@")[0],
+                  role: "user",
+                }
+              }
+            })
+          ]);
+          user = newUser;
         }
 
         // 3. Create Secure Session
@@ -551,16 +581,31 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         if (!user) {
           // Auto-create user from Firebase OAuth data
-          user = await prisma.user.create({
-            data: {
-              id: firebaseUser.uid,
-              email: firebaseUser.email || "",
-              name: firebaseUser.displayName || "",
-              username: (firebaseUser.email || "").split("@")[0],
-              password: "",
-              role: "user",
-            },
-          });
+          const [newUser] = await prisma.$transaction([
+            prisma.user.create({
+              data: {
+                id: firebaseUser.uid,
+                email: firebaseUser.email || "",
+                name: firebaseUser.displayName || "",
+                username: (firebaseUser.email || "").split("@")[0],
+                password: "",
+                role: "user",
+              },
+            }),
+            prisma.outboxEvent.create({
+              data: {
+                topic: "user",
+                payload: {
+                  id: firebaseUser.uid,
+                  email: firebaseUser.email || "",
+                  name: firebaseUser.displayName || "",
+                  username: (firebaseUser.email || "").split("@")[0],
+                  role: "user",
+                }
+              }
+            })
+          ]);
+          user = newUser;
         }
 
         // 3. Create Session
