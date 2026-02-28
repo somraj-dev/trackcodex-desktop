@@ -165,83 +165,6 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
   );
 
-  // DEV ONLY: Bypass Login (Requires NODE_ENV=development AND DEV_LOGIN_SECRET)
-  if (process.env.NODE_ENV === "development" && process.env.DEV_LOGIN_SECRET) {
-    fastify.post("/auth/dev-login", async (request, reply) => {
-      const { secret } = request.body as any;
-      if (secret !== process.env.DEV_LOGIN_SECRET) {
-        return reply.code(403).send({ error: "Invalid dev login secret" });
-      }
-
-      try {
-        let user = await prisma.user.findFirst();
-
-        if (!user) {
-          try {
-            const bcrypt = await import("bcryptjs");
-            const hashedPassword = await bcrypt.hash("password123", 10);
-            user = await prisma.user.create({
-              data: {
-                email: "dev@trackcodex.dev",
-                username: "devuser",
-                name: "Developer",
-                password: hashedPassword,
-                role: "user",
-                profileCompleted: true,
-              },
-            });
-          } catch (createError) {
-            user = await prisma.user.findFirst();
-            if (!user) throw createError;
-          }
-        }
-
-        if (!user) throw new Error("Failed to find or create dev user");
-
-        const sessionId = crypto.randomUUID();
-        const { csrfToken } = await createSession(
-          sessionId,
-          {
-            userId: user.id,
-            email: user.email,
-            username: user.username as string,
-            name: user.name as string,
-            role: user.role,
-            tokenVersion: user.tokenVersion,
-          },
-          {
-            ipAddress: request.ip,
-            userAgent: request.headers["user-agent"] || "unknown",
-          },
-        );
-
-        const isProduction = false;
-        reply.setCookie("session_id", sessionId, {
-          path: "/",
-          httpOnly: true,
-          secure: isProduction,
-          sameSite: "lax",
-          maxAge: 7 * 24 * 60 * 60,
-        });
-
-        return {
-          message: "Dev login successful",
-          csrfToken,
-          user: {
-            id: user.id,
-            email: user.email,
-            username: user.username,
-            name: user.name,
-            avatar: user.avatar,
-            role: user.role,
-          },
-        };
-      } catch (error) {
-        request.log.error(error);
-        return reply.code(500).send({ error: "Dev login failed" });
-      }
-    });
-  }
 
   // Get Current User (Session Check)
   fastify.get("/auth/me", async (request, reply) => {
@@ -407,6 +330,15 @@ export async function authRoutes(fastify: FastifyInstance) {
         );
 
         // 4. Set HttpOnly Cookie
+        let cookieDomain: string | undefined = undefined;
+        if (process.env.FRONTEND_URL) {
+          try {
+            const urlObj = new URL(process.env.FRONTEND_URL);
+            const hostParts = urlObj.hostname.split('.');
+            if (hostParts.length >= 2) cookieDomain = '.' + hostParts.slice(-2).join('.');
+          } catch { }
+        }
+
         const isProduction = process.env.NODE_ENV === "production";
         reply.setCookie("session_id", sessionId, {
           path: "/",

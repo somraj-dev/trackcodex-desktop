@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth, api } from "../../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 
 const Login = () => {
@@ -179,38 +179,6 @@ const Login = () => {
             </button>
           </div>
 
-          {/* DEV ONLY: Quick Login */}
-          {import.meta.env.MODE === "development" && (
-            <button
-              onClick={async () => {
-                try {
-                  setIsLoading(true);
-                  const res = await api.post("/auth/dev-login");
-                  login(res.data.user, res.data.csrfToken);
-                  const redirectPath =
-                    localStorage.getItem("redirect_after_login") ||
-                    "/dashboard/home";
-                  localStorage.removeItem("redirect_after_login");
-                  navigate(redirectPath);
-                } catch (err: any) {
-                  console.error("Dev login error:", err);
-                  alert(
-                    "Dev Login Failed: " +
-                    (err.response?.data?.error ||
-                      err.message ||
-                      "Unknown error"),
-                  );
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
-              disabled={isLoading}
-              type="button"
-              className="w-full mt-3 px-4 py-3 border border-yellow-400 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors font-bold shadow-sm flex items-center justify-center"
-            >
-              ⚡ Quick Login (Dev Only)
-            </button>
-          )}
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
