@@ -1,6 +1,11 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
+import { Client } from "@elastic/elasticsearch";
+
+const esClient = new Client({
+  node: process.env.ELASTICSEARCH_URL || "http://10.12.209.110:9200",
+});
 
 // Shared prisma instance
 
@@ -21,67 +26,88 @@ export async function searchRoutes(fastify: FastifyInstance) {
       const query = q.toLowerCase();
 
       try {
-        // Search in parallel across main entities
-        const [users, orgs, repos, workspaces, jobs] = await Promise.all([
-          // 1. Users (People)
-          prisma.user.findMany({
-            where: {
-              OR: [
-                { name: { contains: query, mode: "insensitive" } },
-                { username: { contains: query, mode: "insensitive" } },
-                { email: { contains: query, mode: "insensitive" } },
-              ],
+        // Query ElasticSearch across all indices we populated via the Outbox
+        // The indices created by Debezium/Outbox connector follow the pattern server1.public.tablename
+        const response = await esClient.search({
+          index: "server1.public.users,server1.public.repositories,server1.public.jobs,server1.public.workspaces",
+          ignore_unavailable: true,
+          body: {
+            query: {
+              multi_match: {
+                query: query,
+                fields: [
+                  "payload.name^3",
+                  "payload.username^3",
+                  "payload.email",
+                  "payload.title^2",
+                  "payload.description"
+                ],
+                fuzziness: "AUTO"
+              }
             },
-            take: 5,
-            select: { id: true, name: true, username: true, avatar: true },
-          }),
+            size: 20
+          }
+        });
 
-          // 2. Organizations
-          prisma.organization.findMany({
-            where: { name: { contains: query, mode: "insensitive" } },
-            take: 5,
-            select: { id: true, name: true },
-          }),
+        const hits = response.hits.hits;
+        const results: any[] = [];
 
-          // 3. Repositories (Public or member of Org)
-          // For simplicity: All public + explicit checks ideally
-          prisma.repository.findMany({
-            where: {
-              OR: [
-                { name: { contains: query, mode: "insensitive" } },
-                { description: { contains: query, mode: "insensitive" } },
-              ],
-              // isPublic: true // Assume public for search scope in this demo
-            },
-            take: 5,
-            select: { id: true, name: true, description: true },
-          }),
+        hits.forEach((hit: any) => {
+          const source = hit._source.payload || hit._source;
+          const indexName = hit._index;
 
-          // 4. Workspaces (Owned by user)
-          prisma.workspace.findMany({
-            where: {
-              ownerId: user.userId,
-              name: { contains: query, mode: "insensitive" },
-            },
-            take: 5,
-            select: { id: true, name: true, status: true },
-          }),
+          if (indexName.includes('users')) {
+            results.push({
+              id: `user-${source.id}`,
+              type: "user",
+              label: source.name || source.username || "User",
+              subLabel: source.username,
+              icon: "person",
+              group: "People",
+              url: `/profile/${source.username}`,
+            });
+          } else if (indexName.includes('repositories')) {
+            results.push({
+              id: `repo-${source.id}`,
+              type: "repo",
+              label: source.name,
+              subLabel: source.description,
+              icon: "book",
+              group: "Repositories",
+              url: `/repo/${source.id}`,
+            });
+          } else if (indexName.includes('jobs')) {
+            results.push({
+              id: `job-${source.id}`,
+              type: "job",
+              label: source.title,
+              subLabel: `${source.type} - ${source.budget}`,
+              icon: "work",
+              group: "Jobs",
+              url: `/jobs/${source.id}`,
+            });
+          } else if (indexName.includes('workspaces')) {
+            results.push({
+              id: `ws-${source.id}`,
+              type: "workspace",
+              label: source.name,
+              subLabel: source.status,
+              icon: "terminal",
+              group: "Workspaces",
+              url: `/workspace/${source.id}`,
+            });
+          }
+        });
 
-          // 5. Jobs
-          prisma.job.findMany({
-            where: {
-              OR: [
-                { title: { contains: query, mode: "insensitive" } },
-                { description: { contains: query, mode: "insensitive" } },
-              ],
-            },
-            take: 5,
-            select: { id: true, title: true, budget: true, type: true },
-          }),
-        ]);
+        // Add a manual org fetch just in case we missed org Outbox mapping
+        const orgs = await prisma.organization.findMany({
+          where: { name: { contains: query, mode: "insensitive" } },
+          take: 3,
+          select: { id: true, name: true },
+        });
 
-        // Format results for CommandPalette
-        const results = [
+        const finalResults = [
+          ...results,
           ...orgs.map((o) => ({
             id: `org-${o.id}`,
             type: "org",
@@ -89,46 +115,10 @@ export async function searchRoutes(fastify: FastifyInstance) {
             icon: "domain",
             group: "Organizations",
             url: `/org/${o.id}`,
-          })),
-          ...repos.map((r) => ({
-            id: `repo-${r.id}`,
-            type: "repo",
-            label: r.name,
-            subLabel: r.description,
-            icon: "book",
-            group: "Repositories",
-            url: `/repo/${r.id}`,
-          })),
-          ...workspaces.map((w) => ({
-            id: `ws-${w.id}`,
-            type: "workspace",
-            label: w.name,
-            subLabel: w.status,
-            icon: "terminal",
-            group: "Workspaces",
-            url: `/workspace/${w.id}`,
-          })),
-          ...jobs.map((j) => ({
-            id: `job-${j.id}`,
-            type: "job",
-            label: j.title,
-            subLabel: `${j.type} - ${j.budget}`,
-            icon: "work",
-            group: "Jobs",
-            url: `/jobs/${j.id}`,
-          })),
-          ...users.map((u) => ({
-            id: `user-${u.id}`,
-            type: "user",
-            label: u.name || u.username || "User",
-            subLabel: u.username,
-            icon: "person",
-            group: "People",
-            url: `/profile/${u.username}`,
-          })),
+          }))
         ];
 
-        return { results };
+        return { results: finalResults };
       } catch (error) {
         request.log.error(error);
         return reply.code(500).send({ error: "Search failed" });
