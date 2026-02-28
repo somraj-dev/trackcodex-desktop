@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { auth, googleProvider, githubProvider } from "../../lib/firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail, GithubAuthProvider, linkWithCredential } from "firebase/auth";
 
 const Login = () => {
   const { login, isAuthenticated } = useAuth();
@@ -38,9 +38,32 @@ const Login = () => {
     try {
       await signInWithPopup(auth, githubProvider);
       // Auth state change is handled by onAuthStateChanged in AuthContext
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to initialize GitHub login");
+    } catch (error: any) {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        const email = error.customData?.email;
+        const pendingAuthCredential = GithubAuthProvider.credentialFromError(error);
+        if (email && pendingAuthCredential) {
+          try {
+            // Get sign-in methods for this email
+            const methods = await fetchSignInMethodsForEmail(auth, email);
+
+            // If the user signed in with Google previously
+            if (methods.includes('google.com')) {
+              // To automatically link, we actually need to ask them to sign in with Google first,
+              // but for a smooth UX, we can start the Google flow, and if successful, link the credential
+              const result = await signInWithPopup(auth, googleProvider);
+              await linkWithCredential(result.user, pendingAuthCredential);
+              return; // Success! Linked and logged in.
+            }
+          } catch (linkingError) {
+            console.error("Linking failed:", linkingError);
+            setError("Failed to link your accounts. Please log in with Google.");
+          }
+        }
+      }
+      console.error(error);
+      setError(error.message || "Failed to initialize GitHub login");
+    } finally {
       setIsLoading(false);
     }
   };

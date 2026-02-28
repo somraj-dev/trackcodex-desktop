@@ -7,6 +7,9 @@ import {
   signInWithPopup,
   sendEmailVerification,
   updateProfile,
+  fetchSignInMethodsForEmail,
+  GithubAuthProvider,
+  linkWithCredential
 } from "firebase/auth";
 
 const Signup = () => {
@@ -39,9 +42,31 @@ const Signup = () => {
     try {
       await signInWithPopup(auth, githubProvider);
       // Auth state change handled by onAuthStateChanged in AuthContext
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to initialize GitHub login");
+    } catch (error: any) {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        const email = error.customData?.email;
+        const pendingAuthCredential = GithubAuthProvider.credentialFromError(error);
+        if (email && pendingAuthCredential) {
+          try {
+            // Get sign-in methods for this email
+            const methods = await fetchSignInMethodsForEmail(auth, email);
+
+            // If the user signed in with Google previously
+            if (methods.includes('google.com')) {
+              // Prompt for Google login to verify identity, then link the GitHub credential to it
+              const result = await signInWithPopup(auth, googleProvider);
+              await linkWithCredential(result.user, pendingAuthCredential);
+              return; // Success! Linked and logged in.
+            }
+          } catch (linkingError) {
+            console.error("Linking failed:", linkingError);
+            setError("Failed to link your accounts. Please sign in with Google.");
+          }
+        }
+      }
+      console.error(error);
+      setError(error.message || "Failed to initialize GitHub login");
+    } finally {
       setIsLoading(false);
     }
   };
