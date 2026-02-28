@@ -98,6 +98,32 @@ export function rateLimitKeyGenerator(request: FastifyRequest): string {
 }
 
 /**
+ * Per-email key generator for login rate limiting.
+ * Prevents botnet attacks that rotate IPs but target the same email.
+ * Falls back to IP if no email in request body.
+ */
+export function loginKeyGenerator(request: FastifyRequest): string {
+  const body = request.body as Record<string, unknown> | null;
+  const email = body?.email || body?.username;
+  if (typeof email === "string" && email.length > 0) {
+    return `login:${email.toLowerCase()}`;
+  }
+  return `login:${request.ip}`;
+}
+
+/**
+ * Per-email key generator for password reset rate limiting.
+ */
+export function passwordResetKeyGenerator(request: FastifyRequest): string {
+  const body = request.body as Record<string, unknown> | null;
+  const email = body?.email;
+  if (typeof email === "string" && email.length > 0) {
+    return `pwreset:${email.toLowerCase()}`;
+  }
+  return `pwreset:${request.ip}`;
+}
+
+/**
  * Add Retry-After header on rate limit
  */
 export function rateLimitErrorHandler(

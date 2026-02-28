@@ -16,7 +16,7 @@ import {
   checkSuspiciousActivity,
   logSensitiveOperation,
 } from "../services/auditLogger";
-import { rateLimitConfig } from "../middleware/rateLimit";
+import { rateLimitConfig, loginKeyGenerator, passwordResetKeyGenerator } from "../middleware/rateLimit";
 import {
   AppError,
   BadRequest,
@@ -38,9 +38,24 @@ export async function authRoutes(fastify: FastifyInstance) {
     "/auth/register",
     {
       config: { rateLimit: rateLimitConfig.register },
+      schema: {
+        body: {
+          type: "object",
+          required: ["email", "password", "name", "username"],
+          properties: {
+            email: { type: "string", maxLength: 255 },
+            password: { type: "string", minLength: 8, maxLength: 128 },
+            name: { type: "string", maxLength: 100 },
+            username: { type: "string", maxLength: 39, pattern: "^[a-zA-Z0-9_-]+$" },
+          },
+          additionalProperties: false,
+        },
+      },
     },
     async (request, reply) => {
-      const { email, password, name, username } = request.body as any;
+      const { email, password, name, username } = request.body as {
+        email: string; password: string; name: string; username: string;
+      };
 
       try {
         // 1. Strict Input Validation
@@ -223,16 +238,30 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post(
     "/auth/login",
     {
-      config: { rateLimit: rateLimitConfig.login },
+      config: { rateLimit: { ...rateLimitConfig.login, keyGenerator: loginKeyGenerator } },
+      schema: {
+        body: {
+          type: "object",
+          required: ["password"],
+          properties: {
+            email: { type: "string", maxLength: 255 },
+            username: { type: "string", maxLength: 39 },
+            password: { type: "string", minLength: 1, maxLength: 128 },
+          },
+          additionalProperties: false,
+        },
+      },
     },
     async (request, reply) => {
-      const { email, password, username } = request.body as any;
+      const { email, password, username } = request.body as {
+        email?: string; password: string; username?: string;
+      };
       const ip = request.ip;
       const userAgent = request.headers["user-agent"] || "unknown";
 
       try {
         // Accept either email or username
-        const identifier = email || username;
+        const identifier = email || username || "";
 
         // 1. Check Suspicious Activity
         if (process.env.NODE_ENV === "production") {
@@ -718,7 +747,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post(
     "/auth/password-reset/request",
     {
-      config: { rateLimit: rateLimitConfig.passwordReset },
+      config: { rateLimit: { ...rateLimitConfig.passwordReset, keyGenerator: passwordResetKeyGenerator } },
     },
     async (request) => {
       const { email } = request.body as { email: string };
@@ -787,9 +816,25 @@ export async function authRoutes(fastify: FastifyInstance) {
   // --- Profile Completion ---
   fastify.post(
     "/auth/profile/complete",
-    { preHandler: [requireAuth, requireCsrf] },
+    {
+      preHandler: [requireAuth, requireCsrf],
+      schema: {
+        body: {
+          type: "object",
+          required: ["username", "name"],
+          properties: {
+            username: { type: "string", maxLength: 39, pattern: "^[a-zA-Z0-9_-]+$" },
+            name: { type: "string", maxLength: 100 },
+            bio: { type: "string", maxLength: 500 },
+          },
+          additionalProperties: false,
+        },
+      },
+    },
     async (request, reply) => {
-      const { username, name, bio } = request.body as any; // Never accept role from client
+      const { username, name, bio } = request.body as {
+        username: string; name: string; bio?: string;
+      };
       const user = (request as any).user;
 
       try {
@@ -1004,9 +1049,24 @@ export async function authRoutes(fastify: FastifyInstance) {
   // --- Account Deletion ---
   fastify.delete(
     "/auth/account",
-    { preHandler: [requireAuth, requireCsrf] },
+    {
+      preHandler: [requireAuth, requireCsrf],
+      schema: {
+        body: {
+          type: "object",
+          required: ["confirmation"],
+          properties: {
+            password: { type: "string", maxLength: 128 },
+            confirmation: { type: "string", enum: ["DELETE"] },
+          },
+          additionalProperties: false,
+        },
+      },
+    },
     async (request, reply) => {
-      const { password, confirmation } = request.body as any;
+      const { password, confirmation } = request.body as {
+        password?: string; confirmation: string;
+      };
       const user = (request as any).user;
 
       if (confirmation !== "DELETE") {

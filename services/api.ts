@@ -31,14 +31,10 @@ class ApiError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  // We use Cookies for auth, so no Bearer token needed
-  // But we MUST send CSRF token
-  const csrfToken = localStorage.getItem("csrf_token");
-  const sessionId = localStorage.getItem("session_id");
+  // Session is sent via HttpOnly cookie (credentials: 'include')
+  // CSRF token is handled by AuthContext axios interceptor from React state
   const headers = new Headers(options.headers);
 
-  if (csrfToken) headers.set("X-CSRF-Token", csrfToken);
-  if (sessionId) headers.set("Authorization", `Bearer ${sessionId}`);
   if (!headers.has("Content-Type"))
     headers.set("Content-Type", "application/json");
 

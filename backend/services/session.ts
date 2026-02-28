@@ -104,11 +104,14 @@ export async function getSession(
     return null;
   }
 
-  // Update last activity
-  await prisma.session.update({
-    where: { sessionId },
-    data: { lastActivityAt: new Date() },
-  });
+  // Update last activity (throttled: only if older than 5 minutes to reduce DB writes)
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+  if (session.lastActivityAt < fiveMinutesAgo) {
+    await prisma.session.update({
+      where: { sessionId },
+      data: { lastActivityAt: new Date() },
+    });
+  }
 
   return {
     userId: session.userId,
