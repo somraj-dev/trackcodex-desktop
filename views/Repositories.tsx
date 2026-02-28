@@ -175,75 +175,28 @@ const Repositories = () => {
             source: "gitlab",
           } as any));
 
-        // 3. Client-side: fetch GitHub repos (localStorage token → backend fallback)
+        // 3. Client-side: fetch GitHub repos (server-side tokens only)
         if (allRepos.length === 0) {
-          let ghToken = localStorage.getItem("trackcodex_github_token");
-          if (ghToken) {
-            try {
-              const ghRepos = await githubService.getRepos(ghToken);
+          try {
+            const backendToken = await api.integrations.getToken("github");
+            if (backendToken.connected && backendToken.accessToken) {
+              const ghRepos = await githubService.getRepos(backendToken.accessToken);
               allRepos = [...allRepos, ...mapGitHubRepos(ghRepos)];
-            } catch (ghErr) {
-              console.warn("GitHub localStorage token failed, trying backend:", ghErr);
-              // Token expired — try backend's permanently stored token
-              try {
-                const backendToken = await api.integrations.getToken("github");
-                if (backendToken.connected && backendToken.accessToken) {
-                  ghToken = backendToken.accessToken;
-                  localStorage.setItem("trackcodex_github_token", ghToken);
-                  const ghRepos = await githubService.getRepos(ghToken);
-                  allRepos = [...allRepos, ...mapGitHubRepos(ghRepos)];
-                }
-              } catch (backendErr) {
-                console.warn("GitHub backend token also failed:", backendErr);
-              }
             }
-          } else {
-            // No localStorage token — try backend directly
-            try {
-              const backendToken = await api.integrations.getToken("github");
-              if (backendToken.connected && backendToken.accessToken) {
-                localStorage.setItem("trackcodex_github_token", backendToken.accessToken);
-                const ghRepos = await githubService.getRepos(backendToken.accessToken);
-                allRepos = [...allRepos, ...mapGitHubRepos(ghRepos)];
-              }
-            } catch {
-              // No GitHub token at all — skip
-            }
+          } catch {
+            // No GitHub token — skip
           }
         }
 
-        // 4. Client-side: fetch GitLab repos (localStorage token → backend fallback)
-        let glToken = localStorage.getItem("trackcodex_gitlab_token");
-        if (glToken) {
-          try {
-            const glRepos = await gitlabService.getRepos(glToken);
+        // 4. Client-side: fetch GitLab repos (server-side tokens only)
+        try {
+          const backendToken = await api.integrations.getToken("gitlab");
+          if (backendToken.connected && backendToken.accessToken) {
+            const glRepos = await gitlabService.getRepos(backendToken.accessToken);
             allRepos = [...allRepos, ...mapGitLabRepos(glRepos)];
-          } catch (glErr) {
-            console.warn("GitLab localStorage token failed, trying backend:", glErr);
-            try {
-              const backendToken = await api.integrations.getToken("gitlab");
-              if (backendToken.connected && backendToken.accessToken) {
-                glToken = backendToken.accessToken;
-                localStorage.setItem("trackcodex_gitlab_token", glToken);
-                const glRepos = await gitlabService.getRepos(glToken);
-                allRepos = [...allRepos, ...mapGitLabRepos(glRepos)];
-              }
-            } catch (backendErr) {
-              console.warn("GitLab backend token also failed:", backendErr);
-            }
           }
-        } else {
-          // No localStorage token — try backend directly
-          try {
-            const backendToken = await api.integrations.getToken("gitlab");
-            if (backendToken.connected && backendToken.accessToken) {
-              localStorage.setItem("trackcodex_gitlab_token", backendToken.accessToken);
-              const glRepos = await gitlabService.getRepos(backendToken.accessToken);
-              allRepos = [...allRepos, ...mapGitLabRepos(glRepos)];
-            }
-          } catch {
-            // No GitLab token at all — skip
-          }
+        } catch {
+          // No GitLab token — skip
         }
 
         setRepos(allRepos);

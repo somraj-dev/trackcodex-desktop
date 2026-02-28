@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
+import { api } from "../../services/api";
 import { githubService } from "../../services/github";
 import { gitlabService } from "../../services/gitlab";
 import IntegrationPermissionModal from "../../components/settings/IntegrationPermissionModal";
@@ -125,40 +126,31 @@ const IntegrationsSettings = () => {
     },
   ]);
 
-  // Load from local storage on mount + auto-detect OAuth provider tokens
+  // Load integration status from backend (server-side tokens only)
   useEffect(() => {
-    const saved = localStorage.getItem("trackcodex_integrations");
-    let current = integrations;
-    if (saved) {
-      current = JSON.parse(saved);
-    }
+    const loadStatus = async () => {
+      try {
+        const saved = localStorage.getItem("trackcodex_integrations");
+        let current = integrations;
+        if (saved) {
+          current = JSON.parse(saved);
+        }
 
-    // Auto-detect GitHub connection from OAuth login
-    const ghToken = localStorage.getItem("trackcodex_github_token");
-    if (ghToken) {
-      current = current.map((int) =>
-        int.id === "github" ? { ...int, connected: true } : int
-      );
-    }
+        // Check connection status from backend (no tokens stored client-side)
+        const status = await api.integrations.status();
+        if (status?.connected) {
+          current = current.map((int) => ({
+            ...int,
+            connected: !!status.connected[int.id],
+          }));
+        }
 
-    // Auto-detect Google connection from OAuth login
-    const googleToken = localStorage.getItem("trackcodex_google_token");
-    if (googleToken) {
-      current = current.map((int) =>
-        int.id === "google" ? { ...int, connected: true } : int
-      );
-    }
-
-    // Auto-detect GitLab connection from OAuth
-    const glToken = localStorage.getItem("trackcodex_gitlab_token");
-    if (glToken) {
-      current = current.map((int) =>
-        int.id === "gitlab" ? { ...int, connected: true } : int
-      );
-    }
-
-    setIntegrations(current);
-    localStorage.setItem("trackcodex_integrations", JSON.stringify(current));
+        setIntegrations(current);
+      } catch {
+        // Fall back to saved state
+      }
+    };
+    loadStatus();
   }, []);
 
   const toggleConnection = (id: string) => {
@@ -204,12 +196,14 @@ const IntegrationsSettings = () => {
     const username = params.get("username");
 
     if (service && token) {
+      // Persist token to backend (server-side only)
+      try {
+        await api.integrations.connect(service, token, username || undefined);
+      } catch { }
       if (service === "github") {
-        localStorage.setItem("trackcodex_github_token", token);
         if (username) localStorage.setItem("trackcodex_github_username", username);
         toggleConnection("github");
       } else if (service === "gitlab") {
-        localStorage.setItem("trackcodex_gitlab_token", token);
         toggleConnection("gitlab");
       }
 
@@ -230,12 +224,11 @@ const IntegrationsSettings = () => {
 
   const handleConnectClick = (integration: Integration) => {
     if (integration.connected) {
-      // Disconnect
+      // Disconnect via backend
       toggleConnection(integration.id);
-      if (integration.id === "github")
-        localStorage.removeItem("trackcodex_github_token");
-      if (integration.id === "gitlab")
-        localStorage.removeItem("trackcodex_gitlab_token");
+      try {
+        api.integrations.disconnect(integration.id);
+      } catch { }
     } else {
       // Open Permission Modal first
       setPendingIntegration(integration);
@@ -290,13 +283,14 @@ const IntegrationsSettings = () => {
     try {
       if (activeIntegrationId === "github") {
         const data = await githubService.verifyToken(tokenInput);
-        localStorage.setItem("trackcodex_github_token", tokenInput);
+        // Persist to backend only, never localStorage
+        await api.integrations.connect("github", tokenInput, data.login || undefined);
         if (data.login) {
           localStorage.setItem("trackcodex_github_username", data.login);
         }
       } else if (activeIntegrationId === "gitlab") {
         await gitlabService.verifyToken(tokenInput);
-        localStorage.setItem("trackcodex_gitlab_token", tokenInput);
+        await api.integrations.connect("gitlab", tokenInput);
       }
 
       toggleConnection(activeIntegrationId || "");

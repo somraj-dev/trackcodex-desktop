@@ -30,7 +30,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (userData: User, csrfToken: string, sessionId?: string) => void;
+  login: (userData: User, csrfToken: string) => void;
   logout: () => void;
   csrfToken: string | null;
 }
@@ -52,9 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [csrfToken, setCsrfToken] = useState<string | null>(
-    localStorage.getItem("csrf_token"),
-  );
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Supabase Auth Listener
@@ -105,24 +103,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           };
 
           if (provider === "github") {
-            if (providerToken) {
-              localStorage.setItem("trackcodex_github_token", providerToken);
-            }
             const ghUsername = session.user.user_metadata?.user_name || session.user.user_metadata?.preferred_username || "";
+            if (providerToken) {
+              // Server-side only — never store in localStorage
+              persistTokenToBackend("github", providerToken, ghUsername);
+            }
             if (ghUsername) {
               localStorage.setItem("trackcodex_github_username", ghUsername);
             }
-            if (providerToken) {
-              persistTokenToBackend("github", providerToken, ghUsername);
-            }
           } else if (provider === "google") {
             if (providerToken) {
-              localStorage.setItem("trackcodex_google_token", providerToken);
               persistTokenToBackend("google", providerToken);
             }
           } else if (provider === "gitlab") {
             if (providerToken) {
-              localStorage.setItem("trackcodex_gitlab_token", providerToken);
               persistTokenToBackend("gitlab", providerToken);
             }
           }
@@ -175,9 +169,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             };
 
             if (provider === "github") {
-              if (providerToken) {
-                localStorage.setItem("trackcodex_github_token", providerToken);
-              }
               const ghUsername = session.user.user_metadata?.user_name || session.user.user_metadata?.preferred_username || "";
               if (ghUsername) {
                 localStorage.setItem("trackcodex_github_username", ghUsername);
@@ -185,12 +176,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               if (providerToken) persistToken("github", providerToken, ghUsername);
             } else if (provider === "google") {
               if (providerToken) {
-                localStorage.setItem("trackcodex_google_token", providerToken);
                 persistToken("google", providerToken);
               }
             } else if (provider === "gitlab") {
               if (providerToken) {
-                localStorage.setItem("trackcodex_gitlab_token", providerToken);
                 persistToken("gitlab", providerToken);
               }
             }
@@ -251,11 +240,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => api.interceptors.request.eject(interceptor);
   }, [csrfToken]);
 
-  const login = (userData: User, token: string, sessionId?: string) => {
+  const login = (userData: User, token: string) => {
     setUser(userData);
     setCsrfToken(token);
-    if (token) localStorage.setItem("csrf_token", token);
-    if (sessionId) localStorage.setItem("session_id", sessionId);
+    // CSRF token in memory only — never localStorage (XSS protection)
     profileService.initFromAuth(userData);
   };
 
@@ -268,8 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setUser(null);
       setCsrfToken(null);
-      localStorage.removeItem("csrf_token");
-      localStorage.removeItem("session_id");
+      localStorage.removeItem("trackcodex_github_username");
       profileService.clearProfile();
       window.location.href = "/login";
     }

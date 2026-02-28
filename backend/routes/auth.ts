@@ -3,7 +3,7 @@ import { prisma } from "../services/prisma";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import fs from "fs";
-import { requireAuth } from "../middleware/auth";
+import { requireAuth, requireCsrf } from "../middleware/auth";
 import {
   createSession,
   getSession,
@@ -572,7 +572,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   // Logout
   fastify.post(
     "/auth/logout",
-    { preHandler: requireAuth },
+    { preHandler: [requireAuth, requireCsrf] },
     async (request, reply) => {
       let sessionId = request.cookies.session_id;
       if (!sessionId && request.headers.authorization) {
@@ -617,7 +617,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   // Global Logout (Invalidate ALL sessions)
   fastify.post(
     "/auth/logout-everywhere",
-    { preHandler: requireAuth },
+    { preHandler: [requireAuth, requireCsrf] },
     async (request, reply) => {
       const user = (request as any).user;
 
@@ -657,7 +657,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   fastify.post(
     "/auth/verify-email/request",
     {
-      preHandler: requireAuth,
+      preHandler: [requireAuth, requireCsrf],
       config: { rateLimit: rateLimitConfig.verifyEmail },
     },
     async (request) => {
@@ -787,7 +787,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   // --- Profile Completion ---
   fastify.post(
     "/auth/profile/complete",
-    { preHandler: requireAuth },
+    { preHandler: [requireAuth, requireCsrf] },
     async (request, reply) => {
       const { username, name, bio } = request.body as any; // Never accept role from client
       const user = (request as any).user;
@@ -856,7 +856,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   // Revoke specific session
   fastify.delete(
     "/auth/sessions/:sessionId",
-    { preHandler: requireAuth },
+    { preHandler: [requireAuth, requireCsrf] },
     async (request, reply) => {
       const { sessionId } = request.params as { sessionId: string };
       const user = (request as any).user;
@@ -883,7 +883,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   // Revoke all other sessions
   fastify.delete(
     "/auth/sessions",
-    { preHandler: requireAuth },
+    { preHandler: [requireAuth, requireCsrf] },
     async (request, reply) => {
       const user = (request as any).user;
       const currentSessionId = request.cookies.session_id;
@@ -963,7 +963,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
   fastify.delete(
     "/auth/connections/:provider",
-    { preHandler: requireAuth },
+    { preHandler: [requireAuth, requireCsrf] },
     async (request, reply) => {
       const { provider } = request.params as { provider: string };
       const user = (request as any).user;
@@ -1004,7 +1004,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   // --- Account Deletion ---
   fastify.delete(
     "/auth/account",
-    { preHandler: requireAuth },
+    { preHandler: [requireAuth, requireCsrf] },
     async (request, reply) => {
       const { password, confirmation } = request.body as any;
       const user = (request as any).user;
