@@ -1,16 +1,7 @@
 import { PrismaClient } from '@prisma/client';
-import { Client } from '@elastic/elasticsearch';
 
 const prisma = new PrismaClient();
 const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || 'http://10.12.209.110:9200';
-
-const esClient = new Client({
-    node: ELASTICSEARCH_URL,
-    headers: {
-        'Bypass-Tunnel-Reminder': 'true',
-        'User-Agent': 'trackcodex-backend'
-    }
-});
 
 /**
  * The Outbox Worker polls the OutboxEvent table for unprocessed events,
@@ -49,25 +40,39 @@ async function processOutboxEvents() {
 
             // Format ID for ES if needed, assuming payload has an id
             const payload = event.payload as any;
+            const esHeaders = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Bypass-Tunnel-Reminder': 'true',
+                'User-Agent': 'trackcodex-backend'
+            };
+
+            let esRes;
             if (payload && payload.id) {
-                await esClient.index({
-                    index: indexName,
-                    id: payload.id.toString(), // Use DB ID as document ID for upserts
-                    body: {
+                esRes = await fetch(`${ELASTICSEARCH_URL}/${indexName}/_doc/${payload.id.toString()}`, {
+                    method: 'PUT',
+                    headers: esHeaders,
+                    body: JSON.stringify({
                         payload: payload,
-                        eventType: event.eventType,
+                        eventType: event.topic,
                         timestamp: event.createdAt
-                    }
+                    })
                 });
             } else {
-                await esClient.index({
-                    index: indexName,
-                    body: {
+                esRes = await fetch(`${ELASTICSEARCH_URL}/${indexName}/_doc`, {
+                    method: 'POST',
+                    headers: esHeaders,
+                    body: JSON.stringify({
                         payload: payload,
-                        eventType: event.eventType,
+                        eventType: event.topic,
                         timestamp: event.createdAt
-                    }
+                    })
                 });
+            }
+
+            if (!esRes.ok) {
+                const text = await esRes.text();
+                throw new Error(`Elasticsearch error ${esRes.status}: ${text}`);
             }
 
             // 2. Mark as processed in the database

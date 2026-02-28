@@ -1,15 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
-import { Client } from "@elastic/elasticsearch";
-
-const esClient = new Client({
-  node: process.env.ELASTICSEARCH_URL || "http://10.12.209.110:9200",
-  headers: {
-    'Bypass-Tunnel-Reminder': 'true',
-    'User-Agent': 'trackcodex-backend'
-  }
-});
+const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || "http://10.12.209.110:9200";
 
 // Shared prisma instance
 
@@ -32,28 +24,41 @@ export async function searchRoutes(fastify: FastifyInstance) {
       try {
         // Query ElasticSearch across all indices we populated via the Outbox
         // The indices created by Debezium/Outbox connector follow the pattern server1.public.tablename
-        const response = await esClient.search({
-          index: "server1.public.users,server1.public.repositories,server1.public.jobs,server1.public.workspaces",
-          ignore_unavailable: true,
-          body: {
+        const indicesString = "server1.public.users,server1.public.repositories,server1.public.jobs,server1.public.workspaces";
+
+        const esRes = await fetch(`${ELASTICSEARCH_URL}/${indicesString}/_search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Bypass-Tunnel-Reminder': 'true',
+            'User-Agent': 'trackcodex-backend'
+          },
+          body: JSON.stringify({
             query: {
               multi_match: {
-                query: query,
+                query: q,
                 fields: [
                   "payload.name^3",
-                  "payload.username^3",
-                  "payload.email",
-                  "payload.title^2",
+                  "payload.username^2",
+                  "payload.email^2",
+                  "payload.title^3",
                   "payload.description"
                 ],
                 fuzziness: "AUTO"
               }
             },
             size: 20
-          }
+          })
         });
 
-        const hits = response.hits.hits;
+        if (!esRes.ok) {
+          const text = await esRes.text();
+          throw new Error(`Elasticsearch search error ${esRes.status}: ${text}`);
+        }
+
+        const result = await esRes.json();
+        const hits = result.hits?.hits || [];
         const results: any[] = [];
 
         hits.forEach((hit: any) => {
