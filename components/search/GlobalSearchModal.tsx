@@ -59,7 +59,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
   const loadRecentRepos = async () => {
     try {
-      const res = await fetch("/api/v1/search/recent");
+      const res = await fetch("/api/v1/search/recent", { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setRecentRepos(data.recent || []);
@@ -90,6 +90,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         let dynamicMatches: SearchResult[] = [];
         const res = await fetch(
           `/api/v1/search?q=${encodeURIComponent(query)}`,
+          { credentials: 'include' },
         );
         if (res.ok) {
           const data = await res.json();
@@ -164,6 +165,7 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       await fetch("/api/v1/search/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({
           message,
           category: "search",

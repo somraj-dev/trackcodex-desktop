@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { MOCK_REPO_FILES } from "../../constants";
 import { Repository } from "../../types";
+import { api } from "../../services/api";
 import { githubService } from "../../services/github";
 import UniversalFileList from "../common/UniversalFileList";
 import RepoCodeViewer from "./RepoCodeViewer";
@@ -26,27 +27,18 @@ const RepoCodeTab: React.FC<RepoCodeTabProps> = ({ repo }) => {
 
       setLoading(true);
       try {
-        // Use internal Native Git API
-        const res = await fetch(
-          `/api/v1/repositories/${repo.id}/contents?path=${encodeURIComponent(currentPath)}`,
-        );
+        const data = await api.repositories.getContents(repo.id, currentPath);
 
-        if (res.ok) {
-          const data = await res.json();
-          // Map internal API to FileItem type
-          const mappedFiles: FileItem[] = data.map((item: any) => ({
-            name: item.name,
-            type: item.type === "tree" || item.type === "dir" ? "dir" : "file",
-            commitVal: "Updated just now", // We could fetch latest commit for file later
-            time: "Recently",
-            path: item.path, // Full path
-          }));
+        // Map internal API to FileItem type
+        const mappedFiles: FileItem[] = data.map((item: any) => ({
+          name: item.name,
+          type: item.type === "tree" || item.type === "dir" ? "dir" : "file",
+          commitVal: "Updated just now",
+          time: "Recently",
+          path: item.path,
+        }));
 
-          setFiles(mappedFiles);
-        } else {
-          // Fallback or empty
-          setFiles([]);
-        }
+        setFiles(mappedFiles);
       } catch (err) {
         console.error("Failed to fetch contents", err);
         setFiles([]);

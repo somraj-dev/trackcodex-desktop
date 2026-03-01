@@ -142,6 +142,38 @@ export class GitServer {
   }
 
   /**
+   * Resolve path to OID and get content.
+   */
+  async getFileContentByPath(repoId: string, ref: string, filePath: string) {
+    const repoPath = this.getRepoPath(repoId);
+    try {
+      // 1. Resolve path to OID using rev-parse
+      // Example: git rev-parse HEAD:src/index.ts
+      const oidOutput = await this.spawnGit(
+        ["rev-parse", `${ref}:${filePath}`],
+        repoPath,
+      );
+      const oid = oidOutput.trim();
+
+      // 2. Read object
+      const { object } = await git.readObject({
+        fs,
+        gitdir: repoPath,
+        oid,
+      });
+
+      // isomorphic-git readObject returns Uint8Array for blobs
+      if (object instanceof Uint8Array) {
+        return Buffer.from(object).toString("utf-8");
+      }
+      return object;
+    } catch (e) {
+      console.error(`Error reading file at ${filePath}`, e);
+      return null;
+    }
+  }
+
+  /**
    * Smart HTTP Handlers
    */
   async handleInfoRefs(

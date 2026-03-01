@@ -10,74 +10,19 @@ import ContributionHeatmap from "../components/profile/ContributionHeatmap";
 import ActivityFeed from "../components/profile/ActivityFeed";
 import VisualPortfolio from "../components/profile/VisualPortfolio";
 import { profileService, UserProfile } from "../services/profile";
-import { MOCK_REPOS } from "../constants";
 import { useNavigate } from "react-router-dom";
-
-import { githubService } from "../services/github";
 import { Repository } from "../types";
+import { api } from "../services/api";
 
-const ProfileRepositories = () => {
+interface ProfileRepositoriesProps {
+  repos: Repository[];
+  loading: boolean;
+  error: string;
+}
+
+const ProfileRepositories: React.FC<ProfileRepositoriesProps> = ({ repos, loading, error }) => {
   const navigate = useNavigate();
-  const [repos, setRepos] = useState<Repository[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchRepos = async () => {
-      const token = localStorage.getItem("trackcodex_git_token");
-      if (!token) {
-        setRepos(MOCK_REPOS);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const data = await githubService.getRepos(token);
-
-        // Transform to UI Model
-        // Transform to UI Model
-        const uiRepos: any[] = data.map((repo) => ({
-          id: String(repo.id),
-          name: repo.name,
-          description: repo.description || "No description provided.",
-          isPublic: !repo.private,
-          visibility: repo.private ? "PRIVATE" : "PUBLIC",
-          techStack: repo.language || "Plain Text",
-          techColor:
-            repo.language === "TypeScript"
-              ? "#3178c6"
-              : repo.language === "JavaScript"
-                ? "#f1e05a"
-                : repo.language === "Rust"
-                  ? "#dea584"
-                  : "#8b949e",
-          stars: repo.stargazers_count,
-          forks: repo.forks_count,
-          aiHealth: String(repo.open_issues_count), // Using issues as data point
-          aiHealthLabel: repo.license?.name || "No License",
-          securityStatus: "Unknown",
-          lastUpdated: new Date(repo.updated_at).toLocaleDateString(),
-          contributors: [],
-          languages: [],
-          refactors: [],
-          releaseVersion: "v1.0.0", // stub
-          readme: undefined,
-          licenseName: repo.license?.name,
-          openIssues: repo.open_issues_count,
-        }));
-
-        setRepos(uiRepos);
-      } catch (err) {
-        console.error("Failed to fetch remote repos", err);
-        setError("Failed to sync remote. Using cached data.");
-        setRepos(MOCK_REPOS);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRepos();
-  }, []);
 
   if (loading) {
     return (
@@ -128,71 +73,84 @@ const ProfileRepositories = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {repos.map((repo) => (
-          <div
-            key={repo.id}
-            onClick={() => navigate(`/repo/${repo.id}`)}
-            className="group bg-gh-bg-secondary border border-gh-border p-5 rounded-lg hover:border-gh-text-secondary transition-all cursor-pointer flex flex-col justify-between"
+      {repos.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-gh-border rounded-xl bg-gh-bg-secondary/30">
+          <span className="material-symbols-outlined text-gh-text-secondary text-4xl mb-4">account_tree</span>
+          <p className="text-gh-text-secondary text-sm">No repositories found.</p>
+          <button
+            onClick={() => navigate("/repositories/new")}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-md text-xs font-bold hover:bg-opacity-90 transition-all"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="size-10 rounded-md bg-gh-bg border border-gh-border flex items-center justify-center text-gh-text-secondary group-hover:text-primary transition-all">
-                  <span className="material-symbols-outlined">
-                    account_tree
-                  </span>
-                </div>
-                <div>
-                  <h4 className="text-[14px] font-bold text-gh-text group-hover:text-primary transition-colors">
-                    {repo.name}
-                  </h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-gh-text-secondary font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-gh-border">
-                      {repo.visibility}
+            Create Repository
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {repos.map((repo) => (
+            <div
+              key={repo.id}
+              onClick={() => navigate(`/repositories/${repo.id}`)}
+              className="group bg-gh-bg-secondary border border-gh-border p-5 rounded-lg hover:border-gh-text-secondary transition-all cursor-pointer flex flex-col justify-between"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-md bg-gh-bg border border-gh-border flex items-center justify-center text-gh-text-secondary group-hover:text-primary transition-all">
+                    <span className="material-symbols-outlined">
+                      account_tree
                     </span>
-                    {repo.licenseName && (
-                      <span className="text-[10px] text-gh-text-secondary font-medium">
-                        ⚖️ {repo.licenseName}
+                  </div>
+                  <div>
+                    <h4 className="text-[14px] font-bold text-gh-text group-hover:text-primary transition-colors">
+                      {repo.name}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10px] text-gh-text-secondary font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full border border-gh-border">
+                        {repo.visibility || (repo.isPublic ? "PUBLIC" : "PRIVATE")}
                       </span>
-                    )}
+                      {repo.license && (
+                        <span className="text-[10px] text-gh-text-secondary font-medium">
+                          ⚖️ {repo.license}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <p className="text-xs text-gh-text-secondary line-clamp-2 mb-4 h-[32px]">
-              {repo.description}
-            </p>
+              <p className="text-xs text-gh-text-secondary line-clamp-2 mb-4 h-[32px]">
+                {repo.description || "No description provided."}
+              </p>
 
-            <div className="flex items-center justify-between border-t border-gh-border pt-3 mt-auto">
-              <div className="flex items-center gap-4 text-xs font-bold text-gh-text-secondary">
-                <span className="flex items-center gap-1">
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: repo.techColor }}
-                  ></span>
-                  {repo.techStack}
-                </span>
-                <span className="flex items-center gap-1 hover:text-white">
-                  <span className="material-symbols-outlined !text-[14px]">
-                    star
+              <div className="flex items-center justify-between border-t border-gh-border pt-3 mt-auto">
+                <div className="flex items-center gap-4 text-xs font-bold text-gh-text-secondary">
+                  <span className="flex items-center gap-1">
+                    <span
+                      className="size-2 rounded-full"
+                      style={{ backgroundColor: repo.techColor || "#8b949e" }}
+                    ></span>
+                    {repo.language || repo.techStack || "Plain Text"}
                   </span>
-                  {repo.stars}
-                </span>
-                <span className="flex items-center gap-1 hover:text-white pointer-events-none">
-                  <span className="material-symbols-outlined !text-[14px]">
-                    adjust
+                  <span className="flex items-center gap-1 hover:text-white">
+                    <span className="material-symbols-outlined !text-[14px]">
+                      star
+                    </span>
+                    {repo.stars || 0}
                   </span>
-                  {(repo as any).openIssues || 0}
+                  <span className="flex items-center gap-1 hover:text-white pointer-events-none">
+                    <span className="material-symbols-outlined !text-[14px]">
+                      adjust
+                    </span>
+                    {repo.open_issues || 0}
+                  </span>
+                </div>
+                <span className="text-[10px] text-gh-text-secondary font-medium uppercase tracking-wider">
+                  Updated {repo.updatedAt ? new Date(repo.updatedAt).toLocaleDateString() : (repo.lastUpdated || "Recently")}
                 </span>
               </div>
-              <span className="text-[10px] text-gh-text-secondary font-medium uppercase tracking-wider">
-                Updated {repo.lastUpdated}
-              </span>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -202,66 +160,56 @@ const ProfileView = () => {
     profileService.getProfile(),
   );
   const [activeTab, setActiveTab] = useState("Overview");
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [repos, setRepos] = useState<Repository[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(true);
+  const [repoError, setRepoError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     // Sync with backend on mount
-    // profileService.syncWithBackend(); // REMOVED: Mock mode only
-
-    // Sync GitHub User Data
     const syncProfile = async () => {
-      const token = localStorage.getItem("trackcodex_git_token");
-      if (!token) {
-        setIsMockMode(true);
-        return;
-      }
-
+      setIsSyncing(true);
       try {
-        const userData = await githubService.verifyToken(token);
-
-        // Calculate Skill DNA
-        let computedSkills: { name: string; level: number }[] = [];
-        try {
-          const repos = await githubService.getRepos(token);
-          if (githubService.calculateSkillDNA) {
-            computedSkills = githubService.calculateSkillDNA(repos);
-          }
-        } catch (e) {
-          console.warn("Skill DNA calculation skipped", e);
+        const backendProfile = await api.auth.getMe();
+        if (backendProfile) {
+          profileService.updateProfile({
+            id: backendProfile.id,
+            name: backendProfile.name || backendProfile.username,
+            username: backendProfile.username,
+            avatar: backendProfile.avatar,
+            role: backendProfile.role,
+          });
         }
-
-        setProfile((prev) => {
-          const updated = {
-            ...prev,
-            name: userData.name || userData.login,
-            username: userData.login,
-            avatar: userData.avatar_url,
-            bio: userData.bio || prev.bio,
-            company: userData.company || prev.company,
-            location: userData.location || prev.location,
-            website: userData.blog || prev.website,
-            followers: userData.followers,
-            following: userData.following,
-            skills: computedSkills.length > 0 ? computedSkills : prev.skills,
-          };
-          // Broadcast to global service for Sidebar
-          profileService.updateProfile(updated);
-          return updated;
-        });
-        setIsMockMode(false);
       } catch (err) {
         console.error("Profile sync failed", err);
-        setIsMockMode(true);
+      } finally {
+        setIsSyncing(false);
       }
     };
+
     syncProfile();
+
+    const fetchRepos = async () => {
+      setLoadingRepos(true);
+      try {
+        const data = await api.repositories.list();
+        setRepos(data);
+      } catch (err) {
+        console.error("Failed to fetch repos", err);
+        setRepoError("Failed to fetch repositories.");
+      } finally {
+        setLoadingRepos(false);
+      }
+    };
+    fetchRepos();
 
     return profileService.subscribe((updated) => setProfile(updated));
   }, []);
 
   const tabs = [
     { label: "Overview", icon: "dashboard" },
-    { label: "Code & Repos", icon: "account_tree", badge: "42" },
+    { label: "Code & Repos", icon: "account_tree", badge: profile.jobsCompleted > 0 ? String(profile.jobsCompleted) : "0" },
     { label: "Security", icon: "verified_user", badge: "Top 5%" },
     { label: "AI & ForgeAI", icon: "auto_awesome" },
     { label: "Community", icon: "hub" },
@@ -270,7 +218,6 @@ const ProfileView = () => {
   ];
 
   const handleTabClick = (label: string) => {
-    // Keep everything internal now, no external navigation
     setActiveTab(label);
   };
 
@@ -298,11 +245,10 @@ const ProfileView = () => {
                 {tab.label}
                 {tab.badge && (
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      tab.label === "Security"
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                        : "bg-gh-bg-secondary text-gh-text-secondary border border-gh-border"
-                    }`}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${tab.label === "Security"
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      : "bg-gh-bg-secondary text-gh-text-secondary border border-gh-border"
+                      }`}
                   >
                     {tab.badge}
                   </span>
@@ -351,7 +297,9 @@ const ProfileView = () => {
               </div>
             )}
 
-            {activeTab === "Code & Repos" && <ProfileRepositories />}
+            {activeTab === "Code & Repos" && (
+              <ProfileRepositories repos={repos} loading={loadingRepos} error={repoError} />
+            )}
 
             {activeTab === "Security" && (
               <div className="space-y-6">
@@ -538,7 +486,7 @@ const ProfileView = () => {
               </div>
             )}
 
-            {activeTab === "Portfolio" && <VisualPortfolio />}
+            {activeTab === "Portfolio" && <VisualPortfolio repos={repos} loading={loadingRepos} />}
 
             {activeTab === "Jobs" && (
               <div className="space-y-6">

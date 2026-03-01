@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Editor } from "@monaco-editor/react";
+import { api } from "../../services/api";
 
 interface RepoCodeViewerProps {
   repoId: string;
@@ -21,19 +22,10 @@ const RepoCodeViewer: React.FC<RepoCodeViewerProps> = ({
     const fetchContent = async () => {
       setLoading(true);
       try {
-        // Assuming we have an endpoint that can fetch file content from indexed repos
-        // Or we use the git server to read the file
-        const res = await fetch(
-          `/api/v1/repositories/${repoId}/content?path=${encodeURIComponent(path)}`,
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setContent(data.content);
-        } else {
-          setContent("// Error: Failed to load file content.");
-        }
+        const data = await api.repositories.getContent(repoId, path);
+        setContent(data.content || "");
       } catch (err) {
-        setContent("// Error: Network failure.");
+        setContent("// Error: Failed to load file content.");
       } finally {
         setLoading(false);
       }

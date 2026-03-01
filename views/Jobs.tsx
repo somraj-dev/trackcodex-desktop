@@ -12,38 +12,38 @@ const Jobs = () => {
   const [filter, setFilter] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const fetchJobs = async () => {
+    setLoading(true);
+    try {
+      const data = await api.jobs.list();
+      const safeData = Array.isArray(data) ? data : [];
+      const enriched = safeData.map((job: any) => ({
+        ...job,
+        id: job.id || String(Math.random()),
+        title: job.title || "Untitled Opportunity",
+        description: job.description || "No description provided.",
+        budget: job.budget || "Competitive",
+        type: job.type || "Full-time",
+        techStack: job.techStack || ["TypeScript"],
+        postedDate: job.createdAt
+          ? new Date(job.createdAt).toLocaleDateString()
+          : "Recently",
+        creator: job.creator || {
+          name: job.org?.name || "System",
+          avatar:
+            job.org?.avatar ||
+            "https://ui-avatars.com/api/?name=TC&background=0D8ABC&color=fff",
+        },
+      }));
+      setJobs(enriched as any);
+    } catch (e) {
+      console.error("❌ Failed to fetch hardware Jobs:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchJobs = async () => {
-      setLoading(true);
-      try {
-        const data = await api.jobs.list();
-        const safeData = Array.isArray(data) ? data : [];
-        // Robust mapping to handle backend schema variations
-        const enriched = safeData.map((job: any) => ({
-          ...job,
-          id: job.id || String(Math.random()),
-          title: job.title || "Untitled Opportunity",
-          description: job.description || "No description provided.",
-          budget: job.budget || "Competitive",
-          type: job.type || "Full-time",
-          techStack: job.techStack || ["TypeScript"],
-          postedDate: job.createdAt
-            ? new Date(job.createdAt).toLocaleDateString()
-            : "Recently",
-          creator: job.creator || {
-            name: job.org?.name || "System",
-            avatar:
-              job.org?.avatar ||
-              "https://ui-avatars.com/api/?name=TC&background=0D8ABC&color=fff",
-          },
-        }));
-        setJobs(enriched as any);
-      } catch (e) {
-        console.error("❌ Failed to fetch hardware Jobs:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchJobs();
   }, []);
 
@@ -89,8 +89,8 @@ const Jobs = () => {
               key={f}
               onClick={() => setFilter(f)}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all border ${filter === f
-                  ? "bg-primary border-primary text-white"
-                  : "bg-gh-bg-secondary border-gh-border text-gh-text-secondary hover:border-gh-text"
+                ? "bg-primary border-primary text-white"
+                : "bg-gh-bg-secondary border-gh-border text-gh-text-secondary hover:border-gh-text"
                 }`}
             >
               {f}
@@ -166,7 +166,7 @@ const Jobs = () => {
       <CreateJobModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={() => { }}
+        onSuccess={fetchJobs}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Repository } from "../../types";
+import { api } from "../../services/api";
 
 interface RepoIssuesTabProps {
   repo: Repository;
@@ -20,9 +21,7 @@ const RepoIssuesTab: React.FC<RepoIssuesTabProps> = ({ repo }) => {
   const fetchIssues = async () => {
     setLoading(true);
     try {
-      const url = `/api/v1/repositories/${repo.id}/issues?status=${filter}`;
-      const response = await fetch(url);
-      const data = await response.json();
+      const data = await api.repositories.getIssues(repo.id, filter);
       setIssues(data);
     } catch (err) {
       console.error("Failed to fetch issues", err);
@@ -68,11 +67,10 @@ const RepoIssuesTab: React.FC<RepoIssuesTabProps> = ({ repo }) => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setFilter("OPEN")}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-              filter === "OPEN"
-                ? "bg-primary text-white"
-                : "text-gh-text hover:bg-gh-bg-secondary border border-gh-border"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${filter === "OPEN"
+              ? "bg-primary text-white"
+              : "text-gh-text hover:bg-gh-bg-secondary border border-gh-border"
+              }`}
           >
             <span className="material-symbols-outlined !text-[16px]">
               radio_button_unchecked
@@ -81,11 +79,10 @@ const RepoIssuesTab: React.FC<RepoIssuesTabProps> = ({ repo }) => {
           </button>
           <button
             onClick={() => setFilter("CLOSED")}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-              filter === "CLOSED"
-                ? "bg-primary text-white"
-                : "text-gh-text hover:bg-gh-bg-secondary border border-gh-border"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${filter === "CLOSED"
+              ? "bg-primary text-white"
+              : "text-gh-text hover:bg-gh-bg-secondary border border-gh-border"
+              }`}
           >
             <span className="material-symbols-outlined !text-[16px]">
               check_circle
@@ -127,11 +124,10 @@ const RepoIssuesTab: React.FC<RepoIssuesTabProps> = ({ repo }) => {
             >
               <div className="flex items-start gap-4">
                 <span
-                  className={`material-symbols-outlined !text-[28px] mt-0.5 ${
-                    issue.status === "CLOSED"
-                      ? "text-purple-500"
-                      : "text-green-500"
-                  }`}
+                  className={`material-symbols-outlined !text-[28px] mt-0.5 ${issue.status === "CLOSED"
+                    ? "text-purple-500"
+                    : "text-green-500"
+                    }`}
                 >
                   {issue.status === "CLOSED"
                     ? "check_circle"

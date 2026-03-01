@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { MOCK_STRATA } from "../constants";
+import { api } from "../services/api";
 import { Strata } from "../types";
 import { strataNetworkApi, StrataNetwork } from "../services/strata";
 
@@ -109,11 +109,27 @@ const StrataNetworkCard: React.FC<{ network: StrataNetwork }> = ({ network }) =>
 const StrataHub = () => {
     const navigate = useNavigate();
     const [networks, setNetworks] = useState<StrataNetwork[]>([]);
+    const [strata, setStrata] = useState<Strata[]>([]);
     const [loadingNetworks, setLoadingNetworks] = useState(true);
+    const [loadingStrata, setLoadingStrata] = useState(true);
 
     useEffect(() => {
+        loadStrata();
         loadNetworks();
     }, []);
+
+    const loadStrata = async () => {
+        setLoadingStrata(true);
+        try {
+            const data = await api.organizations.list();
+            setStrata(data);
+        } catch (error) {
+            console.error("Failed to load strata:", error);
+            setStrata([]);
+        } finally {
+            setLoadingStrata(false);
+        }
+    };
 
     const loadNetworks = async () => {
         try {
@@ -164,8 +180,13 @@ const StrataHub = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {MOCK_STRATA.length === 0 ? (
-                            <div className="col-span-full py-16 border-2 border-[#1A1A1A]ashed border-gh-border rounded-2xl text-center">
+                        {loadingStrata ? (
+                            <div className="col-span-full py-16 text-center">
+                                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gh-border border-t-primary"></div>
+                                <p className="text-gh-text-secondary mt-4">Loading strata...</p>
+                            </div>
+                        ) : strata.length === 0 ? (
+                            <div className="col-span-full py-16 border-2 border-dashed border-gh-border rounded-2xl text-center">
                                 <span className="material-symbols-outlined text-6xl text-gh-text-secondary mb-4 block">
                                     corporate_fare
                                 </span>
@@ -183,8 +204,8 @@ const StrataHub = () => {
                                 </button>
                             </div>
                         ) : (
-                            MOCK_STRATA.map((strata) => (
-                                <StrataCard key={strata.id} strata={strata} />
+                            strata.map((s) => (
+                                <StrataCard key={s.id} strata={s} />
                             ))
                         )}
                     </div>

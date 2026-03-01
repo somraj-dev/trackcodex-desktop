@@ -683,6 +683,40 @@ export async function repositoryRoutes(fastify: FastifyInstance) {
     },
   );
 
+  // Get File Content
+  fastify.get(
+    "/repositories/:id/content",
+    { preHandler: requireRepoPermission(RepoLevel.READ) },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const { path: filePath, ref } = request.query as {
+        path: string;
+        ref?: string;
+      };
+
+      if (!filePath) throw BadRequest("File path is required");
+
+      try {
+        const { GitServer } = await import("../services/git/gitServer");
+        const gitServer = new GitServer();
+
+        const content = await gitServer.getFileContentByPath(
+          id,
+          ref || "HEAD",
+          filePath,
+        );
+
+        if (content === null) throw NotFound("File not found or unreadable");
+
+        return { content, path: filePath, ref: ref || "HEAD" };
+      } catch (e: any) {
+        request.log.error(e);
+        if (e instanceof AppError) throw e;
+        throw InternalError("Failed to fetch file content");
+      }
+    },
+  );
+
   // ========== PULL REQUEST ENDPOINTS ==========
 
   // List Pull Requests

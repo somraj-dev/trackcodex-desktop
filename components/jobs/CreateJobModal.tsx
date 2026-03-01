@@ -1,35 +1,167 @@
-import React from "react";
+import React, { useState } from "react";
+import { api } from "../../services/api";
 
 interface CreateJobModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // include any other props necessary based on how it's called
+  onSuccess?: () => void;
 }
 
-export const CreateJobModal: React.FC<CreateJobModalProps> = ({ isOpen, onClose }) => {
+export const CreateJobModal: React.FC<CreateJobModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    budget: "",
+    type: "Full-time",
+    techStack: "",
+  });
+
   if (!isOpen) return null;
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const payload = {
+        ...formData,
+        type: formData.type as any, // Cast to fix type mismatch
+        techStack: formData.techStack.split(",").map((s) => s.trim()).filter(Boolean),
+      };
+
+      await api.jobs.create(payload);
+      onSuccess?.();
+      onClose();
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        budget: "",
+        type: "Full-time",
+        techStack: "",
+      });
+    } catch (err: any) {
+      console.error("Failed to create job:", err);
+      setError(err.message || "Failed to create job. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A0A0A]lack/50">
-      <div className="bg-[#1c2128] border border-[#444c56] rounded-xl p-6 max-w-lg w-full">
-        <h2 className="text-xl font-bold text-white mb-4">Create Job</h2>
-        <p className="text-[#a1a1aa] mb-6">
-          Form to create a new job goes here.
-        </p>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-[#2d333b] hover:bg-[#444c56] text-white rounded-md transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-[#0A0A0A]lue-600 hover:bg-[#0A0A0A]lue-500 text-white rounded-md transition-colors"
-          >
-            Create
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-gh-bg-secondary border border-gh-border rounded-2xl p-8 max-w-xl w-full shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-black text-gh-text tracking-tight">Post a New Opportunity</h2>
+          <button onClick={onClose} className="text-gh-text-secondary hover:text-gh-text transition-colors">
+            <span className="material-symbols-outlined">close</span>
           </button>
         </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-lg text-sm font-medium">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gh-text-secondary uppercase tracking-widest">Job Title</label>
+            <input
+              required
+              type="text"
+              placeholder="e.g. Senior Backend Engineer (Node.js)"
+              className="w-full bg-gh-bg border border-gh-border rounded-xl px-4 py-3 text-gh-text focus:border-primary outline-none transition-all"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gh-text-secondary uppercase tracking-widest">Budget / Salary</label>
+              <input
+                required
+                type="text"
+                placeholder="e.g. $120k - $160k"
+                className="w-full bg-gh-bg border border-gh-border rounded-xl px-4 py-3 text-gh-text focus:border-primary outline-none transition-all"
+                value={formData.budget}
+                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gh-text-secondary uppercase tracking-widest">Job Type</label>
+              <select
+                className="w-full bg-gh-bg border border-gh-border rounded-xl px-4 py-3 text-gh-text focus:border-primary outline-none transition-all appearance-none"
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              >
+                <option value="Full-time">Full-time</option>
+                <option value="Contract">Contract</option>
+                <option value="Gig">Gig</option>
+                <option value="Bounty">Bounty</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gh-text-secondary uppercase tracking-widest">Description</label>
+            <textarea
+              required
+              rows={4}
+              placeholder="Tell us about the role, challenges, and what you're looking for..."
+              className="w-full bg-gh-bg border border-gh-border rounded-xl px-4 py-3 text-gh-text focus:border-primary outline-none transition-all resize-none"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gh-text-secondary uppercase tracking-widest">Tech Stack (comma separated)</label>
+            <input
+              required
+              type="text"
+              placeholder="React, Node.js, TypeScript, PostgreSQL"
+              className="w-full bg-gh-bg border border-gh-border rounded-xl px-4 py-3 text-gh-text focus:border-primary outline-none transition-all"
+              value={formData.techStack}
+              onChange={(e) => setFormData({ ...formData, techStack: e.target.value })}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 bg-gh-bg border border-gh-border text-gh-text rounded-xl font-bold text-sm hover:bg-gh-bg-tertiary transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              disabled={loading}
+              type="submit"
+              className="px-8 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <div className="size-4 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+                  Posting...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-sm">rocket_launch</span>
+                  Post Job
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

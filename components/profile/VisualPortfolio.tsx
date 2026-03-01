@@ -1,8 +1,31 @@
-import React from "react";
-import { MOCK_REPOS } from "../../constants";
+import { Repository } from "../../types";
 import styles from "./VisualPortfolio.module.css";
 
-const VisualPortfolio = () => {
+interface VisualPortfolioProps {
+  repos: Repository[];
+  loading?: boolean;
+}
+
+const VisualPortfolio: React.FC<VisualPortfolioProps> = ({ repos, loading }) => {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-3 gap-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="aspect-square bg-gh-bg-secondary border border-gh-border rounded-lg animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (repos.length === 0) {
+    return (
+      <div className="py-20 text-center border border-dashed border-gh-border rounded-xl">
+        <span className="material-symbols-outlined text-4xl text-gh-text-secondary mb-2">grid_view</span>
+        <p className="text-gh-text-secondary text-sm">No repositories in your portfolio yet.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="flex items-center justify-between px-1 mb-6">
@@ -19,17 +42,17 @@ const VisualPortfolio = () => {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        {MOCK_REPOS.slice(0, 9).map((repo, i) => (
+        {repos.slice(0, 9).map((repo, i) => (
           <div
             key={repo.id}
             className="aspect-square bg-gh-bg-secondary border border-gh-border rounded-lg overflow-hidden group cursor-pointer relative"
           >
-            {/* Mock Image Gradient based on tech color */}
+            {/* Image Gradient based on tech color */}
             <div
               className={`w-full h-full opacity-20 group-hover:opacity-30 transition-opacity ${styles.portfolioGradient}`}
               style={
                 {
-                  "--gradient-bg": `linear-gradient(45deg, ${repo.techColor}, var(--gh-bg))`,
+                  "--gradient-bg": `linear-gradient(45deg, ${repo.language === 'TypeScript' ? '#3178c6' : repo.language === 'JavaScript' ? '#f1e05a' : '#2ea043'}, var(--gh-bg))`,
                 } as React.CSSProperties
               }
             />
@@ -45,7 +68,7 @@ const VisualPortfolio = () => {
             </div>
 
             {/* Stats Overlay on Hover */}
-            <div className="absolute inset-0 bg-[#0A0A0A]lack/60 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
               <div className="flex items-center gap-1 text-white font-bold">
                 <span className="material-symbols-outlined filled !text-[18px]">
                   favorite

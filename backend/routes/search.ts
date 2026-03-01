@@ -1,7 +1,111 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
+import { searchService } from "../services/searchService";
+
 const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || "https://bumpy-snakes-guess.loca.lt";
+
+/**
+ * Try to search via ElasticSearch. Returns results array or throws on failure.
+ * Uses a 3-second timeout so we don't block the user if ES is down.
+ */
+async function tryElasticSearch(query: string): Promise<any[]> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 3000);
+
+  try {
+    const indicesString = "server1.public.users,server1.public.repositories,server1.public.jobs,server1.public.workspaces";
+
+    const esRes = await fetch(`${ELASTICSEARCH_URL}/${indicesString}/_search`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Bypass-Tunnel-Reminder": "true",
+        "User-Agent": "trackcodex-backend",
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        query: {
+          multi_match: {
+            query,
+            fields: [
+              "payload.name^3",
+              "payload.username^2",
+              "payload.email^2",
+              "payload.title^3",
+              "payload.description",
+            ],
+            fuzziness: "AUTO",
+          },
+        },
+        size: 20,
+      }),
+    });
+
+    if (!esRes.ok) {
+      throw new Error(`ES error ${esRes.status}`);
+    }
+
+    const result = await esRes.json();
+    const hits = result.hits?.hits || [];
+
+    if (hits.length === 0) return [];
+
+    const results: any[] = [];
+
+    hits.forEach((hit: any) => {
+      const source = hit._source?.payload || hit._source;
+      const indexName = hit._index;
+
+      if (indexName.includes("users")) {
+        results.push({
+          id: `user-${source.id}`,
+          type: "user",
+          label: source.name || source.username || "User",
+          subLabel: source.username ? `@${source.username}` : undefined,
+          icon: "person",
+          group: "People",
+          url: `/profile/${source.username}`,
+        });
+      } else if (indexName.includes("repositories")) {
+        results.push({
+          id: `repo-${source.id}`,
+          type: "repo",
+          label: source.name,
+          subLabel: source.description,
+          icon: "book",
+          group: "Repositories",
+          url: `/repo/${source.id}`,
+        });
+      } else if (indexName.includes("jobs")) {
+        results.push({
+          id: `job-${source.id}`,
+          type: "job",
+          label: source.title,
+          subLabel: `${source.type || "Job"} - ${source.budget || ""}`,
+          icon: "work",
+          group: "Jobs",
+          url: `/jobs/${source.id}`,
+        });
+      } else if (indexName.includes("workspaces")) {
+        results.push({
+          id: `ws-${source.id}`,
+          type: "workspace",
+          label: source.name,
+          subLabel: source.status,
+          icon: "terminal",
+          group: "Workspaces",
+          url: `/workspace/${source.id}`,
+        });
+      }
+    });
+
+    return results;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 // Shared prisma instance
 
@@ -22,112 +126,137 @@ export async function searchRoutes(fastify: FastifyInstance) {
       const query = q.toLowerCase();
 
       try {
-        // Query ElasticSearch across all indices we populated via the Outbox
-        // The indices created by Debezium/Outbox connector follow the pattern server1.public.tablename
-        const indicesString = "server1.public.users,server1.public.repositories,server1.public.jobs,server1.public.workspaces";
+        // ── Strategy: Try ElasticSearch first, fallback to Prisma ──
+        let esResults: any[] | null = null;
 
-        const esRes = await fetch(`${ELASTICSEARCH_URL}/${indicesString}/_search`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Bypass-Tunnel-Reminder': 'true',
-            'User-Agent': 'trackcodex-backend'
-          },
-          body: JSON.stringify({
-            query: {
-              multi_match: {
-                query: q,
-                fields: [
-                  "payload.name^3",
-                  "payload.username^2",
-                  "payload.email^2",
-                  "payload.title^3",
-                  "payload.description"
-                ],
-                fuzziness: "AUTO"
-              }
-            },
-            size: 20
-          })
-        });
-
-        if (!esRes.ok) {
-          const text = await esRes.text();
-          throw new Error(`Elasticsearch search error ${esRes.status}: ${text}`);
+        try {
+          esResults = await tryElasticSearch(q);
+        } catch (esError) {
+          // ES failed — silently fall through to Prisma
+          request.log.warn({ esError }, "ElasticSearch unavailable, using Prisma fallback");
         }
 
-        const result = await esRes.json();
-        const hits = result.hits?.hits || [];
+        // If ES returned results, merge with org search and return
+        if (esResults && esResults.length > 0) {
+          // Add orgs from Prisma (ES may not index them)
+          const orgs = await prisma.organization.findMany({
+            where: { name: { contains: query, mode: "insensitive" } },
+            take: 3,
+            select: { id: true, name: true },
+          });
+
+          const finalResults = [
+            ...esResults,
+            ...orgs.map((o) => ({
+              id: `org-${o.id}`,
+              type: "org",
+              label: o.name,
+              icon: "domain",
+              group: "Organizations",
+              url: `/org/${o.id}`,
+            })),
+          ];
+
+          return { results: finalResults };
+        }
+
+        // ── Prisma fallback (reliable, always works) ──
+        const searchData = await searchService.globalSearch(q, user?.userId, 10);
         const results: any[] = [];
 
-        hits.forEach((hit: any) => {
-          const source = hit._source.payload || hit._source;
-          const indexName = hit._index;
-
-          if (indexName.includes('users')) {
-            results.push({
-              id: `user-${source.id}`,
-              type: "user",
-              label: source.name || source.username || "User",
-              subLabel: source.username,
-              icon: "person",
-              group: "People",
-              url: `/profile/${source.username}`,
-            });
-          } else if (indexName.includes('repositories')) {
-            results.push({
-              id: `repo-${source.id}`,
-              type: "repo",
-              label: source.name,
-              subLabel: source.description,
-              icon: "book",
-              group: "Repositories",
-              url: `/repo/${source.id}`,
-            });
-          } else if (indexName.includes('jobs')) {
-            results.push({
-              id: `job-${source.id}`,
-              type: "job",
-              label: source.title,
-              subLabel: `${source.type} - ${source.budget}`,
-              icon: "work",
-              group: "Jobs",
-              url: `/jobs/${source.id}`,
-            });
-          } else if (indexName.includes('workspaces')) {
-            results.push({
-              id: `ws-${source.id}`,
-              type: "workspace",
-              label: source.name,
-              subLabel: source.status,
-              icon: "terminal",
-              group: "Workspaces",
-              url: `/workspace/${source.id}`,
-            });
-          }
+        // Map users
+        searchData.owners.forEach((owner) => {
+          results.push({
+            id: `user-${owner.id}`,
+            type: "user",
+            label: owner.name || owner.username || "User",
+            subLabel: `@${owner.username}`,
+            icon: "person",
+            group: "People",
+            url: `/profile/${owner.username}`,
+          });
         });
 
-        // Add a manual org fetch just in case we missed org Outbox mapping
+        // Map repositories
+        searchData.repositories.forEach((repo) => {
+          results.push({
+            id: `repo-${repo.id}`,
+            type: "repo",
+            label: repo.fullName || repo.name,
+            subLabel: repo.description || `${repo.language || "Code"} • ★ ${repo.stars}`,
+            icon: "book",
+            group: "Repositories",
+            url: `/repo/${repo.id}`,
+          });
+        });
+
+        // Search jobs
+        const jobs = await prisma.job.findMany({
+          where: {
+            OR: [
+              { title: { contains: query, mode: "insensitive" } },
+              { description: { contains: query, mode: "insensitive" } },
+            ],
+          },
+          take: 5,
+          select: { id: true, title: true, type: true, budget: true },
+        });
+
+        jobs.forEach((job) => {
+          results.push({
+            id: `job-${job.id}`,
+            type: "job",
+            label: job.title,
+            subLabel: `${job.type || "Job"} - ${job.budget || ""}`,
+            icon: "work",
+            group: "Jobs",
+            url: `/jobs/${job.id}`,
+          });
+        });
+
+        // Search workspaces
+        const workspaces = await prisma.workspace.findMany({
+          where: {
+            OR: [
+              { name: { contains: query, mode: "insensitive" } },
+            ],
+            ownerId: user?.userId,
+          },
+          take: 5,
+          select: { id: true, name: true, status: true },
+        });
+
+        workspaces.forEach((ws) => {
+          results.push({
+            id: `ws-${ws.id}`,
+            type: "workspace",
+            label: ws.name,
+            subLabel: ws.status,
+            icon: "terminal",
+            group: "Workspaces",
+            url: `/workspace/${ws.id}`,
+          });
+        });
+
+        // Search organizations
         const orgs = await prisma.organization.findMany({
           where: { name: { contains: query, mode: "insensitive" } },
           take: 3,
           select: { id: true, name: true },
         });
 
-        const finalResults = [
-          ...results,
-          ...orgs.map((o) => ({
+        orgs.forEach((o) => {
+          results.push({
             id: `org-${o.id}`,
             type: "org",
             label: o.name,
             icon: "domain",
             group: "Organizations",
             url: `/org/${o.id}`,
-          }))
-        ];
+          });
+        });
 
-        return { results: finalResults };
+        return { results };
       } catch (error) {
         request.log.error(error);
         return reply.code(500).send({ error: "Search failed" });
@@ -194,46 +323,28 @@ export async function searchRoutes(fastify: FastifyInstance) {
       const user = (request as any).user;
 
       try {
-        const recentActivities = await prisma.activity.findMany({
-          where: {
-            userId: user.userId,
-            type: {
-              in: ["view_repository", "clone", "commit", "push"],
-            },
-            repositoryId: {
-              not: null,
-            },
-          },
+        // Fetch recently updated repos the user owns as a "recent" proxy
+        const repos = await prisma.repository.findMany({
+          where: { ownerId: user.userId },
           select: {
-            repository: {
-              select: {
-                id: true,
-                name: true,
-                owner: {
-                  select: {
-                    username: true,
-                  },
-                },
-              },
+            id: true,
+            name: true,
+            owner: {
+              select: { username: true },
             },
-            createdAt: true,
+            updatedAt: true,
           },
-          orderBy: {
-            createdAt: "desc",
-          },
+          orderBy: { updatedAt: "desc" },
           take: 10,
-          distinct: ["repositoryId"],
         });
 
-        const recent = recentActivities
-          .filter((a) => a.repository)
-          .map((a) => ({
-            id: a.repository!.id,
-            name: a.repository!.name,
-            fullName: `${a.repository!.owner.username}/${a.repository!.name}`,
-            owner: a.repository!.owner.username,
-            lastVisited: a.createdAt,
-          }));
+        const recent = repos.map((repo) => ({
+          id: repo.id,
+          name: repo.name,
+          fullName: `${repo.owner.username}/${repo.name}`,
+          owner: repo.owner.username,
+          lastVisited: repo.updatedAt,
+        }));
 
         return { success: true, recent };
       } catch (error) {

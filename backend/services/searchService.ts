@@ -124,60 +124,28 @@ export const searchService = {
    * Get user's recent repository visits
    */
   async getRecentRepositories(userId: string, limit: number = 5) {
-    // Get recent activities related to repositories
-    const recentActivities = await prisma.activity.findMany({
-      where: {
-        userId: userId,
-        type: {
-          in: ["view_repository", "clone", "commit", "push"],
-        },
-        repository: {
-          isNot: null,
-        },
-      },
+    // Query user's repos ordered by most recently updated
+    const repos = await prisma.repository.findMany({
+      where: { ownerId: userId },
       select: {
-        repository: {
-          select: {
-            id: true,
-            name: true,
-            owner: {
-              select: {
-                username: true,
-              },
-            },
-          },
+        id: true,
+        name: true,
+        owner: {
+          select: { username: true },
         },
-        createdAt: true,
+        updatedAt: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: limit * 2, // Get more to deduplicate
-      distinct: ["repositoryId"],
+      orderBy: { updatedAt: "desc" },
+      take: limit,
     });
 
-    // Deduplicate and format
-    const seen = new Set<string>();
-    const recent = [];
-
-    for (const activity of recentActivities) {
-      if (!activity.repository) continue;
-
-      const fullName = `${activity.repository.owner.username}/${activity.repository.name}`;
-
-      if (!seen.has(fullName) && recent.length < limit) {
-        seen.add(fullName);
-        recent.push({
-          id: activity.repository.id,
-          name: activity.repository.name,
-          fullName,
-          owner: activity.repository.owner.username,
-          lastVisited: activity.createdAt,
-        });
-      }
-    }
-
-    return recent;
+    return repos.map((repo) => ({
+      id: repo.id,
+      name: repo.name,
+      fullName: `${repo.owner.username}/${repo.name}`,
+      owner: repo.owner.username,
+      lastVisited: repo.updatedAt,
+    }));
   },
 
   /**
@@ -185,12 +153,12 @@ export const searchService = {
    */
   async trackRepositoryVisit(userId: string, repositoryId: string) {
     try {
-      await prisma.activity.create({
+      await prisma.activityLog.create({
         data: {
           userId,
-          repositoryId,
-          type: "view_repository",
-          metadata: {
+          repoId: repositoryId,
+          action: "view_repository",
+          details: {
             timestamp: new Date().toISOString(),
           },
         },

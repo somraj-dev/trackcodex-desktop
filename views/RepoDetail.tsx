@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MOCK_REPOS } from "../constants";
 import PostJobModal from "../components/jobs/PostJobModal";
-import { api } from "../context/AuthContext";
+import { api } from "../services/api";
 import { useRealtime } from "../contexts/RealtimeContext";
 
 // Tabs
@@ -25,6 +25,7 @@ const RepoDetailView = () => {
   const location = useLocation();
   const [repo, setRepo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("Code");
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isForking, setIsForking] = useState(false);
@@ -87,33 +88,31 @@ const RepoDetailView = () => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchRepo = async () => {
       setLoading(true);
       try {
-        let url = "";
+        let data;
         if (id && id !== "undefined") {
-          url = `/repositories/${id}`;
+          data = await api.repositories.get(id);
         } else if (owner && repoName) {
-          url = `/repositories/by-name/${owner}/${repoName}`;
+          data = await api.repositories.getByName(owner, repoName);
         } else {
           throw new Error("No repository ID or owner/name provided in URL");
         }
-
-        const response = await api.get(url);
-        setRepo(response.data);
+        setRepo(data);
       } catch (err) {
-        console.error("Failed to fetch repo detail from internal API", err);
-        const mockId = id || (owner && repoName ? `${owner}/${repoName}` : undefined);
-        const mockRepo = MOCK_REPOS.find((r) => r.id === mockId) || MOCK_REPOS[0];
-        setRepo(mockRepo);
+        console.error("Failed to fetch repo detail", err);
+        // We could still fallback to mock here if we want, but the goal is production-ready
+        // Let's at least show an error if it completely fails
+        setError("Failed to load repository details.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchRepo();
-  }, [id]);
+  }, [id, owner, repoName, setError]);
 
   useEffect(() => {
     // Determine the unique identifier for realtime room (use id or fallback to owner/name)
@@ -124,9 +123,7 @@ const RepoDetailView = () => {
 
       const unsubscribe = subscribe((event) => {
         if (event.type === "REPOSITORY_UPDATE" && (event.repoId === id || event.repoId === roomId)) {
-          console.log(
-            "🔄 Realtime: Repository updated externally, refreshing data...",
-          );
+          // Realtime: Repository updated externally
           setRepo((prev: any) => ({ ...prev, settings: event.settings }));
         }
       });
@@ -137,6 +134,21 @@ const RepoDetailView = () => {
       };
     }
   }, [isConnected, id, owner, repoName, send, subscribe]);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 border border-dashed border-red-500/30 rounded-xl bg-red-500/5">
+        <span className="material-symbols-outlined text-red-500 text-4xl mb-4">error</span>
+        <p className="text-red-500 text-sm font-medium">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-gh-bg-secondary border border-gh-border text-gh-text rounded-md text-xs font-bold hover:bg-gh-bg-tertiary transition-all"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
