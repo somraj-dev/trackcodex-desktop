@@ -207,8 +207,10 @@ export default function Signup() {
 
           {!showDetails && (
             <>
-              {/* Vercel invisible separator (just spacing) */}
-              <div className="h-2"></div>
+              {/* Vercel separator line */}
+              <div className="flex items-center w-full py-2">
+                <div className="flex-1 border-t border-[#333]"></div>
+              </div>
 
               <div className="flex flex-col gap-3">
                 <button

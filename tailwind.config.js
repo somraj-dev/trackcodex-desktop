@@ -23,6 +23,33 @@ export default {
                 "vscode-sidebar": "#252526",
                 "vscode-border": "#333333",
                 "vscode-activity-bar": "#333333",
+                /* Global Vercel Dark Theme Overrides */
+                gray: {
+                    50: '#f9fafb',
+                    100: '#f3f4f6',
+                    200: '#e5e7eb',
+                    300: '#d1d5db',
+                    400: '#9ca3af',
+                    500: '#6b7280',
+                    600: '#333333', // Subtle text / strong border
+                    700: '#1A1A1A', // Secondary Vercel border
+                    800: '#111111', // Hover state background
+                    900: '#0A0A0A', // Card / Sidebar background
+                    950: '#000000', // Pure black base
+                },
+                zinc: {
+                    50: '#fafafa',
+                    100: '#f4f4f5',
+                    200: '#e4e4e7',
+                    300: '#d4d4d8',
+                    400: '#a1a1aa',
+                    500: '#71717a',
+                    600: '#333333',
+                    700: '#1A1A1A',
+                    800: '#111111',
+                    900: '#0A0A0A',
+                    950: '#000000',
+                },
             },
             fontFamily: {
                 display: [
