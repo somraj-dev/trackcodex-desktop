@@ -7,9 +7,9 @@ import { requireAuth } from "../middleware/auth";
 export async function communityRoutes(fastify: FastifyInstance) {
   // List Posts
   fastify.get<{
-    Querystring: { type?: string; limit?: string; communityId?: string };
+    Querystring: { type?: string; limit?: string; communityId?: string; authorId?: string };
   }>("/community/posts", async (request, reply) => {
-    const { type, limit, communityId } = request.query;
+    const { type, limit, communityId, authorId } = request.query;
     const take = limit ? parseInt(limit) : 20;
 
     const where: any = {};
@@ -18,6 +18,9 @@ export async function communityRoutes(fastify: FastifyInstance) {
     }
     if (communityId) {
       where.communityId = communityId;
+    }
+    if (authorId) {
+      where.authorId = authorId;
     }
 
     try {

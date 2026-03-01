@@ -10,6 +10,11 @@ import ContributionHeatmap from "../components/profile/ContributionHeatmap";
 import PinnedRepos from "../components/profile/PinnedRepos";
 import ActivityFeed from "../components/profile/ActivityFeed";
 import VisualPortfolio from "../components/profile/VisualPortfolio";
+import UserRepositoriesTab from "../components/profile/UserRepositoriesTab";
+import UserWorkspacesTab from "../components/profile/UserWorkspacesTab";
+import UserCommunityTab from "../components/profile/UserCommunityTab";
+import UserJobsTab from "../components/profile/UserJobsTab";
+import UserLibraryTab from "../components/profile/UserLibraryTab";
 
 export const PublicProfile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -70,7 +75,7 @@ export const PublicProfile: React.FC = () => {
     );
   }
 
-  const tabs = ["Overview", "Repositories", "Projects", "Packages", "Stars"];
+  const tabs = ["Overview", "Repositories", "Workspaces", "Community", "Jobs", "Library"];
 
   return (
     <div className="min-h-screen bg-gh-bg text-gh-text font-display">
@@ -90,8 +95,8 @@ export const PublicProfile: React.FC = () => {
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 py-3 text-sm font-medium transition-all relative whitespace-nowrap ${activeTab === tab
-                      ? "text-gh-text"
-                      : "text-gh-text-secondary hover:text-gh-text"
+                    ? "text-gh-text"
+                    : "text-gh-text-secondary hover:text-gh-text"
                     }`}
                 >
                   <div className="flex items-center gap-2">
@@ -100,11 +105,13 @@ export const PublicProfile: React.FC = () => {
                         ? "dashboard"
                         : tab === "Repositories"
                           ? "book"
-                          : tab === "Projects"
-                            ? "grid_view"
-                            : tab === "Packages"
-                              ? "package"
-                              : "star"}
+                          : tab === "Workspaces"
+                            ? "laptop_mac"
+                            : tab === "Community"
+                              ? "forum"
+                              : tab === "Jobs"
+                                ? "work"
+                                : "extension"}
                     </span>
                     {tab}
                   </div>
@@ -138,22 +145,11 @@ export const PublicProfile: React.FC = () => {
               </div>
             )}
 
-            {activeTab === "Projects" && <VisualPortfolio />}
-
-            {activeTab !== "Overview" && activeTab !== "Projects" && (
-              <div className="py-20 text-center animate-in fade-in duration-500">
-                <span className="material-symbols-outlined !text-6xl text-gh-text-secondary/20 mb-4">
-                  construction
-                </span>
-                <h3 className="text-xl font-bold text-gh-text mb-2">
-                  Content Coming Soon
-                </h3>
-                <p className="text-gh-text-secondary">
-                  The {activeTab} section for this user is currently under
-                  construction.
-                </p>
-              </div>
-            )}
+            {activeTab === "Repositories" && <UserRepositoriesTab userId={profile.id} />}
+            {activeTab === "Workspaces" && <UserWorkspacesTab userId={profile.id} />}
+            {activeTab === "Community" && <UserCommunityTab userId={profile.id} />}
+            {activeTab === "Jobs" && <UserJobsTab userId={profile.id} />}
+            {activeTab === "Library" && <UserLibraryTab userId={profile.id} />}
           </main>
         </div>
       </div>
@@ -162,3 +158,4 @@ export const PublicProfile: React.FC = () => {
 };
 
 export default PublicProfile;
+

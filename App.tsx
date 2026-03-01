@@ -1116,6 +1116,9 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
               {/* GitHub-style owner/repo URLs (catch-all, must be last) */}
               <Route path="/:owner/:repo/*" element={<RepoDetailView />} />
 
+              {/* GitHub-style user directory fallback (must be after repo catch-all) */}
+              <Route path="/:username" element={<PublicProfile />} />
+
               <Route path="*" element={<Navigate to="/dashboard/home" />} />
             </Routes>
           </ErrorBoundary>

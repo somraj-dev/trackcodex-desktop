@@ -21,8 +21,18 @@ export async function workspaceRoutes(fastify: FastifyInstance) {
   // List Workspaces
   fastify.get("/workspaces", async (request, reply) => {
     try {
-      // In real app: use request.user.id to filter
+      const { userId } = request.query as { userId?: string };
+      // In real app: use request.user.id to filter efficiently based on session
+      // For now, if userId is provided, return their public workspaces
+
+      const whereClause: any = {};
+      if (userId) {
+        whereClause.ownerId = userId;
+        whereClause.visibility = "public"; // only public workspaces for user directory
+      }
+
       const workspaces = await prisma.workspace.findMany({
+        where: whereClause,
         include: { owner: true },
         orderBy: { updatedAt: "desc" },
       });

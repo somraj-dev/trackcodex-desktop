@@ -11,14 +11,23 @@ const CACHE_TTL = 30000; // 30 seconds
 export async function jobRoutes(fastify: FastifyInstance) {
 
     // List Jobs
-    fastify.get('/jobs', async (request, reply) => {
-        const now = Date.now();
-        if (jobsCache && (now - lastCacheUpdate < CACHE_TTL)) {
+    fastify.get<{
+        Querystring: { creatorId?: string };
+    }>('/jobs', async (request, reply) => {
+        const { creatorId } = request.query;
+        // Don't use cache if filtering
+        if (jobsCache && !creatorId && (Date.now() - lastCacheUpdate < CACHE_TTL)) {
             console.log("[Backend Cache] Serving jobs from memory");
             return jobsCache;
         }
 
+        const where: any = {};
+        if (creatorId) {
+            where.creatorId = creatorId;
+        }
+
         const jobs = await prisma.job.findMany({
+            where,
             include: {
                 creator: { select: { id: true, name: true, avatar: true } },
                 org: { select: { id: true, name: true, avatar: true } }
@@ -26,8 +35,10 @@ export async function jobRoutes(fastify: FastifyInstance) {
             orderBy: { createdAt: 'desc' }
         });
 
-        jobsCache = jobs;
-        lastCacheUpdate = now;
+        if (!creatorId) {
+            jobsCache = jobs;
+            lastCacheUpdate = Date.now();
+        }
         return jobs;
     });
 

@@ -96,6 +96,36 @@ export interface CIRun {
 }
 
 export const api = {
+  community: {
+    list: (params?: { authorId?: string }) => {
+      const query = new URLSearchParams(params as any).toString();
+      return request<any[]>(`/community/posts${query ? `?${query}` : ""}`);
+    },
+  },
+  library: {
+    list: async (params?: { authorId?: string }) => {
+      return [
+        {
+          id: "1",
+          title: "Introduction to React Hooks",
+          description: "A comprehensive guide to using React Hooks in modern web applications.",
+          slug: "intro-to-react-hooks",
+          category: "Tutorial",
+          tags: ["react", "hooks", "frontend"],
+          authorId: params?.authorId || "user-1",
+          authorName: "John Doe",
+          authorAvatar: "https://github.com/shadcn.png",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          likesCount: 120,
+          viewsCount: 1540,
+          type: "component",
+          stars: 120,
+          downloads: 1540
+        }
+      ];
+    }
+  },
   auth: {
     login: (credentials: LoginCredentials) =>
       request<{ token: string; user: UserProfile; sessionId?: string }>("/auth/login", {
@@ -105,7 +135,10 @@ export const api = {
     getMe: () => request<UserProfile>("/auth/me"),
   },
   workspaces: {
-    list: () => request<Workspace[]>("/workspaces"),
+    list: (params?: { userId?: string; visibility?: string }) => {
+      const query = new URLSearchParams(params as any).toString();
+      return request<Workspace[]>(`/workspaces${query ? `?${query}` : ""}`);
+    },
     get: (id: string) => request<Workspace>(`/workspaces/${id}`),
     create: (data: Partial<Workspace>) =>
       request<Workspace>("/workspaces", {
@@ -126,8 +159,9 @@ export const api = {
       request<void>(`/workspaces/${id}`, { method: "DELETE" }),
   },
   repositories: {
-    list: async (): Promise<Repository[]> => {
-      const res = await request<{ repositories: Repository[] } | Repository[]>("/repositories");
+    list: async (params?: { userId?: string }): Promise<Repository[]> => {
+      const query = new URLSearchParams(params as any).toString();
+      const res = await request<{ repositories: Repository[] } | Repository[]>(`/repositories${query ? `?${query}` : ""}`);
       // Backend may return { repositories: [...] } or flat array — handle both
       if (Array.isArray(res)) return res;
       return (res as { repositories: Repository[] }).repositories || [];
@@ -232,7 +266,10 @@ export const api = {
       }),
   },
   jobs: {
-    list: () => request<Job[]>("/jobs"),
+    list: (params?: { creatorId?: string }) => {
+      const query = new URLSearchParams(params as any).toString();
+      return request<Job[]>(`/jobs${query ? `?${query}` : ""}`);
+    },
     create: (data: Partial<Job>) =>
       request<Job>("/jobs", { method: "POST", body: JSON.stringify(data) }),
     apply: (id: string) =>
