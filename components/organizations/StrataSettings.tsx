@@ -7,14 +7,14 @@ const StrataSettings = ({ strata }: { strata: Strata }) => {
 
     return (
         <div className="animate-in fade-in duration-500 max-w-2xl">
-            <h2 className="text-xl font-bold text-white mb-6 pb-4 border-b border-[#30363d]">Strata profile</h2>
+            <h2 className="text-xl font-bold text-white mb-6 pb-4 border-b border-[#1A1A1A]">Strata profile</h2>
             <div className="space-y-6">
                 <div>
                     <label className="text-sm font-bold text-slate-300">Strata display name</label>
                     <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="mt-2 w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-primary outline-none"
+                        className="mt-2 w-full bg-[#000000] border border-[#1A1A1A] rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-primary outline-none"
                     />
                 </div>
                 <div>
@@ -22,7 +22,7 @@ const StrataSettings = ({ strata }: { strata: Strata }) => {
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        className="mt-2 w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white h-24 resize-none focus:ring-1 focus:ring-primary outline-none"
+                        className="mt-2 w-full bg-[#000000] border border-[#1A1A1A] rounded-lg px-3 py-2 text-sm text-white h-24 resize-none focus:ring-1 focus:ring-primary outline-none"
                     />
                 </div>
                 <div className="pt-4 flex justify-start">

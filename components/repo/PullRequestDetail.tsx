@@ -46,14 +46,14 @@ const PullRequestDetail = ({
           <span className="text-[#8b949e]">
             <strong className="text-white">{pr.author.name}</strong> wants to
             merge {pr.diffStats.files} commits into{" "}
-            <code className="bg-[#161b22] px-1 rounded">main</code> from{" "}
-            <code className="bg-[#161b22] px-1 rounded">feature/dark-mode</code>
+            <code className="bg-[#0A0A0A] px-1 rounded">main</code> from{" "}
+            <code className="bg-[#0A0A0A] px-1 rounded">feature/dark-mode</code>
           </span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-[#30363d] mb-6 flex gap-6">
+      <div className="border-b border-[#1A1A1A] mb-6 flex gap-6">
         {["Conversation", "Commits", "Checks", "Files Changed"].map((tab) => {
           const id = tab.toLowerCase().replace(" ", "-");
           return (
@@ -104,10 +104,10 @@ const PullRequestDetail = ({
                   <img
                     src={pr.author.avatar}
                     alt={pr.author.name}
-                    className="size-10 rounded-full border border-[#30363d]"
+                    className="size-10 rounded-full border border-[#1A1A1A]"
                   />
-                  <div className="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg">
-                    <div className="bg-[#161b22] p-2 px-4 border-b border-[#30363d] text-sm flex justify-between rounded-t-lg">
+                  <div className="flex-1 bg-[#000000] border border-[#1A1A1A] rounded-lg">
+                    <div className="bg-[#0A0A0A] p-2 px-4 border-b border-[#1A1A1A] text-sm flex justify-between rounded-t-lg">
                       <div>
                         <strong className="text-white">{pr.author.name}</strong>{" "}
                         commented {pr.createdAt}
@@ -132,7 +132,7 @@ const PullRequestDetail = ({
                 </div>
 
                 {/* Timeline Item (Commit) */}
-                <div className="flex items-center gap-4 ml-5 relative pb-8 border-l-2 border-[#30363d] pl-8">
+                <div className="flex items-center gap-4 ml-5 relative pb-8 border-l-2 border-[#1A1A1A] pl-8">
                   <div className="absolute left-[-5px] top-0 bg-[#30363d] rounded-full p-1 text-[#8b949e]">
                     <span className="material-symbols-outlined !text-[12px]">
                       commit
@@ -145,7 +145,7 @@ const PullRequestDetail = ({
                 </div>
 
                 {/* Merge Box */}
-                <div className="border border-[#30363d] rounded-lg p-4 bg-[#161b22] mt-8">
+                <div className="border border-[#1A1A1A] rounded-lg p-4 bg-[#0A0A0A] mt-8">
                   <div className="flex items-center gap-4">
                     <div className="size-8 rounded-full bg-[#238636] flex items-center justify-center text-white">
                       <span className="material-symbols-outlined !text-[20px]">
@@ -231,7 +231,7 @@ const PullRequestDetail = ({
                   </div>
                 </div>
 
-                <div className="border-t border-[#30363d] pt-4">
+                <div className="border-t border-[#1A1A1A] pt-4">
                   <h4 className="text-xs font-bold text-[#8b949e] uppercase tracking-wider mb-2">
                     Assignees
                   </h4>
@@ -240,7 +240,7 @@ const PullRequestDetail = ({
                   </p>
                 </div>
 
-                <div className="border-t border-[#30363d] pt-4">
+                <div className="border-t border-[#1A1A1A] pt-4">
                   <h4 className="text-xs font-bold text-[#8b949e] uppercase tracking-wider mb-2">
                     Labels
                   </h4>

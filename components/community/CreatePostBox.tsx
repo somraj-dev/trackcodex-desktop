@@ -58,7 +58,7 @@ const CreatePostBox = () => {
   };
 
   return (
-    <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6 mb-8 flex flex-col gap-4 shadow-sm group hover:border-[#8b949e] transition-all relative">
+    <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl p-6 mb-8 flex flex-col gap-4 shadow-sm group hover:border-[#8b949e] transition-all relative">
       <div className="flex items-start gap-4">
         <img src={profile.avatar} className="size-11 rounded-full border border-border-dark object-cover" />
         <div className="flex-1 space-y-3">
@@ -90,7 +90,7 @@ const CreatePostBox = () => {
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t border-[#30363d]/30">
+      <div className="flex items-center justify-between pt-4 border-t border-[#1A1A1A]/30">
         <div className="flex items-center gap-4">
           <button className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors">
             <span className="material-symbols-outlined !text-[22px]">code</span>

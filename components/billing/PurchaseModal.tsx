@@ -26,7 +26,7 @@ const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, onConfir
     return (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
             <div 
-                className="bg-[#1c1f26] border border-[#30363d] w-full max-w-md rounded-2xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-300"
+                className="bg-[#1c1f26] border border-[#1A1A1A] w-full max-w-md rounded-2xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="p-6">
@@ -34,10 +34,10 @@ const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, onConfir
                     <p className="text-sm text-gh-text-secondary mt-1">Expand your team capacity with dedicated workspaces.</p>
                 </div>
 
-                <div className="p-6 border-y border-[#30363d] space-y-6">
+                <div className="p-6 border-y border-[#1A1A1A] space-y-6">
                     <div>
                         <p className="text-xs font-bold text-gh-text-secondary mb-2">Quantity</p>
-                        <div className="flex items-center justify-between p-3 bg-[#161b22] border border-[#30363d] rounded-lg">
+                        <div className="flex items-center justify-between p-3 bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg">
                             <div className="flex items-center gap-3">
                                 <div className="size-8 bg-gh-bg rounded-md flex items-center justify-center text-primary">
                                     <span className="material-symbols-outlined !text-xl">view_quilt</span>
@@ -48,9 +48,9 @@ const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, onConfir
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="size-7 bg-[#21262d] rounded text-white">-</button>
+                                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="size-7 bg-[#111111] rounded text-white">-</button>
                                 <span className="w-8 text-center font-mono text-white">{quantity}</span>
-                                <button onClick={() => setQuantity(q => q + 1)} className="size-7 bg-[#21262d] rounded text-white">+</button>
+                                <button onClick={() => setQuantity(q => q + 1)} className="size-7 bg-[#111111] rounded text-white">+</button>
                             </div>
                         </div>
                     </div>
@@ -60,7 +60,7 @@ const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, onConfir
                         <span className="font-mono text-white">${unitPrice.toFixed(2)} / workspace / mo</span>
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-[#30363d]">
+                    <div className="flex items-center justify-between pt-4 border-t border-[#1A1A1A]">
                         <span className="text-lg font-bold text-white">Total monthly increase</span>
                         <div className="text-right">
                             <p className="text-lg font-bold text-white">${(quantity * unitPrice).toFixed(2)}</p>
@@ -76,7 +76,7 @@ const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, onConfir
                     </div>
                 </div>
 
-                <div className="p-4 flex justify-end gap-3 bg-[#161b22]">
+                <div className="p-4 flex justify-end gap-3 bg-[#0A0A0A]">
                     <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-gh-text hover:bg-gh-bg-secondary rounded-lg">Cancel</button>
                     <button onClick={handleConfirm} className="px-6 py-2 bg-[#9333ea] text-white text-sm font-bold rounded-lg hover:bg-[#a855f7] shadow-lg shadow-[#9333ea]/20">Confirm Purchase</button>
                 </div>

@@ -22,9 +22,9 @@ const QuickEditor: React.FC<QuickEditorProps> = ({ filename, initialContent, onS
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0d1117] rounded-2xl border border-[#30363d] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+    <div className="flex flex-col h-full bg-[#000000] rounded-2xl border border-[#1A1A1A] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
       {/* Editor Toolbar */}
-      <div className="h-12 border-b border-[#30363d] bg-[#161b22] flex items-center justify-between px-4 shrink-0">
+      <div className="h-12 border-b border-[#1A1A1A] bg-[#0A0A0A] flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-blue-400 !text-[20px]">javascript</span>
           <span className="text-[13px] font-bold text-slate-200">{filename}</span>
@@ -54,7 +54,7 @@ const QuickEditor: React.FC<QuickEditorProps> = ({ filename, initialContent, onS
 
       {/* Code Area */}
       <div className="flex-1 flex overflow-hidden font-mono relative group">
-        <div className="w-12 bg-[#0d1117] border-r border-[#30363d] pt-4 flex flex-col items-center text-slate-700 text-[12px] select-none shrink-0">
+        <div className="w-12 bg-[#000000] border-r border-[#1A1A1A] pt-4 flex flex-col items-center text-slate-700 text-[12px] select-none shrink-0">
           {content.split('\n').map((_, i) => (
             <span key={i} className="h-6 leading-6">{i + 1}</span>
           ))}

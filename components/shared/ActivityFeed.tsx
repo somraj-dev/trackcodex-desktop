@@ -55,14 +55,14 @@ const ActivityFeed = ({
         <h3 className="text-lg font-bold text-gh-text mb-2">Recent Activity</h3>
       )}
       {activities.length === 0 ? (
-        <div className="p-8 text-center bg-[#161b22] border border-[#30363d] rounded-md text-gh-text-secondary">
+        <div className="p-8 text-center bg-[#0A0A0A] border border-[#1A1A1A] rounded-md text-gh-text-secondary">
           No recent activity found.
         </div>
       ) : (
         activities.map((item) => (
           <div
             key={item.id}
-            className="flex gap-3 p-4 bg-[#161b22] border border-[#30363d] rounded-md"
+            className="flex gap-3 p-4 bg-[#0A0A0A] border border-[#1A1A1A] rounded-md"
           >
             <div className="size-8 rounded-full bg-[#30363d] flex items-center justify-center overflow-hidden">
               {item.actor.avatarUrl ? (

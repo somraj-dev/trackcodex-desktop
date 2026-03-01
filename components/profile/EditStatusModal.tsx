@@ -88,9 +88,9 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({ isOpen, onClose }) =>
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm font-display p-4">
-            <div className="bg-[#161b22] border border-[#30363d] rounded-xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+            <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-4 py-3 border-b border-[#30363d] flex items-center justify-between">
+                <div className="px-4 py-3 border-b border-[#1A1A1A] flex items-center justify-between">
                     <h2 className="text-white font-bold text-sm">Edit status</h2>
                     <button onClick={onClose} title="Close" className="text-[#8b949e] hover:text-white transition-colors">
                         <span className="material-symbols-outlined !text-lg block">close</span>
@@ -101,8 +101,8 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({ isOpen, onClose }) =>
                 <div className="px-4 py-5 space-y-4">
                     <div>
                         <label className="block text-sm font-bold text-white mb-2">What's happening</label>
-                        <div className="relative flex items-center bg-[#0d1117] border border-[#30363d] rounded-md focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-                            <div className="flex items-center justify-center border-r border-[#30363d]">
+                        <div className="relative flex items-center bg-[#000000] border border-[#1A1A1A] rounded-md focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+                            <div className="flex items-center justify-center border-r border-[#1A1A1A]">
                                 <input
                                     type="text"
                                     value={emoji}
@@ -128,16 +128,16 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({ isOpen, onClose }) =>
 
                     {/* Suggestions */}
                     <div className="flex flex-wrap gap-2 pt-1">
-                        <button onClick={() => handleSuggestion("🌴", "On vacation")} className="flex items-center gap-1.5 px-3 py-1 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-full text-xs font-medium text-[#c9d1d9] transition-colors">
+                        <button onClick={() => handleSuggestion("🌴", "On vacation")} className="flex items-center gap-1.5 px-3 py-1 bg-[#111111] hover:bg-[#30363d] border border-[#1A1A1A] rounded-full text-xs font-medium text-[#c9d1d9] transition-colors">
                             <span className="text-sm">🌴</span> On vacation
                         </button>
-                        <button onClick={() => handleSuggestion("🤒", "Out sick")} className="flex items-center gap-1.5 px-3 py-1 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-full text-xs font-medium text-[#c9d1d9] transition-colors">
+                        <button onClick={() => handleSuggestion("🤒", "Out sick")} className="flex items-center gap-1.5 px-3 py-1 bg-[#111111] hover:bg-[#30363d] border border-[#1A1A1A] rounded-full text-xs font-medium text-[#c9d1d9] transition-colors">
                             <span className="text-sm">🤒</span> Out sick
                         </button>
-                        <button onClick={() => handleSuggestion("🏡", "Working from home")} className="flex items-center gap-1.5 px-3 py-1 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-full text-xs font-medium text-[#c9d1d9] transition-colors">
+                        <button onClick={() => handleSuggestion("🏡", "Working from home")} className="flex items-center gap-1.5 px-3 py-1 bg-[#111111] hover:bg-[#30363d] border border-[#1A1A1A] rounded-full text-xs font-medium text-[#c9d1d9] transition-colors">
                             <span className="text-sm">🏡</span> Working from home
                         </button>
-                        <button onClick={() => handleSuggestion("🎯", "Focusing")} className="flex items-center gap-1.5 px-3 py-1 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-full text-xs font-medium text-[#c9d1d9] transition-colors">
+                        <button onClick={() => handleSuggestion("🎯", "Focusing")} className="flex items-center gap-1.5 px-3 py-1 bg-[#111111] hover:bg-[#30363d] border border-[#1A1A1A] rounded-full text-xs font-medium text-[#c9d1d9] transition-colors">
                             <span className="text-sm">🎯</span> Focusing
                         </button>
                     </div>
@@ -150,7 +150,7 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({ isOpen, onClose }) =>
                                     checked={busy}
                                     onChange={(e) => setBusy(e.target.checked)}
                                     title="Busy Status"
-                                    className="peer size-4 appearance-none rounded-sm border border-[#8b949e] bg-[#0d1117] checked:bg-blue-600 checked:border-blue-600 cursor-pointer focus:ring-0 focus:ring-offset-0"
+                                    className="peer size-4 appearance-none rounded-sm border border-[#8b949e] bg-[#000000] checked:bg-blue-600 checked:border-blue-600 cursor-pointer focus:ring-0 focus:ring-offset-0"
                                 />
                                 <span className="material-symbols-outlined !text-[12px] text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
                             </div>
@@ -163,14 +163,14 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({ isOpen, onClose }) =>
                         </label>
                     </div>
 
-                    <div className="pt-2 border-t border-[#30363d]">
+                    <div className="pt-2 border-t border-[#1A1A1A]">
                         <label htmlFor="expiration" className="block text-sm font-bold text-white mb-2 mt-4">Expiration</label>
                         <select
                             id="expiration"
                             value={expiration}
                             onChange={(e) => setExpiration(e.target.value)}
                             title="Expiration Time"
-                            className="w-full bg-[#21262d] border border-[#30363d] rounded-md px-3 py-1.5 text-sm text-white focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full bg-[#111111] border border-[#1A1A1A] rounded-md px-3 py-1.5 text-sm text-white focus:ring-blue-500 focus:border-blue-500"
                         >
                             <option value="never">Never</option>
                             <option value="30m">in 30 minutes</option>
@@ -182,14 +182,14 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({ isOpen, onClose }) =>
                         <p className="text-[11px] text-[#8b949e] mt-2">Your status will be cleared after the selected time.</p>
                     </div>
 
-                    <div className="pt-2 border-t border-[#30363d]">
+                    <div className="pt-2 border-t border-[#1A1A1A]">
                         <label htmlFor="visibleTo" className="block text-sm font-bold text-white mb-2 mt-4">Visible to</label>
                         <select
                             id="visibleTo"
                             value={visibleTo}
                             onChange={(e) => setVisibleTo(e.target.value)}
                             title="Status Visibility"
-                            className="w-full bg-[#21262d] border border-[#30363d] rounded-md px-3 py-1.5 text-sm text-white focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full bg-[#111111] border border-[#1A1A1A] rounded-md px-3 py-1.5 text-sm text-white focus:ring-blue-500 focus:border-blue-500"
                         >
                             <option value="everyone">Everyone</option>
                             <option value="organization">Organization only</option>
@@ -199,13 +199,13 @@ const EditStatusModal: React.FC<EditStatusModalProps> = ({ isOpen, onClose }) =>
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 py-3 bg-[#0d1117] border-t border-[#30363d] flex items-center justify-between gap-2">
+                <div className="px-4 py-3 bg-[#000000] border-t border-[#1A1A1A] flex items-center justify-between gap-2">
                     <p className="text-xs text-[#8b949e]">Status visibility settings apply across TrackCodex.</p>
                     <div className="flex gap-2">
                         <button
                             type="button"
                             onClick={handleClear}
-                            className="px-4 py-1.5 bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] text-sm font-bold rounded-md border border-[#30363d] transition-colors"
+                            className="px-4 py-1.5 bg-[#111111] hover:bg-[#30363d] text-[#c9d1d9] text-sm font-bold rounded-md border border-[#1A1A1A] transition-colors"
                         >
                             Clear status
                         </button>

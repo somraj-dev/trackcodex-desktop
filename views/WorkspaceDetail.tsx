@@ -317,7 +317,7 @@ const WorkspaceDetailView = () => {
               <ExplorerSection title="Open" count={2}>
                 <div
                   onClick={() => setActivePR("#452")}
-                  className={`px-4 py-4 mb-2 mx-2 rounded-xl flex flex-col gap-1 cursor-pointer transition-all border-l-4 ${activePR === "#452" ? "bg-[#161b22] dark:bg-gh-bg-secondary border-emerald-500 ring-1 ring-white/5 shadow-xl" : "hover:bg-white/5 border-transparent"}`}
+                  className={`px-4 py-4 mb-2 mx-2 rounded-xl flex flex-col gap-1 cursor-pointer transition-all border-l-4 ${activePR === "#452" ? "bg-[#0A0A0A] dark:bg-gh-bg-secondary border-emerald-500 ring-1 ring-white/5 shadow-xl" : "hover:bg-white/5 border-transparent"}`}
                 >
                   <h4 className="text-[13px] font-black text-white leading-tight">
                     #452: Fix API endpoint bug

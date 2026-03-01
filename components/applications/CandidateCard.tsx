@@ -18,10 +18,10 @@ export const CandidateCard = ({ application, onClick }: { application: any; onCl
             {...listeners}
             {...attributes}
             onClick={onClick}
-            className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 shadow-sm hover:border-primary/50 cursor-grab active:cursor-grabbing mb-3"
+            className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-4 shadow-sm hover:border-primary/50 cursor-grab active:cursor-grabbing mb-3"
         >
             <div className="flex items-center gap-3 mb-3">
-                <img src={application.applicant.avatar} className="size-8 rounded-lg bg-[#0d1117] object-cover" />
+                <img src={application.applicant.avatar} className="size-8 rounded-lg bg-[#000000] object-cover" />
                 <div>
                     <p className="text-xs font-bold text-white">{application.applicant.name}</p>
                     <p className="text-[10px] text-slate-500">@{application.applicant.username}</p>

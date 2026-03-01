@@ -182,7 +182,7 @@ const CreateRepo: React.FC = () => {
             </div>
 
             <div className="pl-11 space-y-4 animate-in slide-in-from-left-4 duration-500 delay-150">
-              <div className="bg-[#0d1117] border border-gh-border rounded-md overflow-hidden shadow-sm">
+              <div className="bg-[#000000] border border-gh-border rounded-md overflow-hidden shadow-sm">
                 {/* Visibility Selection */}
                 <div className="p-4 border-b border-gh-border flex items-center justify-between hover:bg-gh-bg-secondary/30 transition-colors">
                   <div>
@@ -231,7 +231,7 @@ const CreateRepo: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setInitReadme(!initReadme)}
-                      className={`relative w-[44px] h-[24px] rounded-full transition-all duration-[350ms] ease-in-out p-[3px] border ${initReadme ? "bg-[#238636] border-[#2ea44f]" : "bg-[#21262d] border-[#30363d]"}`}
+                      className={`relative w-[44px] h-[24px] rounded-full transition-all duration-[350ms] ease-in-out p-[3px] border ${initReadme ? "bg-[#238636] border-[#2ea44f]" : "bg-[#111111] border-[#1A1A1A]"}`}
                       aria-label={`Toggle README: ${initReadme ? 'On' : 'Off'}`}
                     >
                       <div className={`size-[16px] bg-white rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform duration-[350ms] ease-in-out transform ${initReadme ? "translate-x-[20px]" : "translate-x-0"}`} />

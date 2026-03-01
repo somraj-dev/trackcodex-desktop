@@ -25,7 +25,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="group bg-[#161b22] border border-[#30363d] rounded-2xl p-6 hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-xl cursor-pointer flex flex-col relative overflow-hidden"
+      className="group bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl p-6 hover:border-primary/50 transition-all duration-300 shadow-sm hover:shadow-xl cursor-pointer flex flex-col relative overflow-hidden"
     >
       {/* Decorative background element */}
       <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
@@ -42,7 +42,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
         </div>
         <div
           onClick={handleRepoClick}
-          className="flex items-center gap-1.5 px-2 py-1 bg-[#0d1117] border border-[#30363d] rounded-lg text-[10px] text-slate-400 font-bold hover:text-primary hover:border-primary/50 transition-all"
+          className="flex items-center gap-1.5 px-2 py-1 bg-[#000000] border border-[#1A1A1A] rounded-lg text-[10px] text-slate-400 font-bold hover:text-primary hover:border-primary/50 transition-all"
           title="View Associated Repository"
         >
           <span className="material-symbols-outlined !text-[14px]">
@@ -53,7 +53,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
       </div>
 
       <div className="flex items-start gap-4 mb-5 relative z-10">
-        <div className="size-12 rounded-xl bg-[#0d1117] flex items-center justify-center overflow-hidden border border-[#30363d] shrink-0 group-hover:border-primary/30 transition-colors shadow-inner">
+        <div className="size-12 rounded-xl bg-[#000000] flex items-center justify-center overflow-hidden border border-[#1A1A1A] shrink-0 group-hover:border-primary/30 transition-colors shadow-inner">
           <img
             src={job.creator?.avatar || "https://github.com/ghost.png"}
             className="size-full object-cover"
@@ -89,7 +89,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
         {(job.techStack || []).map((tag) => (
           <span
             key={tag}
-            className="px-2.5 py-1 bg-[#0d1117] rounded-lg border border-[#30363d] text-[10px] text-slate-400 font-black uppercase tracking-tight group-hover:border-slate-600 transition-colors"
+            className="px-2.5 py-1 bg-[#000000] rounded-lg border border-[#1A1A1A] text-[10px] text-slate-400 font-black uppercase tracking-tight group-hover:border-slate-600 transition-colors"
           >
             {tag}
           </span>
@@ -101,7 +101,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
         )}
       </div>
 
-      <div className="mt-auto pt-5 border-t border-[#30363d]/50 flex items-center justify-between relative z-10">
+      <div className="mt-auto pt-5 border-t border-[#1A1A1A]/50 flex items-center justify-between relative z-10">
         <div className="flex flex-col">
           <span className="text-[9px] text-slate-500 font-black uppercase tracking-[0.15em] mb-0.5">
             Value

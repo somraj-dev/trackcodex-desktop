@@ -26,8 +26,8 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#0d1117]/95 backdrop-blur-sm animate-in fade-in duration-300 font-display">
-      <div className="w-full h-full max-w-[1400px] flex flex-col md:flex-row overflow-hidden bg-[#0d1117] relative">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#000000]/95 backdrop-blur-sm animate-in fade-in duration-300 font-display">
+      <div className="w-full h-full max-w-[1400px] flex flex-col md:flex-row overflow-hidden bg-[#000000] relative">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -37,7 +37,7 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
         </button>
 
         {/* Left Panel: Highlights */}
-        <div className="w-full md:w-1/3 p-10 flex flex-col justify-center border-r border-[#30363d] bg-[#161b22] relative overflow-hidden">
+        <div className="w-full md:w-1/3 p-10 flex flex-col justify-center border-r border-[#1A1A1A] bg-[#0A0A0A] relative overflow-hidden">
           {/* Background decoration */}
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-cyan-500"></div>
 
@@ -58,7 +58,7 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <div className="bg-[#0d1117] border border-[#30363d] p-6 rounded-2xl">
+            <div className="bg-[#000000] border border-[#1A1A1A] p-6 rounded-2xl">
               <span className="material-symbols-outlined text-emerald-500 mb-2">
                 payments
               </span>
@@ -70,7 +70,7 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
               </p>
             </div>
             <div className="flex gap-4">
-              <div className="flex-1 bg-[#0d1117] border border-[#30363d] p-6 rounded-2xl">
+              <div className="flex-1 bg-[#000000] border border-[#1A1A1A] p-6 rounded-2xl">
                 <span className="material-symbols-outlined text-purple-500 mb-2">
                   pie_chart
                 </span>
@@ -81,7 +81,7 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
                   Equity
                 </p>
               </div>
-              <div className="flex-1 bg-[#0d1117] border border-[#30363d] p-6 rounded-2xl">
+              <div className="flex-1 bg-[#000000] border border-[#1A1A1A] p-6 rounded-2xl">
                 <span className="material-symbols-outlined text-amber-500 mb-2">
                   redeem
                 </span>
@@ -95,7 +95,7 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
             </div>
           </div>
 
-          <div className="mt-10 pt-10 border-t border-[#30363d]">
+          <div className="mt-10 pt-10 border-t border-[#1A1A1A]">
             <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined text-emerald-500">
                 verified

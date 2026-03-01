@@ -60,7 +60,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-[#161b22] border-t border-[#30363d] shadow-2xl animate-slide-up">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-[#0A0A0A] border-t border-[#1A1A1A] shadow-2xl animate-slide-up">
       {!showSettings ? (
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex-1 text-center md:text-left">
@@ -80,13 +80,13 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
           <div className="flex flex-wrap gap-2 justify-center">
             <button
               onClick={() => setShowSettings(true)}
-              className="px-4 py-2 text-sm font-medium text-[#c9d1d9] bg-[#21262d] border border-[#30363d] rounded-md hover:bg-[#30363d] transition-colors"
+              className="px-4 py-2 text-sm font-medium text-[#c9d1d9] bg-[#111111] border border-[#1A1A1A] rounded-md hover:bg-[#30363d] transition-colors"
             >
               Customize
             </button>
             <button
               onClick={handleRejectAll}
-              className="px-4 py-2 text-sm font-medium text-[#c9d1d9] bg-[#21262d] border border-[#30363d] rounded-md hover:bg-[#30363d] transition-colors"
+              className="px-4 py-2 text-sm font-medium text-[#c9d1d9] bg-[#111111] border border-[#1A1A1A] rounded-md hover:bg-[#30363d] transition-colors"
             >
               Reject All
             </button>
@@ -99,7 +99,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
           </div>
         </div>
       ) : (
-        <div className="max-w-2xl mx-auto bg-[#0d1117] p-6 rounded-lg border border-[#30363d]">
+        <div className="max-w-2xl mx-auto bg-[#000000] p-6 rounded-lg border border-[#1A1A1A]">
           <h3 className="text-lg font-bold text-[#c9d1d9] mb-4">
             Cookie Preferences
           </h3>
@@ -165,7 +165,7 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setShowSettings(false)}
-              className="px-4 py-2 text-sm font-medium text-[#c9d1d9] bg-[#21262d] border border-[#30363d] rounded-md hover:bg-[#30363d]"
+              className="px-4 py-2 text-sm font-medium text-[#c9d1d9] bg-[#111111] border border-[#1A1A1A] rounded-md hover:bg-[#30363d]"
             >
               Back
             </button>

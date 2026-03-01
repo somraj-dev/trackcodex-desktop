@@ -14,7 +14,7 @@ interface ActivityHeatmapProps {
 }
 
 const LEVEL_COLORS = [
-    'bg-[#161b22]', // Level 0 (GitHub dark dim)
+    'bg-[#0A0A0A]', // Level 0 (GitHub dark dim)
     'bg-[#0e4429]', // Level 1
     'bg-[#006d32]', // Level 2
     'bg-[#26a641]', // Level 3
@@ -82,7 +82,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ contributions 
     };
 
     return (
-        <div className="p-4 bg-[#0d1117] border border-[#30363d] rounded-md font-sans text-[#c9d1d9] w-full overflow-hidden">
+        <div className="p-4 bg-[#000000] border border-[#1A1A1A] rounded-md font-sans text-[#c9d1d9] w-full overflow-hidden">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-xs">
                     {total.toLocaleString()} contributions in the last year

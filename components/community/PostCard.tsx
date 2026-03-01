@@ -163,7 +163,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
   };
 
   return (
-    <div className={`bg-[#161b22] border border-[#30363d] rounded-2xl p-6 hover:border-[#8b949e] transition-all group shadow-sm relative ${post.moderation === 'FLAGGED' ? 'opacity-50 grayscale' : ''}`}>
+    <div className={`bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl p-6 hover:border-[#8b949e] transition-all group shadow-sm relative ${post.moderation === 'FLAGGED' ? 'opacity-50 grayscale' : ''}`}>
 
       {post.moderation === 'WARNING' && (
         <div className="mb-4 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-amber-500 text-[10px] font-bold uppercase tracking-widest">
@@ -219,8 +219,8 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
         <p className="text-[14px] text-slate-300 leading-relaxed mb-4">{post.content}</p>
 
         {post.codeSnippet && (
-          <div className="rounded-xl border border-[#30363d] overflow-hidden bg-[#0d1117] mb-4">
-            <div className="bg-[#161b22] px-4 py-2 border-b border-[#30363d] flex items-center justify-between">
+          <div className="rounded-xl border border-[#1A1A1A] overflow-hidden bg-[#000000] mb-4">
+            <div className="bg-[#0A0A0A] px-4 py-2 border-b border-[#1A1A1A] flex items-center justify-between">
               <span className="text-[10px] font-mono text-slate-500">{post.codeSnippet.filename}</span>
               <span className="text-[10px] font-black text-slate-700 uppercase">{post.codeSnippet.language}</span>
             </div>
@@ -231,7 +231,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
         )}
 
         {post.image && (
-          <div className="rounded-xl overflow-hidden mb-4 border border-[#30363d] relative group/img">
+          <div className="rounded-xl overflow-hidden mb-4 border border-[#1A1A1A] relative group/img">
             <img src={post.image} alt="Post attachment" className="w-full h-auto max-h-[400px] object-cover" />
             <div className="absolute inset-0 bg-black/20 group-hover/img:bg-transparent transition-all"></div>
           </div>
@@ -250,7 +250,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
       {post.linkedEntity && (
         <div
           onClick={handleEntityClick}
-          className="mb-6 p-4 bg-[#0d1117] border border-[#30363d] rounded-xl flex items-center justify-between group/entity cursor-pointer hover:border-primary/50 transition-all"
+          className="mb-6 p-4 bg-[#000000] border border-[#1A1A1A] rounded-xl flex items-center justify-between group/entity cursor-pointer hover:border-primary/50 transition-all"
         >
           <div className="flex items-center gap-4">
             <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover/entity:bg-primary group-hover/entity:text-white transition-all">
@@ -270,9 +270,9 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
       )}
 
       {/* Post Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-[#30363d]">
+      <div className="flex items-center justify-between pt-4 border-t border-[#1A1A1A]">
         <div className="flex items-center gap-4">
-          <div className="flex items-center bg-[#0d1117] border border-[#30363d] rounded-lg p-1">
+          <div className="flex items-center bg-[#000000] border border-[#1A1A1A] rounded-lg p-1">
             <button
               onClick={() => handleVote(1)}
               className={`px-3 py-1 flex items-center gap-1.5 transition-all ${justLiked ? 'text-primary scale-110' : 'text-slate-400 hover:text-white'}`}
@@ -314,12 +314,12 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
 
       {/* Comment Section */}
       {showComments && (
-        <div className="mt-6 pt-6 border-t border-[#30363d] animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="mt-6 pt-6 border-t border-[#1A1A1A] animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="flex items-start gap-3 mb-6">
             <img
               src={profileService.getProfile().avatar}
               alt="Current user avatar"
-              className="size-8 rounded-full border border-[#30363d] object-cover shrink-0"
+              className="size-8 rounded-full border border-[#1A1A1A] object-cover shrink-0"
             />
             <div className="flex-1 space-y-3">
               {replyTo && (
@@ -335,7 +335,7 @@ const PostCard: React.FC<{ post: any }> = ({ post }) => {
                 value={commentInput}
                 onChange={(e) => setCommentInput(e.target.value)}
                 placeholder="Add a comment..."
-                className="w-full bg-[#0d1117] border border-[#30363d] rounded-xl p-3 text-sm text-slate-200 placeholder:text-slate-600 focus:ring-1 focus:ring-primary outline-none resize-none min-h-[60px]"
+                className="w-full bg-[#000000] border border-[#1A1A1A] rounded-xl p-3 text-sm text-slate-200 placeholder:text-slate-600 focus:ring-1 focus:ring-primary outline-none resize-none min-h-[60px]"
               />
               <div className="flex justify-end">
                 <button

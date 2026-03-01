@@ -12,18 +12,18 @@ const StrataPeople = () => {
                 <div className="flex items-center gap-2">
                     <input
                         placeholder="Find a member..."
-                        className="bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-primary outline-none w-80"
+                        className="bg-[#000000] border border-[#1A1A1A] rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-primary outline-none w-80"
                     />
-                    <button className="px-4 py-2 text-sm bg-[#21262d] border border-[#30363d] rounded-lg text-white">Role: All</button>
+                    <button className="px-4 py-2 text-sm bg-[#111111] border border-[#1A1A1A] rounded-lg text-white">Role: All</button>
                 </div>
                 <button className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-all flex items-center gap-2">
                     <span className="material-symbols-outlined !text-lg">person_add</span>
                     Invite member
                 </button>
             </div>
-            <div className="border-t border-[#30363d]">
+            <div className="border-t border-[#1A1A1A]">
                 {members.map(member => (
-                    <div key={member.username} className="py-4 border-b border-[#30363d] flex items-center justify-between group">
+                    <div key={member.username} className="py-4 border-b border-[#1A1A1A] flex items-center justify-between group">
                         <div className="flex items-center gap-4">
                             <img src={member.avatar} className="size-12 rounded-full" />
                             <div>
