@@ -132,13 +132,13 @@ const CommandPalette = ({
 
       {/* Main Palette Window */}
       <div
-        className="relative w-full max-w-[680px] bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in slide-in-from-top-4 duration-200"
+        className="relative w-full max-w-[680px] bg-[#11141A] border border-[#1E232E] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in slide-in-from-top-4 duration-200"
         onClick={handleModalClick}
       >
 
         {/* Search Header Container - Has standard GitHub blue focus ring */}
-        <div className="p-2 border-b border-[#1A1A1A] bg-[#0A0A0A]">
-          <div className="flex items-center bg-[#000000] border border-[#2f81f7] rounded-[6px] outline outline-1 outline-[#2f81f7] px-3 py-1.5 focus-within:shadow-[0_0_0_3px_rgba(47,129,247,0.4)] transition-shadow">
+        <div className="p-2 border-b border-[#1E232E] bg-[#11141A]">
+          <div className="flex items-center bg-[#0A0D14] border border-[#2f81f7] rounded-[6px] outline outline-1 outline-[#2f81f7] px-3 py-1.5 focus-within:shadow-[0_0_0_3px_rgba(47,129,247,0.4)] transition-shadow">
             <Search size={16} className="text-[#7d8590] mr-2" />
             <input
               ref={inputRef}
@@ -149,7 +149,7 @@ const CommandPalette = ({
               className="flex-1 bg-transparent text-[14px] text-[#c9d1d9] placeholder-[#7d8590] border-none focus:ring-0 outline-none h-6"
             />
             <div className="flex items-center gap-1.5">
-              <span className="text-[12px] text-[#7d8590] ml-2">Type <kbd className="font-mono bg-[#111111] border border-[#1A1A1A] rounded-[4px] px-1 text-[10px]">?</kbd> for help</span>
+              <span className="text-[12px] text-[#7d8590] ml-2">Type <kbd className="font-mono bg-[#11141A] border border-[#1E232E] rounded-[4px] px-1 text-[10px]">?</kbd> for help</span>
               <button onClick={onClose} className="p-0.5 ml-2 hover:bg-[#30363d] rounded text-[#7d8590] transition-colors flex items-center justify-center">
                 <span className="material-symbols-outlined !text-[16px]">close</span>
               </button>
@@ -236,7 +236,7 @@ const CommandPalette = ({
         </div>
 
         {/* Footer Area */}
-        <div className="px-4 py-3 border-t border-[#1A1A1A] bg-[#0A0A0A] flex items-center justify-between">
+        <div className="px-4 py-3 border-t border-[#1E232E] bg-[#11141A] flex items-center justify-between">
           <a href="#" className="text-[12px] text-[#2f81f7] hover:underline flex items-center gap-1">
             Search syntax tips
           </a>

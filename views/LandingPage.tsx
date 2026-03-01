@@ -52,7 +52,7 @@ const LandingPage = () => {
 
         {/* RIGHT COLUMN: Interactive Code Editor Mockup */}
         <div className="flex-1 flex w-full justify-center lg:justify-end items-center">
-          <div className="w-full max-w-[600px] rounded-2xl bg-[#111111] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#222] overflow-hidden flex flex-col h-[580px]">
+          <div className="w-full max-w-[600px] rounded-2xl bg-[#11141A] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-[#222] overflow-hidden flex flex-col h-[580px]">
 
             {/* Editor Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-[#222]">

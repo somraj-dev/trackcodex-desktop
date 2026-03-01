@@ -235,7 +235,7 @@ const WorkflowRunDetail: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={() => handleApprove("REJECTED")}
-              className="px-3 py-1.5 border border-[#1A1A1A] text-[#f85149] rounded-lg text-sm hover:bg-red-500/10 transition-all font-bold"
+              className="px-3 py-1.5 border border-[#1E232E] text-[#f85149] rounded-lg text-sm hover:bg-red-500/10 transition-all font-bold"
             >
               Reject
             </button>

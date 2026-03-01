@@ -9,8 +9,8 @@ const JobRatingModal = ({ isOpen, onClose, onSubmit }: { isOpen: boolean, onClos
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-[#0A0A0A] border border-primary/30 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col">
-        <div className="p-6 border-b border-[#1A1A1A] flex items-center justify-between">
+      <div className="bg-[#11141A] border border-primary/30 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="p-6 border-b border-[#1E232E] flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-white tracking-tight">Rate the Engineer</h3>
             <p className="text-xs text-slate-500 mt-1">Submit a review to complete the job and release funds.</p>
@@ -29,7 +29,7 @@ const JobRatingModal = ({ isOpen, onClose, onSubmit }: { isOpen: boolean, onClos
                   key={star} 
                   onClick={() => setRating(star)}
                   className={`size-12 rounded-xl border flex items-center justify-center transition-all ${
-                    rating >= star ? 'border-amber-500/50 bg-amber-500/10 text-amber-500' : 'border-[#1A1A1A] bg-[#000000] text-slate-700'
+                    rating >= star ? 'border-amber-500/50 bg-amber-500/10 text-amber-500' : 'border-[#1E232E] bg-[#0A0D14] text-slate-700'
                   }`}
                 >
                   <span className={`material-symbols-outlined !text-3xl ${rating >= star ? 'filled' : ''}`}>star</span>
@@ -44,12 +44,12 @@ const JobRatingModal = ({ isOpen, onClose, onSubmit }: { isOpen: boolean, onClos
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="How was the collaboration experience? (Optional)"
-              className="w-full bg-[#000000] border border-[#1A1A1A] rounded-2xl p-4 text-sm text-slate-200 focus:ring-1 focus:ring-primary outline-none h-32 resize-none"
+              className="w-full bg-[#0A0D14] border border-[#1E232E] rounded-2xl p-4 text-sm text-slate-200 focus:ring-1 focus:ring-primary outline-none h-32 resize-none"
             />
           </div>
         </div>
 
-        <div className="p-6 bg-[#000000] border-t border-[#1A1A1A] flex items-center gap-3">
+        <div className="p-6 bg-[#0A0D14] border-t border-[#1E232E] flex items-center gap-3">
           <button onClick={onClose} className="flex-1 py-3 text-sm font-bold text-slate-400 hover:text-white transition-colors">Discard</button>
           <button 
             onClick={() => onSubmit(rating, feedback)}

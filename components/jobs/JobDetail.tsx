@@ -33,13 +33,13 @@ const JobDetail = ({ job, onBack }: { job: Job, onBack: () => void }) => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[#000000] animate-in fade-in slide-in-from-right-4 duration-300 overflow-y-auto custom-scrollbar">
-      <div className="px-8 pt-6 pb-6 border-b border-[#1e293b] bg-[#000000] sticky top-0 z-20">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#0A0D14] animate-in fade-in slide-in-from-right-4 duration-300 overflow-y-auto custom-scrollbar">
+      <div className="px-8 pt-6 pb-6 border-b border-[#1e293b] bg-[#0A0D14] sticky top-0 z-20">
         <div className="flex items-center justify-between">
            <div className="flex items-center gap-4">
               <button 
                 onClick={onBack}
-                className="size-10 flex items-center justify-center bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl text-slate-400 hover:text-white transition-all"
+                className="size-10 flex items-center justify-center bg-[#11141A] border border-[#1E232E] rounded-xl text-slate-400 hover:text-white transition-all"
               >
                 <span className="material-symbols-outlined">arrow_back</span>
               </button>
@@ -136,7 +136,7 @@ const JobDetail = ({ job, onBack }: { job: Job, onBack: () => void }) => {
               </section>
             )}
 
-            <section className="bg-[#0A0A0A] border border-border-dark rounded-2xl p-6 relative overflow-hidden group">
+            <section className="bg-[#11141A] border border-border-dark rounded-2xl p-6 relative overflow-hidden group">
                <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-10 transition-opacity">
                   <span className="material-symbols-outlined text-[120px]">account_tree</span>
                </div>
@@ -160,7 +160,7 @@ const JobDetail = ({ job, onBack }: { job: Job, onBack: () => void }) => {
           </div>
 
           <div className="space-y-8">
-            <div className="p-6 rounded-2xl bg-[#0A0A0A] border border-[#1A1A1A]">
+            <div className="p-6 rounded-2xl bg-[#11141A] border border-[#1E232E]">
                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Financial Summary</h3>
                <div className="space-y-6">
                   <div className="flex items-center justify-between">
@@ -171,7 +171,7 @@ const JobDetail = ({ job, onBack }: { job: Job, onBack: () => void }) => {
                      <span className="text-slate-500 text-sm">Estimated Total</span>
                      <span className="text-2xl font-black text-emerald-500">{job.budget}</span>
                   </div>
-                  <div className="pt-4 border-t border-[#1A1A1A]">
+                  <div className="pt-4 border-t border-[#1E232E]">
                      <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
                         <span className="material-symbols-outlined text-sm">verified</span>
                         Escrow Payment Verified
@@ -183,7 +183,7 @@ const JobDetail = ({ job, onBack }: { job: Job, onBack: () => void }) => {
                </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-[#0A0A0A] border border-[#1A1A1A]">
+            <div className="p-6 rounded-2xl bg-[#11141A] border border-[#1E232E]">
                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">About the Client</h3>
                <div className="flex items-center gap-3 mb-6">
                   <img src={job.creator.avatar} className="size-12 rounded-full border border-border-dark" />
@@ -195,7 +195,7 @@ const JobDetail = ({ job, onBack }: { job: Job, onBack: () => void }) => {
                     </div>
                   </div>
                </div>
-               <button className="w-full py-2 bg-transparent border border-[#1A1A1A] text-slate-500 hover:text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all">
+               <button className="w-full py-2 bg-transparent border border-[#1E232E] text-slate-500 hover:text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all">
                  View Client Profile
                </button>
             </div>

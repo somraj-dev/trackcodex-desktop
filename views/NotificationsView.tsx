@@ -47,7 +47,7 @@ const NotificationsView = () => {
                 className={`w-full text-left px-3 py-1.5 rounded-md text-[14px] flex items-center justify-between transition-colors outline-none
                                 ${filter === f
                     ? "bg-[#1f6feb]/10 text-[#c9d1d9] font-semibold border-l-2 border-[#1f6feb] rounded-l-none"
-                    : "text-[#c9d1d9] hover:bg-[#0A0A0A]"
+                    : "text-[#c9d1d9] hover:bg-[#11141A]"
                   }`}
               >
                 <div className="flex items-center gap-3">
@@ -107,7 +107,7 @@ const NotificationsView = () => {
             ].map((f) => (
               <button
                 key={f.label}
-                className="w-full text-left px-3 py-1.5 rounded-md text-[14px] text-[#c9d1d9] hover:bg-[#0A0A0A] hover:text-[#58a6ff] transition-colors flex items-center gap-3"
+                className="w-full text-left px-3 py-1.5 rounded-md text-[14px] text-[#c9d1d9] hover:bg-[#11141A] hover:text-[#58a6ff] transition-colors flex items-center gap-3"
               >
                 <span
                   className={`material-symbols-outlined !text-[16px] ${f.color}`}
@@ -117,7 +117,7 @@ const NotificationsView = () => {
                 {f.label}
               </button>
             ))}
-            <button className="w-full text-left px-3 py-1.5 rounded-md text-[14px] text-[#8b949e] hover:bg-[#0A0A0A] hover:text-[#58a6ff] transition-colors flex items-center gap-3">
+            <button className="w-full text-left px-3 py-1.5 rounded-md text-[14px] text-[#8b949e] hover:bg-[#11141A] hover:text-[#58a6ff] transition-colors flex items-center gap-3">
               <span className="material-symbols-outlined !text-[16px]">
                 add
               </span>
@@ -137,7 +137,7 @@ const NotificationsView = () => {
             {repoCounts.map((repo) => (
               <button
                 key={repo.name}
-                className="w-full text-left px-3 py-1.5 rounded-md text-[14px] text-[#c9d1d9] hover:bg-[#0A0A0A] hover:text-[#58a6ff] transition-colors flex items-start justify-between gap-2"
+                className="w-full text-left px-3 py-1.5 rounded-md text-[14px] text-[#c9d1d9] hover:bg-[#11141A] hover:text-[#58a6ff] transition-colors flex items-start justify-between gap-2"
               >
                 <span className="truncate leading-tight text-[13px]">
                   {repo.name}
@@ -151,7 +151,7 @@ const NotificationsView = () => {
         </div>
 
         {/* Manage Notifications Footer */}
-        <div className="p-4 border-t border-[#1A1A1A] mt-auto">
+        <div className="p-4 border-t border-[#1E232E] mt-auto">
           <button className="text-[12px] text-[#8b949e] hover:text-[#58a6ff] flex items-center gap-1 transition-colors">
             Manage notifications
             <span className="material-symbols-outlined !text-[14px]">
@@ -220,7 +220,7 @@ const NotificationsView = () => {
         <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
           {/* "Clear out the clutter" Banner */}
           {filteredNotifications.length > 0 && unreadCount > 0 && filter === "Inbox" && (
-            <div className="bg-gradient-to-r from-[#161b22] to-[#1f2428] border border-[#1A1A1A] rounded-md p-6 mb-6 flex items-start justify-between shadow-sm">
+            <div className="bg-gradient-to-r from-[#161b22] to-[#1f2428] border border-[#1E232E] rounded-md p-6 mb-6 flex items-start justify-between shadow-sm">
               <div className="flex gap-4">
                 <span className="material-symbols-outlined !text-[36px] text-[#58a6ff] mt-1">
                   Inbox
@@ -236,7 +236,7 @@ const NotificationsView = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-1.5 border border-[#1A1A1A] rounded-md text-[14px] font-medium text-[#c9d1d9] hover:bg-[#30363d] transition-colors">
+                <button className="px-4 py-1.5 border border-[#1E232E] rounded-md text-[14px] font-medium text-[#c9d1d9] hover:bg-[#30363d] transition-colors">
                   Dismiss
                 </button>
                 <button

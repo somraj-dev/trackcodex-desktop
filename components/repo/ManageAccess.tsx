@@ -63,7 +63,7 @@ const ManageAccess = ({ repoId }: { repoId: string }) => {
       </div>
 
       {/* Public/Private Status Box */}
-      <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-4 mb-8 flex items-center justify-between">
+      <div className="bg-[#11141A] border border-[#1E232E] rounded-lg p-4 mb-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="material-symbols-outlined !text-3xl text-[#8b949e]">
             lock
@@ -81,7 +81,7 @@ const ManageAccess = ({ repoId }: { repoId: string }) => {
       </div>
 
       {/* Invite Input (Mock) */}
-      <div className="bg-[#000000] border border-[#1A1A1A] rounded-lg p-4 mb-8">
+      <div className="bg-[#0A0D14] border border-[#1E232E] rounded-lg p-4 mb-8">
         <label className="block text-xs font-bold text-[#c9d1d9] mb-2 uppercase tracking-wide">
           Invite a collaborator
         </label>
@@ -90,13 +90,13 @@ const ManageAccess = ({ repoId }: { repoId: string }) => {
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
             placeholder="username or email"
-            className="flex-1 bg-[#0A0A0A] border border-[#1A1A1A] rounded-md px-3 py-1.5 text-sm text-white focus:border-[#58a6ff] outline-none"
+            className="flex-1 bg-[#11141A] border border-[#1E232E] rounded-md px-3 py-1.5 text-sm text-white focus:border-[#58a6ff] outline-none"
           />
           <select
             value={inviteRole}
             onChange={(e) => setInviteRole(e.target.value as AccessRole)}
             aria-label="Select invite role"
-            className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-md px-3 py-1.5 text-sm text-white focus:border-[#58a6ff] outline-none cursor-pointer"
+            className="bg-[#11141A] border border-[#1E232E] rounded-md px-3 py-1.5 text-sm text-white focus:border-[#58a6ff] outline-none cursor-pointer"
           >
             <option value="read">Read</option>
             <option value="write">Write</option>
@@ -113,17 +113,17 @@ const ManageAccess = ({ repoId }: { repoId: string }) => {
       </div>
 
       {/* Collaborators List */}
-      <div className="border border-[#1A1A1A] rounded-lg overflow-hidden">
+      <div className="border border-[#1E232E] rounded-lg overflow-hidden">
         {collaborators.map((member) => (
           <div
             key={member.user.id}
-            className="flex items-center justify-between p-4 bg-[#000000] border-b border-[#1A1A1A] last:border-0 hover:bg-[#0A0A0A] transition-colors group"
+            className="flex items-center justify-between p-4 bg-[#0A0D14] border-b border-[#1E232E] last:border-0 hover:bg-[#11141A] transition-colors group"
           >
             <div className="flex items-center gap-3">
               <img
                 src={member.user.avatar}
                 alt={member.user.name}
-                className="size-10 rounded-full border border-[#1A1A1A]"
+                className="size-10 rounded-full border border-[#1E232E]"
               />
               <div>
                 <div className="flex items-center gap-2">
@@ -134,7 +134,7 @@ const ManageAccess = ({ repoId }: { repoId: string }) => {
                     @{member.user.id}
                   </span>
                   {member.role === "owner" && (
-                    <span className="text-[10px] border border-[#1A1A1A] px-1.5 rounded-full text-[#8b949e]">
+                    <span className="text-[10px] border border-[#1E232E] px-1.5 rounded-full text-[#8b949e]">
                       Owner
                     </span>
                   )}

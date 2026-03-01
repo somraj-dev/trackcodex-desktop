@@ -101,20 +101,20 @@ const RepoActionsTab = () => {
   return (
     <div className="flex h-full min-h-[500px]">
       {/* Sidebar Navigation for Actions */}
-      <div className="w-64 pr-6 border-r border-[#1A1A1A] hidden lg:block">
+      <div className="w-64 pr-6 border-r border-[#1E232E] hidden lg:block">
         <h3 className="text-xs font-bold text-[#8b949e] uppercase tracking-widest mb-4 px-2">
           Actions
         </h3>
         <div className="space-y-1">
           <button
             onClick={() => setCurrentView("overview")}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "overview" ? "bg-[#1f6feb] text-white" : "text-[#c9d1d9] hover:bg-[#0A0A0A]"}`}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "overview" ? "bg-[#1f6feb] text-white" : "text-[#c9d1d9] hover:bg-[#11141A]"}`}
           >
             Overview
           </button>
           <button
             onClick={() => setCurrentView("workflows")}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "workflows" ? "bg-[#1f6feb] text-white" : "text-[#c9d1d9] hover:bg-[#0A0A0A]"}`}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentView === "workflows" ? "bg-[#1f6feb] text-white" : "text-[#c9d1d9] hover:bg-[#11141A]"}`}
           >
             Workflow runs
           </button>
@@ -127,7 +127,7 @@ const RepoActionsTab = () => {
           {workflows.map((w) => (
             <button
               key={w.id}
-              className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-[#c9d1d9] hover:bg-[#0A0A0A] truncate flex items-center gap-2"
+              className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-[#c9d1d9] hover:bg-[#11141A] truncate flex items-center gap-2"
             >
               <span
                 className={`size-2 rounded-full ${w.state === "ACTIVE" ? "bg-green-500" : "bg-gray-500"}`}
@@ -187,7 +187,7 @@ const RepoActionsTab = () => {
             {/* Stats (Mocked or calculated) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               {/* Keep stats as is or calculate from runs */}
-              <div className="bg-[#0A0A0A] border border-[#1A1A1A] p-4 rounded-lg">
+              <div className="bg-[#11141A] border border-[#1E232E] p-4 rounded-lg">
                 <span className="text-[#8b949e] text-xs font-bold uppercase">
                   Total Runs
                 </span>
@@ -195,7 +195,7 @@ const RepoActionsTab = () => {
                   {runs.length}
                 </div>
               </div>
-              <div className="bg-[#0A0A0A] border border-[#1A1A1A] p-4 rounded-lg">
+              <div className="bg-[#11141A] border border-[#1E232E] p-4 rounded-lg">
                 <span className="text-[#8b949e] text-xs font-bold uppercase">
                   Success Rate
                 </span>
@@ -212,8 +212,8 @@ const RepoActionsTab = () => {
               </div>
             </div>
 
-            <div className="bg-[#000000] border border-[#1A1A1A] rounded-lg overflow-hidden">
-              <div className="bg-[#0A0A0A] px-4 py-3 border-b border-[#1A1A1A] flex justify-between items-center">
+            <div className="bg-[#0A0D14] border border-[#1E232E] rounded-lg overflow-hidden">
+              <div className="bg-[#11141A] px-4 py-3 border-b border-[#1E232E] flex justify-between items-center">
                 <h3 className="font-bold text-[#c9d1d9] text-sm">Activity</h3>
               </div>
               <div className="divide-y divide-[#30363d]">
@@ -226,7 +226,7 @@ const RepoActionsTab = () => {
                     <div
                       key={run.id}
                       onClick={() => handleRunClick(run)}
-                      className="p-4 hover:bg-[#0A0A0A] transition-colors cursor-pointer group flex items-start gap-4"
+                      className="p-4 hover:bg-[#11141A] transition-colors cursor-pointer group flex items-start gap-4"
                     >
                       <div
                         className={`mt-1 size-5 flex items-center justify-center rounded-full ${run.conclusion === "SUCCESS" ? "text-[#3fb950]" : run.conclusion === "FAILURE" ? "text-[#f85149]" : "text-[#d29922] animate-pulse"}`}
@@ -246,7 +246,7 @@ const RepoActionsTab = () => {
                           <span className="font-bold text-[#c9d1d9] text-sm group-hover:text-[#58a6ff] truncate">
                             {run.event} for {run.commitSha.substring(0, 7)}
                           </span>
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-[#0A0A0A] border border-[#1A1A1A] text-[#8b949e]">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-[#11141A] border border-[#1E232E] text-[#8b949e]">
                             {run.workflowName}
                           </span>
                         </div>
@@ -259,7 +259,7 @@ const RepoActionsTab = () => {
                         </div>
                       </div>
                       {/* Status Badge */}
-                      <div className="text-xs font-mono self-center px-2 py-1 rounded bg-[#111111] text-[#c9d1d9]">
+                      <div className="text-xs font-mono self-center px-2 py-1 rounded bg-[#11141A] text-[#c9d1d9]">
                         {run.status}
                       </div>
                     </div>
@@ -280,7 +280,7 @@ const RepoActionsTab = () => {
               {workflows.map((w) => (
                 <div
                   key={w.id}
-                  className="p-4 border border-[#1A1A1A] rounded-md bg-[#000000] flex justify-between items-center"
+                  className="p-4 border border-[#1E232E] rounded-md bg-[#0A0D14] flex justify-between items-center"
                 >
                   <div>
                     <h3 className="font-bold text-[#c9d1d9]">{w.name}</h3>

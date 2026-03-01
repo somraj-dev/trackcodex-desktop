@@ -33,9 +33,9 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-2xl bg-[#000000] border border-[#1A1A1A] rounded-2xl shadow-2xl flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200 ring-1 ring-white/10">
+      <div className="relative w-full max-w-2xl bg-[#0A0D14] border border-[#1E232E] rounded-2xl shadow-2xl flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200 ring-1 ring-white/10">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1A1A1A] bg-[#0A0A0A]/50 rounded-t-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E232E] bg-[#11141A]/50 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg text-primary">
               <span className="material-symbols-outlined !text-[20px]">
@@ -82,7 +82,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
               {notifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`p-4 rounded-xl border border-transparent hover:border-[#1A1A1A] hover:bg-[#0A0A0A] transition-all cursor-pointer group flex gap-4 ${!notif.read ? "bg-[#0A0A0A]/50" : ""}`}
+                  className={`p-4 rounded-xl border border-transparent hover:border-[#1E232E] hover:bg-[#11141A] transition-all cursor-pointer group flex gap-4 ${!notif.read ? "bg-[#11141A]/50" : ""}`}
                 >
                   {/* Icon */}
                   <div
@@ -147,7 +147,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-[#1A1A1A] bg-[#0A0A0A]/30 rounded-b-2xl flex justify-end">
+        <div className="p-4 border-t border-[#1E232E] bg-[#11141A]/30 rounded-b-2xl flex justify-end">
           {/* Could add pagination or filters here later */}
         </div>
       </div>

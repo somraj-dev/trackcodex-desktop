@@ -47,8 +47,8 @@ const SyntaxHighlighter: React.FC<{ code: string; lang?: string }> = ({ code, la
   };
 
   return (
-    <div className="group/code relative my-4 rounded-lg overflow-hidden border border-[#1A1A1A] bg-[#090d13]">
-      <div className="flex items-center justify-between px-4 py-1.5 bg-[#0A0A0A] border-b border-[#1A1A1A]">
+    <div className="group/code relative my-4 rounded-lg overflow-hidden border border-[#1E232E] bg-[#090d13]">
+      <div className="flex items-center justify-between px-4 py-1.5 bg-[#11141A] border-b border-[#1E232E]">
         <div className="flex items-center gap-2">
           <span className="size-2 rounded-full bg-primary/50"></span>
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{lang || 'code'}</span>

@@ -66,8 +66,8 @@ const CreateRepoModal: React.FC<CreateRepoModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-black/90 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="bg-[#0A0A0A] border border-primary/30 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col font-display">
-        <div className="p-6 border-b border-[#1A1A1A] bg-primary/5 flex items-center justify-between">
+      <div className="bg-[#11141A] border border-primary/30 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col font-display">
+        <div className="p-6 border-b border-[#1E232E] bg-primary/5 flex items-center justify-between">
           <div>
             <h3 className="text-xl font-black text-white tracking-tight uppercase">
               Initialize Repository
@@ -92,7 +92,7 @@ const CreateRepoModal: React.FC<CreateRepoModalProps> = ({
                   Logo
                 </label>
                 <div className="relative group/avatar">
-                  <div className="size-24 rounded-2xl bg-[#000000] border border-[#1A1A1A] flex items-center justify-center overflow-hidden">
+                  <div className="size-24 rounded-2xl bg-[#0A0D14] border border-[#1E232E] flex items-center justify-center overflow-hidden">
                     {logoPreview ? (
                       <img
                         src={logoPreview}
@@ -136,7 +136,7 @@ const CreateRepoModal: React.FC<CreateRepoModalProps> = ({
                     setFormData({ ...formData, name: e.target.value })
                   }
                   placeholder="my-awesome-project"
-                  className="w-full bg-[#000000] border border-[#1A1A1A] rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all"
+                  className="w-full bg-[#0A0D14] border border-[#1E232E] rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-primary outline-none transition-all"
                 />
               </div>
             </div>
@@ -151,7 +151,7 @@ const CreateRepoModal: React.FC<CreateRepoModalProps> = ({
                   setFormData({ ...formData, description: e.target.value })
                 }
                 placeholder="What are you building?"
-                className="w-full bg-[#000000] border border-[#1A1A1A] rounded-xl px-4 py-3 text-white h-24 resize-none outline-none transition-all"
+                className="w-full bg-[#0A0D14] border border-[#1E232E] rounded-xl px-4 py-3 text-white h-24 resize-none outline-none transition-all"
               />
             </div>
 
@@ -169,7 +169,7 @@ const CreateRepoModal: React.FC<CreateRepoModalProps> = ({
                   onChange={(e) =>
                     setFormData({ ...formData, techStack: e.target.value })
                   }
-                  className="w-full bg-[#000000] border border-[#1A1A1A] rounded-xl px-4 py-3 text-white outline-none appearance-none"
+                  className="w-full bg-[#0A0D14] border border-[#1E232E] rounded-xl px-4 py-3 text-white outline-none appearance-none"
                   aria-label="Select primary technology stack"
                 >
                   <option>TypeScript</option>
@@ -182,7 +182,7 @@ const CreateRepoModal: React.FC<CreateRepoModalProps> = ({
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2 px-1">
                   Visibility
                 </label>
-                <div className="flex bg-[#000000] border border-[#1A1A1A] rounded-xl p-1">
+                <div className="flex bg-[#0A0D14] border border-[#1E232E] rounded-xl p-1">
                   <button
                     type="button"
                     onClick={() =>
@@ -206,7 +206,7 @@ const CreateRepoModal: React.FC<CreateRepoModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-6 border-t border-[#1A1A1A]">
+          <div className="flex items-center gap-3 pt-6 border-t border-[#1E232E]">
             <button
               type="button"
               onClick={onClose}

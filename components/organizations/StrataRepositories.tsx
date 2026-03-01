@@ -12,15 +12,15 @@ const StrataRepositories = () => {
             <div className="flex items-center justify-between mb-6">
                 <input
                     placeholder="Find a repository..."
-                    className="bg-[#000000] border border-[#1A1A1A] rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-primary outline-none w-80"
+                    className="bg-[#0A0D14] border border-[#1E232E] rounded-lg px-4 py-2 text-sm text-white focus:ring-1 focus:ring-primary outline-none w-80"
                 />
                 <button className="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-all">
                     New
                 </button>
             </div>
-            <div className="border-t border-[#1A1A1A]">
+            <div className="border-t border-[#1E232E]">
                 {repos.map(repo => (
-                    <div key={repo.id} className="py-5 border-b border-[#1A1A1A] flex items-center justify-between">
+                    <div key={repo.id} className="py-5 border-b border-[#1E232E] flex items-center justify-between">
                         <div>
                             <div className="flex items-center gap-3">
                                 <h3
@@ -29,7 +29,7 @@ const StrataRepositories = () => {
                                 >
                                     {repo.name}
                                 </h3>
-                                <span className="px-2 py-0.5 rounded-full border border-[#1A1A1A] text-[10px] font-bold text-slate-400 uppercase">
+                                <span className="px-2 py-0.5 rounded-full border border-[#1E232E] text-[10px] font-bold text-slate-400 uppercase">
                                     {repo.visibility}
                                 </span>
                             </div>

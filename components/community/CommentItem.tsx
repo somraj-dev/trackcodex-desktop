@@ -55,7 +55,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply, depth = 0 }
   };
 
   return (
-    <div className={`mt-4 transition-all duration-1000 ${depth > 0 ? 'ml-6 pl-4 border-l border-[#1A1A1A]' : ''} ${isHighlightVisible ? 'bg-primary/5 -mx-2 px-2 rounded-lg ring-1 ring-primary/20' : ''}`}>
+    <div className={`mt-4 transition-all duration-1000 ${depth > 0 ? 'ml-6 pl-4 border-l border-[#1E232E]' : ''} ${isHighlightVisible ? 'bg-primary/5 -mx-2 px-2 rounded-lg ring-1 ring-primary/20' : ''}`}>
       <div className="flex gap-3 group">
         <div 
           className="relative shrink-0"
@@ -65,7 +65,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onReply, depth = 0 }
           <img
             src={comment.author.avatar}
             alt={comment.author.name}
-            className="size-8 rounded-full border border-[#1A1A1A] cursor-pointer"
+            className="size-8 rounded-full border border-[#1E232E] cursor-pointer"
             onClick={handleProfileClick}
           />
           {showHoverCard && (

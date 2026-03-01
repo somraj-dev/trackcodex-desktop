@@ -50,8 +50,8 @@ const CollaborativeDiffViewer: React.FC<CollaborativeDiffViewerProps> = ({
   }, [prId, send]);
 
   return (
-    <div className="h-[500px] border border-[#1A1A1A] rounded-lg overflow-hidden bg-[#000000]">
-      <div className="bg-[#0A0A0A] px-4 py-2 border-b border-[#1A1A1A] flex justify-between items-center">
+    <div className="h-[500px] border border-[#1E232E] rounded-lg overflow-hidden bg-[#0A0D14]">
+      <div className="bg-[#11141A] px-4 py-2 border-b border-[#1E232E] flex justify-between items-center">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined !text-[18px] text-[#8b949e]">
             history_edu
@@ -69,7 +69,7 @@ const CollaborativeDiffViewer: React.FC<CollaborativeDiffViewerProps> = ({
             </div>
           ))}
           {presence.length > 5 && (
-            <div className="size-6 rounded-full border-2 border-[#161b22] bg-[#111111] flex items-center justify-center text-[10px] text-[#8b949e]">
+            <div className="size-6 rounded-full border-2 border-[#161b22] bg-[#11141A] flex items-center justify-center text-[10px] text-[#8b949e]">
               +{presence.length - 5}
             </div>
           )}

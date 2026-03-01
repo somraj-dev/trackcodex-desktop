@@ -13,10 +13,10 @@ const PipelineVisualizer = ({
   const activeJob = run.jobs.find((j) => j.id === selectedJobId) || run.jobs[0];
 
   return (
-    <div className="flex h-[calc(100vh-200px)] bg-[#000000] rounded-lg border border-[#1A1A1A] overflow-hidden">
+    <div className="flex h-[calc(100vh-200px)] bg-[#0A0D14] rounded-lg border border-[#1E232E] overflow-hidden">
       {/* Sidebar: Jobs Graph/List */}
-      <div className="w-80 border-r border-[#1A1A1A] flex flex-col bg-[#0A0A0A]">
-        <div className="p-4 border-b border-[#1A1A1A]">
+      <div className="w-80 border-r border-[#1E232E] flex flex-col bg-[#11141A]">
+        <div className="p-4 border-b border-[#1E232E]">
           <button
             onClick={onBack}
             className="text-[#58a6ff] hover:underline text-xs mb-2 flex items-center gap-1"
@@ -46,7 +46,7 @@ const PipelineVisualizer = ({
               )}
               <button
                 onClick={() => setSelectedJobId(job.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedJobId === job.id ? "bg-[#1f6feb]/10 border-[#1f6feb] shadow-[0_0_10px_rgba(31,111,235,0.2)]" : "bg-[#000000] border-[#1A1A1A] hover:border-[#8b949e]"}`}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${selectedJobId === job.id ? "bg-[#1f6feb]/10 border-[#1f6feb] shadow-[0_0_10px_rgba(31,111,235,0.2)]" : "bg-[#0A0D14] border-[#1E232E] hover:border-[#8b949e]"}`}
               >
                 <div
                   className={`size-10 rounded-full flex items-center justify-center border-2 ${job.status === "success" ? "border-[#238636] text-[#238636] bg-[#238636]/10" : job.status === "failure" ? "border-[#f85149] text-[#f85149] bg-[#f85149]/10" : "border-[#1f6feb] text-[#1f6feb] animate-pulse"}`}
@@ -74,8 +74,8 @@ const PipelineVisualizer = ({
       </div>
 
       {/* Main: Terminal / Logs */}
-      <div className="flex-1 bg-[#000000] flex flex-col font-mono text-sm">
-        <div className="px-4 py-3 border-b border-[#1A1A1A] bg-[#0A0A0A] flex justify-between items-center">
+      <div className="flex-1 bg-[#0A0D14] flex flex-col font-mono text-sm">
+        <div className="px-4 py-3 border-b border-[#1E232E] bg-[#11141A] flex justify-between items-center">
           <span className="font-bold text-[#c9d1d9]">{activeJob.name}</span>
           <div className="flex gap-2">
             <button
@@ -118,11 +118,11 @@ const PipelineVisualizer = ({
               </div>
 
               {/* Logs */}
-              <div className="pl-6 border-l border-[#1A1A1A] ml-1.5 mt-1 space-y-0.5 text-xs text-[#8b949e]">
+              <div className="pl-6 border-l border-[#1E232E] ml-1.5 mt-1 space-y-0.5 text-xs text-[#8b949e]">
                 {step.logs.map((log, li) => (
                   <div
                     key={li}
-                    className="hover:bg-[#0A0A0A] hover:text-[#c9d1d9] px-2 py-0.5 rounded-sm flex gap-4"
+                    className="hover:bg-[#11141A] hover:text-[#c9d1d9] px-2 py-0.5 rounded-sm flex gap-4"
                   >
                     <span className="opacity-30 select-none w-6 text-right">
                       {li + 1}

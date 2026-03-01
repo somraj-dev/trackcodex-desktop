@@ -41,11 +41,11 @@ const MessagingPanel = () => {
       />
 
       {/* Panel */}
-      <div className="relative w-full max-w-[900px] h-full bg-[#000000] shadow-[-20px_0_50px_rgba(0,0,0,0.5)] flex border-l border-[#1A1A1A] animate-in slide-in-from-right duration-300">
+      <div className="relative w-full max-w-[900px] h-full bg-[#0A0D14] shadow-[-20px_0_50px_rgba(0,0,0,0.5)] flex border-l border-[#1E232E] animate-in slide-in-from-right duration-300">
         
         {/* Left Sidebar: Conversations */}
-        <aside className="w-[320px] border-r border-[#1A1A1A] flex flex-col shrink-0">
-          <div className="p-6 border-b border-[#1A1A1A] flex items-center justify-between">
+        <aside className="w-[320px] border-r border-[#1E232E] flex flex-col shrink-0">
+          <div className="p-6 border-b border-[#1E232E] flex items-center justify-between">
             <h2 className="text-xl font-black text-white">Direct</h2>
             <button className="size-8 rounded-lg hover:bg-white/5 text-slate-400">
               <span className="material-symbols-outlined">edit_square</span>
@@ -63,7 +63,7 @@ const MessagingPanel = () => {
                     isActive ? 'bg-primary/10 border border-primary/20' : 'hover:bg-white/5 border border-transparent'
                   }`}
                 >
-                  <img src={other.avatar} className="size-12 rounded-full border border-[#1A1A1A] object-cover" alt={other.name} />
+                  <img src={other.avatar} className="size-12 rounded-full border border-[#1E232E] object-cover" alt={other.name} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between mb-0.5">
                       <span className="text-sm font-bold text-white truncate">{other.name}</span>
@@ -80,13 +80,13 @@ const MessagingPanel = () => {
         </aside>
 
         {/* Main Content: Chat Window */}
-        <main className="flex-1 flex flex-col min-w-0 bg-[#000000]">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#0A0D14]">
           {activeConversation ? (
             <>
               {/* Header */}
-              <div className="h-[73px] border-b border-[#1A1A1A] flex items-center justify-between px-6 shrink-0">
+              <div className="h-[73px] border-b border-[#1E232E] flex items-center justify-between px-6 shrink-0">
                 <div className="flex items-center gap-3">
-                  <img src={activeConversation.participants[0].avatar} className="size-9 rounded-full border border-[#1A1A1A]" alt="Avatar" />
+                  <img src={activeConversation.participants[0].avatar} className="size-9 rounded-full border border-[#1E232E]" alt="Avatar" />
                   <div>
                     <h3 className="text-sm font-bold text-white">{activeConversation.participants[0].name}</h3>
                     <div className="flex items-center gap-1.5">
@@ -130,7 +130,7 @@ const MessagingPanel = () => {
                 ))}
                 {isTyping && (
                   <div className="flex items-center gap-2 mb-4 animate-pulse">
-                    <img src={activeConversation.participants[0].avatar} className="size-7 rounded-full border border-[#1A1A1A]" />
+                    <img src={activeConversation.participants[0].avatar} className="size-7 rounded-full border border-[#1E232E]" />
                     <div className="bg-[#2d333b] px-3 py-2 rounded-2xl flex gap-1 items-center">
                        <div className="size-1 bg-slate-500 rounded-full animate-bounce"></div>
                        <div className="size-1 bg-slate-500 rounded-full animate-bounce delay-100"></div>
@@ -144,7 +144,7 @@ const MessagingPanel = () => {
               <div className="p-6">
                 <form 
                   onSubmit={handleSend}
-                  className="relative flex items-center gap-3 bg-[#0A0A0A] border border-[#1A1A1A] rounded-full px-5 py-3 focus-within:border-primary/50 transition-all"
+                  className="relative flex items-center gap-3 bg-[#11141A] border border-[#1E232E] rounded-full px-5 py-3 focus-within:border-primary/50 transition-all"
                 >
                   <button type="button" className="text-slate-400 hover:text-white">
                     <span className="material-symbols-outlined">sentiment_satisfied</span>

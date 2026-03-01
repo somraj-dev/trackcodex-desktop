@@ -140,7 +140,7 @@ const MissionDetailView = () => {
 
               {/* README Rendering for Trial Jobs */}
               {(localJob as any).readme && (
-                <div className="mt-12 border-t border-[#1A1A1A] pt-8">
+                <div className="mt-12 border-t border-[#1E232E] pt-8">
                   <div className="flex items-center gap-2 mb-6">
                     <span className="material-symbols-outlined text-[#8b949e]">
                       menu_book

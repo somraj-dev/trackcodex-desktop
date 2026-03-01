@@ -26,14 +26,14 @@ const UserHoverCard: React.FC<UserHoverCardProps> = ({ user }) => {
   };
 
   return (
-    <div className="absolute z-50 w-[300px] bg-[#000000] border border-[#1A1A1A] rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] p-5 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto">
+    <div className="absolute z-50 w-[300px] bg-[#0A0D14] border border-[#1E232E] rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] p-5 animate-in fade-in zoom-in-95 duration-200 pointer-events-auto">
       {/* Header Section */}
       <div className="flex items-start justify-between mb-4">
         <div className="relative">
           <img
             src={user.avatar}
             alt={user.name}
-            className="size-[60px] rounded-full border-[2.5px] border-white object-cover bg-[#0A0A0A] cursor-pointer"
+            className="size-[60px] rounded-full border-[2.5px] border-white object-cover bg-[#11141A] cursor-pointer"
             onClick={handleProfileClick}
           />
         </div>
@@ -69,7 +69,7 @@ const UserHoverCard: React.FC<UserHoverCardProps> = ({ user }) => {
       </div>
 
       {/* Footer Stats Section */}
-      <div className="pt-4 border-t border-[#1A1A1A] flex items-center gap-5">
+      <div className="pt-4 border-t border-[#1E232E] flex items-center gap-5">
         <div className="flex items-center gap-1.5 group cursor-pointer text-slate-500 hover:text-white transition-colors">
           <Users size={16} />
           <div className="flex items-center gap-1">

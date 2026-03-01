@@ -81,7 +81,7 @@ const RepoWebhookSettings = ({ repoId }: { repoId: string }) => {
       </div>
 
       {showAdd && (
-        <div className="p-6 bg-[#0A0A0A] border border-[#1A1A1A] rounded-[2rem] space-y-4 animate-in slide-in-from-top-4 duration-300">
+        <div className="p-6 bg-[#11141A] border border-[#1E232E] rounded-[2rem] space-y-4 animate-in slide-in-from-top-4 duration-300">
           <div className="space-y-2">
             <label className="text-xs font-bold text-gh-text-secondary uppercase">
               Payload URL
@@ -118,14 +118,14 @@ const RepoWebhookSettings = ({ repoId }: { repoId: string }) => {
 
       <div className="space-y-3">
         {webhooks.length === 0 ? (
-          <div className="p-12 text-center bg-[#0A0A0A] border border-[#1A1A1A] rounded-[2.5rem] text-gh-text-secondary italic">
+          <div className="p-12 text-center bg-[#11141A] border border-[#1E232E] rounded-[2.5rem] text-gh-text-secondary italic">
             No webhooks configured for this repository.
           </div>
         ) : (
           webhooks.map((hook) => (
             <div
               key={hook.id}
-              className="p-4 bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl flex items-center justify-between group hover:border-gh-border/50 transition-all"
+              className="p-4 bg-[#11141A] border border-[#1E232E] rounded-2xl flex items-center justify-between group hover:border-gh-border/50 transition-all"
             >
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-[#3fb950]">

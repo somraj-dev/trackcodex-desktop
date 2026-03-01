@@ -51,7 +51,7 @@ const ScrollControls: React.FC<ScrollControlsProps> = ({ containerRef }) => {
       {showBottom && (
         <button
           onClick={() => scrollTo('bottom')}
-          className="size-10 bg-[#0A0A0A] text-slate-400 rounded-full shadow-2xl flex items-center justify-center hover:text-white hover:scale-110 active:scale-95 transition-all animate-fab border border-[#1A1A1A] ring-4 ring-black/20"
+          className="size-10 bg-[#11141A] text-slate-400 rounded-full shadow-2xl flex items-center justify-center hover:text-white hover:scale-110 active:scale-95 transition-all animate-fab border border-[#1E232E] ring-4 ring-black/20"
           title="Scroll to bottom"
         >
           <span className="material-symbols-outlined !text-[24px]">keyboard_double_arrow_down</span>

@@ -21,7 +21,7 @@ const SignOut: React.FC = () => {
     const displayAvatar = user?.avatar || profile.avatar;
 
     return (
-        <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center font-display text-white selection:bg-[#1f6feb] selection:text-white">
+        <div className="min-h-screen bg-[#0A0D14] flex flex-col items-center justify-center font-display text-white selection:bg-[#1f6feb] selection:text-white">
             {/* Main Container */}
             <div className="w-full max-w-[340px] flex flex-col gap-4 z-10">
 
@@ -31,14 +31,14 @@ const SignOut: React.FC = () => {
                 </h1>
 
                 {/* Account Card */}
-                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-md p-4 flex items-center justify-between gap-4">
+                <div className="bg-[#11141A] border border-[#1E232E] rounded-md p-4 flex items-center justify-between gap-4">
 
                     {/* Avatar & User Info */}
                     <div className="flex items-center gap-3 overflow-hidden">
                         <img
                             src={displayAvatar}
                             alt={displayName}
-                            className="w-8 h-8 rounded-full bg-[#0A0A0A] object-cover shrink-0"
+                            className="w-8 h-8 rounded-full bg-[#11141A] object-cover shrink-0"
                         />
                         <div className="flex flex-col min-w-0">
                             <span className="text-[12px] text-[#8b949e]">Signed in as</span>
@@ -51,7 +51,7 @@ const SignOut: React.FC = () => {
                     {/* Sign Out Button (Specific Account) */}
                     <button
                         onClick={handleSignout}
-                        className="shrink-0 bg-[#111111] border border-[#1A1A1A] hover:bg-[#30363d] text-[#c9d1d9] hover:text-white px-3 py-1 rounded-md text-[13px] font-medium transition-colors"
+                        className="shrink-0 bg-[#11141A] border border-[#1E232E] hover:bg-[#30363d] text-[#c9d1d9] hover:text-white px-3 py-1 rounded-md text-[13px] font-medium transition-colors"
                     >
                         Sign out
                     </button>
@@ -60,7 +60,7 @@ const SignOut: React.FC = () => {
                 {/* Global Sign Out Button */}
                 <button
                     onClick={handleSignout}
-                    className="w-full bg-[#111111] border border-[#1A1A1A] hover:bg-[#30363d] text-[#f85149] hover:text-[#ff7b72] px-4 py-[9px] rounded-md text-[14px] font-medium transition-colors"
+                    className="w-full bg-[#11141A] border border-[#1E232E] hover:bg-[#30363d] text-[#f85149] hover:text-[#ff7b72] px-4 py-[9px] rounded-md text-[14px] font-medium transition-colors"
                 >
                     Sign out from all accounts
                 </button>
@@ -68,7 +68,7 @@ const SignOut: React.FC = () => {
             </div>
 
             {/* Subtle Footer (Fixed to bottom, typical for auth flow pages) */}
-            <div className="fixed bottom-0 w-full py-6 flex justify-center bg-[#000000]">
+            <div className="fixed bottom-0 w-full py-6 flex justify-center bg-[#0A0D14]">
                 <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12px] text-[#8b949e]">
                     <a href="#" className="hover:text-[#58a6ff] hover:underline">Terms</a>
                     <a href="#" className="hover:text-[#58a6ff] hover:underline">Privacy</a>

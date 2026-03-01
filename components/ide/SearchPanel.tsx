@@ -73,7 +73,7 @@ const SearchPanel = () => {
         </div>
       </div>
 
-      <div className="px-3 pb-2 border-b border-[#1A1A1A] relative">
+      <div className="px-3 pb-2 border-b border-[#1E232E] relative">
         <div className="flex flex-col gap-1.5 relative">
           <div className="relative">
             <input

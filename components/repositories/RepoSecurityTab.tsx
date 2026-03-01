@@ -336,7 +336,7 @@ const RepoSecurityTab = () => {
                 <h4 className="text-xs font-bold text-gh-text-secondary uppercase tracking-wider mb-2">
                   Remediation
                 </h4>
-                <div className="bg-[#000000] p-4 rounded-lg font-mono text-sm text-gh-text border border-gh-border">
+                <div className="bg-[#0A0D14] p-4 rounded-lg font-mono text-sm text-gh-text border border-gh-border">
                   {selectedAlert.type === "SECRET" ? (
                     <div className="space-y-2">
                       <p className="text-orange-400 font-bold">

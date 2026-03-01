@@ -23,7 +23,7 @@ const CommunitySidebar = () => {
   return (
     <div className="space-y-8">
       {/* Top Contributors */}
-      <div className="p-6 bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl">
+      <div className="p-6 bg-[#11141A] border border-[#1E232E] rounded-2xl">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Top Contributors</h3>
           <button className="text-[11px] font-bold text-primary hover:underline">View All</button>
@@ -42,12 +42,12 @@ const CommunitySidebar = () => {
       </div>
 
       {/* Upcoming Events */}
-      <div className="p-6 bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl">
+      <div className="p-6 bg-[#11141A] border border-[#1E232E] rounded-2xl">
         <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6">Upcoming Events</h3>
         <div className="space-y-4">
           {events.map(event => (
-            <div key={event.title} className="p-4 bg-[#000000] border border-[#1A1A1A] rounded-xl flex items-center gap-4 group cursor-pointer hover:border-primary transition-all">
-              <div className="size-12 bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg flex flex-col items-center justify-center shrink-0">
+            <div key={event.title} className="p-4 bg-[#0A0D14] border border-[#1E232E] rounded-xl flex items-center gap-4 group cursor-pointer hover:border-primary transition-all">
+              <div className="size-12 bg-[#11141A] border border-[#1E232E] rounded-lg flex flex-col items-center justify-center shrink-0">
                 <span className="text-[10px] font-black text-slate-500 uppercase leading-none mb-1">{event.date.split(' ')[0]}</span>
                 <span className="text-[15px] font-black text-white leading-none">{event.date.split(' ')[1]}</span>
               </div>
