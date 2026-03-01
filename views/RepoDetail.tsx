@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MOCK_REPOS } from "../constants";
 import PostJobModal from "../components/jobs/PostJobModal";
-import { api } from "../context/AuthContext";
+import { api } from "../services/api";
 import { useRealtime } from "../contexts/RealtimeContext";
 
 // Tabs
@@ -25,10 +25,12 @@ const RepoDetailView = () => {
   const location = useLocation();
   const [repo, setRepo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("Code");
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isForking, setIsForking] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [ciStatus, setCiStatus] = useState<{ status: string; conclusion: string } | null>(null);
 
   // Deep linking for Code Viewer
   useEffect(() => {
@@ -87,33 +89,41 @@ const RepoDetailView = () => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchRepo = async () => {
       setLoading(true);
       try {
-        let url = "";
+        let data;
         if (id && id !== "undefined") {
-          url = `/repositories/${id}`;
+          data = await api.repositories.get(id);
         } else if (owner && repoName) {
-          url = `/repositories/by-name/${owner}/${repoName}`;
+          data = await api.repositories.getByName(owner, repoName);
         } else {
           throw new Error("No repository ID or owner/name provided in URL");
         }
+        setRepo(data);
 
-        const response = await api.get(url);
-        setRepo(response.data);
+        // Fetch CI status
+        try {
+          const runs = await api.ciRuns.list(data.id);
+          if (runs && runs.length > 0) {
+            setCiStatus({ status: runs[0].status, conclusion: runs[0].conclusion });
+          }
+        } catch (ciErr) {
+          console.warn("Failed to fetch CI status", ciErr);
+        }
       } catch (err) {
-        console.error("Failed to fetch repo detail from internal API", err);
-        const mockId = id || (owner && repoName ? `${owner}/${repoName}` : undefined);
-        const mockRepo = MOCK_REPOS.find((r) => r.id === mockId) || MOCK_REPOS[0];
-        setRepo(mockRepo);
+        console.error("Failed to fetch repo detail", err);
+        // We could still fallback to mock here if we want, but the goal is production-ready
+        // Let's at least show an error if it completely fails
+        setError("Failed to load repository details.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchRepo();
-  }, [id]);
+  }, [id, owner, repoName, setError]);
 
   useEffect(() => {
     // Determine the unique identifier for realtime room (use id or fallback to owner/name)
@@ -124,9 +134,7 @@ const RepoDetailView = () => {
 
       const unsubscribe = subscribe((event) => {
         if (event.type === "REPOSITORY_UPDATE" && (event.repoId === id || event.repoId === roomId)) {
-          console.log(
-            "🔄 Realtime: Repository updated externally, refreshing data...",
-          );
+          // Realtime: Repository updated externally
           setRepo((prev: any) => ({ ...prev, settings: event.settings }));
         }
       });
@@ -137,6 +145,21 @@ const RepoDetailView = () => {
       };
     }
   }, [isConnected, id, owner, repoName, send, subscribe]);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 border border-dashed border-red-500/30 rounded-xl bg-red-500/5">
+        <span className="material-symbols-outlined text-red-500 text-4xl mb-4">error</span>
+        <p className="text-red-500 text-sm font-medium">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-gh-bg-secondary border border-gh-border text-gh-text rounded-md text-xs font-bold hover:bg-gh-bg-tertiary transition-all"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -216,6 +239,23 @@ const RepoDetailView = () => {
                 <span className="px-2 py-0.5 rounded-full border border-gh-border text-[12px] font-medium text-gh-text-secondary capitalize bg-transparent ml-2">
                   {repo.visibility?.toLowerCase() || "public"}
                 </span>
+
+                {ciStatus && (
+                  <div
+                    title={`CI/CD: ${ciStatus.status} (${ciStatus.conclusion || 'running'})`}
+                    className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold border ml-3 transition-all ${ciStatus.conclusion === 'success'
+                      ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                      : ciStatus.conclusion === 'failure'
+                        ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                        : 'bg-amber-500/10 text-amber-500 border-amber-500/20 animate-pulse'
+                      }`}
+                  >
+                    <span className="material-symbols-outlined !text-[14px]">
+                      {ciStatus.conclusion === 'success' ? 'check_circle' : ciStatus.conclusion === 'failure' ? 'cancel' : 'sync'}
+                    </span>
+                    {ciStatus.conclusion === 'success' ? 'Pass' : ciStatus.conclusion === 'failure' ? 'Fail' : 'CI Running'}
+                  </div>
+                )}
               </div>
             </div>
 

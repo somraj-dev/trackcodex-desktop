@@ -38,8 +38,8 @@
 
 .dark.high-contrast {
   --gh-bg: #000000;
-  --gh-bg-secondary: #0a0a0a;
-  --gh-border: #ffffff;
+  --gh-bg-secondary: #050505;
+  --gh-border: #333333;
   --gh-text: #ffffff;
   --gh-text-secondary: #cccccc;
 }

@@ -1,56 +1,79 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ContinueWorkspaces from "../components/home/ContinueWorkspaces";
+import { api } from "../services/api";
+import { Repository } from "../types";
 
-
-interface MockRepoProps {
-  name: string;
-  description: string;
-  lang: string;
-  stars: string;
+interface RepoItemProps {
+  repo: Repository;
 }
 
-const MockRepo = ({ name, description, lang, stars }: MockRepoProps) => (
-  <div className="p-4 border-b border-gh-border last:border-0 hover:bg-gh-bg-secondary/50 group cursor-pointer transition-colors">
-    <div className="flex items-start justify-between">
-      <div className="flex items-center gap-2">
-        <img
-          src={`https://ui-avatars.com/api/?name=${name.split("/")[0]}&background=random&color=fff`}
-          alt=""
-          className="size-5 rounded-md"
-        />
-        <h3 className="text-sm font-bold text-gh-text group-hover:text-primary transition-colors">
-          {name}
-        </h3>
+const RepoItem = ({ repo }: RepoItemProps) => {
+  const navigate = useNavigate();
+  return (
+    <div
+      onClick={() => navigate(`/repositories/${repo.id}`)}
+      className="p-4 border-b border-gh-border last:border-[#1A1A1A] hover:bg-gh-bg-secondary/50 group cursor-pointer transition-colors"
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          <img
+            src={`https://ui-avatars.com/api/?name=${repo.name.split("/")[0]}&background=random&color=fff`}
+            alt=""
+            className="size-5 rounded-md"
+          />
+          <h3 className="text-sm font-bold text-gh-text group-hover:text-primary transition-colors">
+            {repo.owner ? `${repo.owner}/${repo.name}` : repo.name}
+          </h3>
+        </div>
+        <button className="flex items-center gap-1 px-3 py-1 text-xs font-bold text-gh-text-secondary bg-gh-bg-secondary border border-gh-border rounded-md hover:bg-gh-border transition-colors">
+          <span className="material-symbols-outlined !text-[14px]">star</span>
+          Star
+        </button>
       </div>
-      <button className="flex items-center gap-1 px-3 py-1 text-xs font-bold text-gh-text-secondary bg-gh-bg-secondary border border-gh-border rounded-md hover:bg-gh-border transition-colors">
-        <span className="material-symbols-outlined !text-[14px]">star</span>
-        Star
-      </button>
+      <p className="text-xs text-gh-text-secondary mt-2 mb-3 line-clamp-2">
+        {repo.description || "No description provided."}
+      </p>
+      <div className="flex items-center gap-4 text-xs text-gh-text-secondary">
+        <div className="flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-primary/80"></span>
+          <span>{repo.language || repo.techStack || "Plain Text"}</span>
+        </div>
+        <div className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors">
+          <span className="material-symbols-outlined !text-[14px]">star</span>
+          {repo.stars || 0}
+        </div>
+        <div className="text-[10px] text-gh-text-secondary/60 ml-auto">
+          Updated {repo.updatedAt ? new Date(repo.updatedAt).toLocaleDateString() : "Recently"}
+        </div>
+      </div>
     </div>
-    <p className="text-xs text-gh-text-secondary mt-2 mb-3 line-clamp-2">
-      {description}
-    </p>
-    <div className="flex items-center gap-4 text-xs text-gh-text-secondary">
-      <div className="flex items-center gap-1.5">
-        <span className="size-2 rounded-full bg-primary/80"></span>
-        <span>{lang}</span>
-      </div>
-      <div className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors">
-        <span className="material-symbols-outlined !text-[14px]">star</span>
-        {stars}
-      </div>
-      <div className="text-[10px] text-gh-text-secondary/60 ml-auto">Updated 2h ago</div>
-    </div>
-  </div>
-);
+  );
+};
 
 const HomeView = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [repos, setRepos] = useState<Repository[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(true);
+
+  useEffect(() => {
+    const fetchRepos = async () => {
+      setLoadingRepos(true);
+      try {
+        const data = await api.repositories.list();
+        setRepos(data);
+      } catch (err) {
+        console.error("Failed to fetch repos", err);
+      } finally {
+        setLoadingRepos(false);
+      }
+    };
+    fetchRepos();
+  }, []);
 
   return (
-    <div className="flex-1 p-8 font-display">
+    <div className="flex-1 p-8 font-display h-full overflow-y-auto custom-scrollbar">
       <div className="max-w-[1000px] mx-auto">
         <h1 className="text-2xl font-bold text-gh-text mb-6">Home</h1>
 
@@ -73,15 +96,21 @@ const HomeView = () => {
               <span className="material-symbols-outlined !text-[14px]">chat_bubble</span>
               Ask
             </button>
-            <button className="px-2 py-1 text-xs font-bold text-gh-text-secondary hover:text-gh-text bg-gh-bg-secondary border border-gh-border rounded-md transition-colors flex items-center gap-1">
+            <button
+              onClick={() => navigate("/repositories")}
+              className="px-2 py-1 text-xs font-bold text-gh-text-secondary hover:text-gh-text bg-gh-bg-secondary border border-gh-border rounded-md transition-colors flex items-center gap-1"
+            >
               <span className="material-symbols-outlined !text-[14px]">library_books</span>
               All repositories
             </button>
-            <button className="size-7 flex items-center justify-center text-gh-text-secondary hover:text-gh-text bg-gh-bg-secondary border border-gh-border rounded-md transition-colors">
+            <button
+              onClick={() => navigate("/repositories/new")}
+              className="size-7 flex items-center justify-center text-gh-text-secondary hover:text-gh-text bg-gh-bg-secondary border border-gh-border rounded-md transition-colors"
+            >
               <span className="material-symbols-outlined !text-[16px]">add</span>
             </button>
             <div className="h-6 w-px bg-gh-border mx-1"></div>
-            <span className="text-xs text-gh-text-secondary font-mono mr-2">Claude Haiku 4.5</span>
+            <span className="text-xs text-gh-text-secondary font-mono mr-2">TrackCodex AI</span>
             <button className="size-8 flex items-center justify-center text-primary hover:text-white bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors">
               <span className="material-symbols-outlined !text-[18px]">send</span>
             </button>
@@ -122,12 +151,12 @@ const HomeView = () => {
                   <span className="material-symbols-outlined">auto_awesome</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-gh-text mb-1">Copilot Business is available for quantaforge</h3>
+                  <h3 className="text-sm font-bold text-gh-text mb-1">TrackCodex Business is available for you</h3>
                   <p className="text-xs text-gh-text-secondary max-w-xl leading-relaxed">
-                    Copilot Business is available to your enterprise free for 30 days. Activate AI-powered coding for your team by verifying your identity.
+                    AI-powered coding for your team. Empower your developers with advanced context-aware suggestions and security monitoring.
                   </p>
                   <button className="mt-3 px-4 py-1.5 bg-[#6e40c9] hover:bg-[#5a32a3] text-white text-xs font-bold rounded-md transition-colors shadow-md shadow-[#6e40c9]/20">
-                    Activate Copilot Business
+                    Activate Business
                   </button>
                 </div>
               </div>
@@ -137,31 +166,32 @@ const HomeView = () => {
             </div>
           </div>
 
-          {/* Create Repository Card */}
-          <div className="relative overflow-hidden rounded-xl border border-gh-border bg-gradient-to-r from-amber-500/5 to-[#2f2f2f]/30 p-5 group hover:border-amber-500/30 transition-all">
-            <div className="flex items-start justify-between">
-              <div className="flex gap-4">
-                <div className="size-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 shadow-sm">
-                  <span className="material-symbols-outlined">book</span>
+          {repos.length === 0 && !loadingRepos && (
+            <div className="relative overflow-hidden rounded-xl border border-gh-border bg-gradient-to-r from-amber-500/5 to-[#2f2f2f]/30 p-5 group hover:border-amber-500/30 transition-all">
+              <div className="flex items-start justify-between">
+                <div className="flex gap-4">
+                  <div className="size-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 shadow-sm">
+                    <span className="material-symbols-outlined">book</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gh-text mb-1">Create your first repository</h3>
+                    <p className="text-xs text-gh-text-secondary max-w-xl leading-relaxed">
+                      Repositories are where you add code, collaborate, and utilize premium features, like GitHub Actions and Advanced Security.
+                    </p>
+                    <button
+                      onClick={() => navigate("/repositories")}
+                      className="mt-3 px-4 py-1.5 bg-gh-bg-secondary hover:bg-gh-border border border-gh-border text-gh-text text-xs font-bold rounded-md transition-colors"
+                    >
+                      Create repository
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gh-text mb-1">Create the first repository in quantaforge</h3>
-                  <p className="text-xs text-gh-text-secondary max-w-xl leading-relaxed">
-                    Repositories are where you add code, collaborate, and utilize premium features, like GitHub Actions and Advanced Security.
-                  </p>
-                  <button
-                    onClick={() => navigate("/repositories")}
-                    className="mt-3 px-4 py-1.5 bg-gh-bg-secondary hover:bg-gh-border border border-gh-border text-gh-text text-xs font-bold rounded-md transition-colors"
-                  >
-                    Create repository
-                  </button>
-                </div>
+                <button className="text-gh-text-secondary hover:text-gh-text transition-colors">
+                  <span className="material-symbols-outlined !text-[18px]">close</span>
+                </button>
               </div>
-              <button className="text-gh-text-secondary hover:text-gh-text transition-colors">
-                <span className="material-symbols-outlined !text-[18px]">close</span>
-              </button>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Feed Section */}
@@ -178,36 +208,37 @@ const HomeView = () => {
             <div className="p-4 border-b border-gh-border bg-gh-bg-secondary/40">
               <div className="flex items-center gap-2 text-xs text-gh-text-secondary mb-1">
                 <span className="material-symbols-outlined !text-[16px]">trending_up</span>
-                <span className="font-bold text-gh-text">Trending repositories</span>
+                <span className="font-bold text-gh-text">Your Repositories</span>
                 <span>·</span>
-                <button className="text-primary hover:underline">See more</button>
+                <button
+                  onClick={() => navigate("/repositories")}
+                  className="text-primary hover:underline"
+                >
+                  See more
+                </button>
               </div>
             </div>
 
             <div className="divide-y divide-gh-border">
-              <MockRepo
-                name="forrestchang/andrej-karpathy-skills"
-                description="Analysis of Andrej Karpathy's teaching style and technical breakdowns."
-                lang="Python"
-                stars="5.2k"
-              />
-              <MockRepo
-                name="koala73/worldmonitor"
-                description="Real-time global intelligence dashboard — AI-powered news aggregation, geopolitical monitoring, and infrastructure tracking in a unified situational awareness interface."
-                lang="TypeScript"
-                stars="4.6k"
-              />
-              <MockRepo
-                name="facebook/react-strict-dom"
-                description="React Strict DOM (RSD) is an experimental integration of React DOM and StyleX that aims to standardize the development of styled React components for web and native."
-                lang="JavaScript"
-                stars="12.8k"
-              />
+              {loadingRepos ? (
+                <div className="p-8 text-center bg-gh-bg-secondary/10">
+                  <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  <p className="text-xs text-gh-text-secondary font-bold">Synchronizing Feed...</p>
+                </div>
+              ) : repos.length > 0 ? (
+                repos.slice(0, 5).map((repo) => (
+                  <RepoItem key={repo.id} repo={repo} />
+                ))
+              ) : (
+                <div className="p-12 text-center text-gh-text-secondary bg-gh-bg-secondary/10">
+                  <span className="material-symbols-outlined !text-[32px] mb-2 opacity-50">inventory_2</span>
+                  <p className="text-sm font-bold">No activity yet</p>
+                  <p className="text-xs mt-1">Start by creating or syncing a repository.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* --- ORIGINAL TRACKCODEX CONTENT BELOW --- */}
 
         {/* Main Content Grid - Workspaces */}
         <div className="mb-12 mt-12 pt-12 border-t border-gh-border">
@@ -235,3 +266,4 @@ const HomeView = () => {
 };
 
 export default HomeView;
+

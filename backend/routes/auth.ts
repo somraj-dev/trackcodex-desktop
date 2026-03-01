@@ -91,16 +91,31 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         // 3. Create user in our database
         const hashedPassword = await bcrypt.hash(password, 12);
-        await prisma.user.create({
-          data: {
-            id: firebaseUid,
-            email,
-            username,
-            name: name || username,
-            password: hashedPassword,
-            role: "user",
-          },
-        });
+
+        const [newUser] = await prisma.$transaction([
+          prisma.user.create({
+            data: {
+              id: firebaseUid,
+              email,
+              username,
+              name: name || username,
+              password: hashedPassword,
+              role: "user",
+            },
+          }),
+          prisma.outboxEvent.create({
+            data: {
+              topic: "user",
+              payload: {
+                id: firebaseUid,
+                email,
+                username,
+                name: name || username,
+                role: "user"
+              }
+            }
+          })
+        ]);
 
         // 4. Create Session
         const sessionId = crypto.randomUUID();
@@ -438,16 +453,31 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         if (!user) {
           // Auto-create user from Firebase OAuth data
-          user = await prisma.user.create({
-            data: {
-              id: firebaseUser.uid,
-              email: firebaseUser.email || "",
-              name: firebaseUser.displayName || "",
-              username: (firebaseUser.email || "").split("@")[0],
-              password: "", // OAuth users have no password
-              role: "user",
-            },
-          });
+          const [newUser] = await prisma.$transaction([
+            prisma.user.create({
+              data: {
+                id: firebaseUser.uid,
+                email: firebaseUser.email || "",
+                name: firebaseUser.displayName || "",
+                username: (firebaseUser.email || "").split("@")[0],
+                password: "", // OAuth users have no password
+                role: "user",
+              },
+            }),
+            prisma.outboxEvent.create({
+              data: {
+                topic: "user",
+                payload: {
+                  id: firebaseUser.uid,
+                  email: firebaseUser.email || "",
+                  name: firebaseUser.displayName || "",
+                  username: (firebaseUser.email || "").split("@")[0],
+                  role: "user",
+                }
+              }
+            })
+          ]);
+          user = newUser;
         }
 
         // 3. Create Secure Session
@@ -551,16 +581,31 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         if (!user) {
           // Auto-create user from Firebase OAuth data
-          user = await prisma.user.create({
-            data: {
-              id: firebaseUser.uid,
-              email: firebaseUser.email || "",
-              name: firebaseUser.displayName || "",
-              username: (firebaseUser.email || "").split("@")[0],
-              password: "",
-              role: "user",
-            },
-          });
+          const [newUser] = await prisma.$transaction([
+            prisma.user.create({
+              data: {
+                id: firebaseUser.uid,
+                email: firebaseUser.email || "",
+                name: firebaseUser.displayName || "",
+                username: (firebaseUser.email || "").split("@")[0],
+                password: "",
+                role: "user",
+              },
+            }),
+            prisma.outboxEvent.create({
+              data: {
+                topic: "user",
+                payload: {
+                  id: firebaseUser.uid,
+                  email: firebaseUser.email || "",
+                  name: firebaseUser.displayName || "",
+                  username: (firebaseUser.email || "").split("@")[0],
+                  role: "user",
+                }
+              }
+            })
+          ]);
+          user = newUser;
         }
 
         // 3. Create Session
@@ -1140,6 +1185,55 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
     },
   );
+
+  // Synchronize Firebase User with PostgreSQL
+  fastify.post(
+    "/auth/sync",
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      const user = (request as any).user;
+
+      try {
+        let dbUser = await prisma.user.findUnique({
+          where: { id: user.userId }
+        });
+
+        if (!dbUser) {
+          const [newUser] = await prisma.$transaction([
+            prisma.user.create({
+              data: {
+                id: user.userId,
+                email: user.email || "",
+                username: user.username || `user_${user.userId.substring(0, 8)}`,
+                name: user.name || user.username || "TrackCodex User",
+                password: "", // Handled by Firebase
+                role: "user",
+              }
+            }),
+            prisma.outboxEvent.create({
+              data: {
+                topic: "user",
+                payload: {
+                  id: user.userId,
+                  email: user.email || "",
+                  username: user.username || `user_${user.userId.substring(0, 8)}`,
+                  name: user.name || user.username || "TrackCodex User",
+                  role: "user",
+                }
+              }
+            })
+          ]);
+          dbUser = newUser;
+        }
+
+        return { success: true, user: { id: dbUser.id, username: dbUser.username } };
+      } catch (error) {
+        request.log.error(error);
+        return reply.code(500).send({ error: "Failed to sync user" });
+      }
+    }
+  );
+
   // --- ORCID OAuth (Mocked for Demo - DISABLED in production) ---
   if (process.env.NODE_ENV === "development") {
     fastify.get("/auth/orcid", async (request, reply) => {

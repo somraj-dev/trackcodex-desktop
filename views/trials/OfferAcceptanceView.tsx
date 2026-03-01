@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const OfferHighlight = ({ value, label, sublabel, icon }: { value: string; label: string; sublabel: string; icon: string; }) => (
-    <div className="bg-[#161b22] p-5 rounded-xl border border-[#30363d]">
+    <div className="bg-[#11141A] p-5 rounded-xl border border-[#1E232E]">
         <div className="flex items-center gap-3 mb-3">
             <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                 <span className="material-symbols-outlined !text-xl">{icon}</span>
@@ -58,7 +58,7 @@ const OfferAcceptanceView = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0d1117] text-slate-300 font-display p-8">
+        <div className="min-h-screen bg-[#0A0D14] text-slate-300 font-display p-8">
             <div className="max-w-7xl mx-auto">
                 <header className="flex items-start justify-between mb-8">
                     <div>
@@ -84,8 +84,8 @@ const OfferAcceptanceView = () => {
                         </div>
 
                         {/* Document Viewer */}
-                        <div className="bg-[#161b22] border border-gh-border rounded-xl overflow-hidden">
-                            <div className="p-4 bg-black/20 border-b border-gh-border flex items-center justify-between">
+                        <div className="bg-[#11141A] border border-gh-border rounded-xl overflow-hidden">
+                            <div className="p-4 bg-[#0A0A0A]lack/20 border-b border-gh-border flex items-center justify-between">
                                 <p className="text-sm font-mono text-slate-400">Employment_Agreement_Alex_TechFlow.pdf</p>
                                 <div className="flex items-center gap-2">
                                     <button className="text-slate-500 hover:text-white"><span className="material-symbols-outlined !text-base">zoom_in</span></button>
@@ -138,7 +138,7 @@ const OfferAcceptanceView = () => {
                     </div>
                     {/* Right Sidebar */}
                     <aside className="space-y-8">
-                        <div className="bg-[#161b22] p-6 rounded-xl border border-gh-border">
+                        <div className="bg-[#11141A] p-6 rounded-xl border border-gh-border">
                             <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-primary">groups</span> Meet Your Team</h3>
                             <p className="text-sm text-slate-400 mb-6">You already crushed the technical trial with these engineers. They're excited to have you back!</p>
                             <div className="space-y-4">
@@ -157,7 +157,7 @@ const OfferAcceptanceView = () => {
                                 <p className="font-bold text-slate-300 mt-2">- Marcus Lopez</p>
                             </div>
                         </div>
-                        <div className="bg-[#161b22] p-6 rounded-xl border border-gh-border">
+                        <div className="bg-[#11141A] p-6 rounded-xl border border-gh-border">
                             <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-primary">redeem</span> Additional Perks</h3>
                             <ul className="space-y-3">
                                 {perks.map(perk => (

@@ -87,7 +87,7 @@ const SourceControlPanel = () => {
             </div>
 
             {/* Sync / Branch Action Bar */}
-            <div className="px-3 pb-3 border-b border-[#30363d]/50">
+            <div className="px-3 pb-3 border-b border-[#1E232E]/50">
                 <div className="flex items-center justify-between mb-3 bg-[#1e1e1e] rounded-sm p-1.5 border border-[#3c3c3c]">
                     <div className="flex items-center gap-2 text-xs font-bold text-white cursor-pointer hover:text-[#007fd4]">
                         <span className="material-symbols-outlined !text-[14px]">source_branch</span>

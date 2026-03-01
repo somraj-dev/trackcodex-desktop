@@ -59,7 +59,7 @@ class ChunkErrorBoundary extends React.Component<
                 sessionStorage.clear();
                 window.location.reload();
               }}
-              className="px-6 py-2 bg-primary text-white rounded-md hover:bg-blue-600 transition-colors font-medium"
+              className="px-6 py-2 bg-primary text-white rounded-md hover:bg-[#0A0A0A]lue-600 transition-colors font-medium"
             >
               Reload Application
             </button>
@@ -108,10 +108,8 @@ const WorkspacesView = React.lazy(() => import("./views/Workspaces"));
 const CreateWorkspaceView = React.lazy(() => import("./views/CreateWorkspace"));
 const PublicProfile = React.lazy(() => import("./views/PublicProfile"));
 const Portfolio = React.lazy(() => import("./views/Portfolio"));
-// const WorkspaceDetailView = React.lazy(
-//   () => import("./views/WorkspaceDetailView"),
-// );
-import WorkspaceIDE from "./views/ide/VSCodeWorkspaceView"; // OpenVSCode Server IDE Integration
+const ReviewMode = React.lazy(() => import("./views/ReviewMode"));
+const VSCodeWorkspaceView = React.lazy(() => import("./views/ide/VSCodeWorkspaceView"));
 const HomeView = React.lazy(() => import("./views/Home"));
 const ExploreView = React.lazy(() => import("./views/Explore"));
 const LibraryView = React.lazy(() => import("./views/Library"));
@@ -647,11 +645,11 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
         <>
           {/* Dark overlay */}
           <div
-            className="fixed inset-0 bg-black/50 z-[70] animate-in fade-in duration-200"
+            className="fixed inset-0 bg-[#0A0A0A]lack/50 z-[70] animate-in fade-in duration-200"
             onClick={() => setIsSidebarOpen(false)}
           />
           {/* Panel */}
-          <div className="fixed top-0 left-0 h-full w-[320px] bg-[#161b22] border-r border-[#30363d] z-[80] animate-in slide-in-from-left duration-300 flex flex-col overflow-y-auto">
+          <div className="fixed top-0 left-0 h-full w-[320px] bg-[#11141A] border-r border-[#1E232E] z-[80] animate-in slide-in-from-left duration-300 flex flex-col overflow-y-auto">
             {/* Header: Logo + Close */}
             <div className="flex items-center justify-between px-4 h-14 shrink-0">
               <button
@@ -665,7 +663,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
               </button>
               <button
                 onClick={() => setIsSidebarOpen(false)}
-                className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#11141A]"
                 aria-label="Close sidebar"
               >
                 <span className="material-symbols-outlined !text-[20px]">close</span>
@@ -689,7 +687,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
                   onClick={() => { setIsSidebarOpen(false); navigate(item.to); }}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-[14px] font-medium transition-colors ${location.pathname === item.to || location.pathname.startsWith(item.to + "/")
                     ? "text-white bg-[#1f6feb]/15"
-                    : "text-gh-text hover:bg-[#21262d] hover:text-white"
+                    : "text-gh-text hover:bg-[#11141A] hover:text-white"
                     }`}
                 >
                   <span className="material-symbols-outlined !text-[18px]">{item.icon}</span>
@@ -699,7 +697,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
             </nav>
 
             {/* Divider */}
-            <div className="mx-3 my-2 border-t border-[#30363d]" />
+            <div className="mx-3 my-2 border-t border-[#1E232E]" />
 
             {/* Footer Nav */}
             <nav className="px-3 py-1 space-y-0.5">
@@ -710,7 +708,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
                 <button
                   key={item.label}
                   onClick={() => { setIsSidebarOpen(false); navigate(item.to); }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[14px] font-medium text-gh-text hover:bg-[#21262d] hover:text-white transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-[14px] font-medium text-gh-text hover:bg-[#11141A] hover:text-white transition-colors"
                 >
                   <span className="material-symbols-outlined !text-[18px]">{item.icon}</span>
                   {item.label}
@@ -730,13 +728,13 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
         >
           {/* GitHub-Style Navigation Header */}
           {!isIdeView && !isFocusMode && (
-            <div className={`h-12 border-b border-gh-border flex items-center px-4 bg-[#010409] shrink-0 sticky top-0 z-40 gap-2 transition-transform duration-300 ${isNavbarVisible ? "translate-y-0" : "-translate-y-full"}`}>
+            <div className={`h-12 border-b border-gh-border flex items-center px-4 bg-[#0A0D14] shrink-0 sticky top-0 z-40 gap-2 transition-transform duration-300 ${isNavbarVisible ? "translate-y-0" : "-translate-y-full"}`}>
               {/* Left Section: Hamburger + Logo + Page Title */}
               <div className="flex items-center gap-3">
                 {/* Hamburger Menu */}
                 <button
                   onClick={() => setIsSidebarOpen(true)}
-                  className="text-gh-text hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                  className="text-gh-text hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#11141A]"
                   aria-label="Toggle sidebar"
                 >
                   <span className="material-symbols-outlined !text-[20px]">menu</span>
@@ -771,13 +769,13 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
               <div className="flex-1 flex justify-center max-w-[720px] mx-auto">
                 <div
                   onClick={() => setIsCommandPaletteOpen(true)}
-                  className="flex items-center gap-2 px-3 py-1 bg-[#0d1117] border border-[#30363d] rounded-md w-full max-w-[272px] cursor-pointer hover:border-[#58a6ff]/50 transition-colors group"
+                  className="flex items-center gap-2 px-3 py-1 bg-[#0A0D14] border border-[#1E232E] rounded-md w-full max-w-[272px] cursor-pointer hover:border-[#58a6ff]/50 transition-colors group"
                 >
                   <span className="material-symbols-outlined !text-[14px] text-gh-text-secondary group-hover:text-gh-text">
                     search
                   </span>
                   <span className="text-[13px] text-gh-text-secondary group-hover:text-gh-text flex-1">
-                    Type <kbd className="border border-[#30363d] rounded px-1 text-[10px] bg-[#0d1117] text-gh-text-secondary ml-0.5">/</kbd> to search
+                    Type <kbd className="border border-[#1E232E] rounded px-1 text-[10px] bg-[#0A0D14] text-gh-text-secondary ml-0.5">/</kbd> to search
                   </span>
                 </div>
               </div>
@@ -785,21 +783,21 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
               {/* Right Section: Action Icons */}
               <div className="flex items-center gap-0.5">
                 {/* Divider */}
-                <div className="w-px h-5 bg-[#21262d] mx-1" />
+                <div className="w-px h-5 bg-[#11141A] mx-1" />
 
                 {/* Add/Plus (with dropdown caret) */}
                 <div className="relative add-menu-container flex items-center">
                   <button
                     onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
-                    className="text-gh-text-secondary hover:text-white transition-colors h-8 px-1 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                    className="text-gh-text-secondary hover:text-white transition-colors h-8 px-1 flex items-center justify-center rounded-md hover:bg-[#11141A]"
                     aria-label="Create new..."
                   >
                     <span className="material-symbols-outlined !text-[20px]">add</span>
                     <span className="material-symbols-outlined !text-[14px] -ml-0.5">arrow_drop_down</span>
                   </button>
                   {isAddMenuOpen && (
-                    <div className="absolute top-full right-0 mt-1 w-56 bg-[#161b22] border border-[#30363d] rounded-lg shadow-2xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
-                      <div className="px-3 py-2 border-b border-[#30363d] mb-1">
+                    <div className="absolute top-full right-0 mt-1 w-56 bg-[#11141A] border border-[#1E232E] rounded-lg shadow-2xl z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-3 py-2 border-b border-[#1E232E] mb-1">
                         <span className="text-[11px] font-semibold text-gh-text-secondary">
                           Create new...
                         </span>
@@ -818,7 +816,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
                         <span className="material-symbols-outlined !text-[16px]">download</span>
                         Import repository
                       </button>
-                      <div className="border-t border-[#30363d] my-1" />
+                      <div className="border-t border-[#1E232E] my-1" />
                       <button
                         onClick={() => { setIsAddMenuOpen(false); navigate("/workspace/new"); }}
                         className="w-full text-left px-4 py-2 text-[13px] text-gh-text hover:bg-[#1f6feb] hover:text-white flex items-center gap-3 transition-colors"
@@ -838,12 +836,12 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
                 </div>
 
                 {/* Divider */}
-                <div className="w-px h-5 bg-[#21262d] mx-1" />
+                <div className="w-px h-5 bg-[#11141A] mx-1" />
 
                 {/* Issues */}
                 <button
                   onClick={() => navigate("/repositories")}
-                  className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                  className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#11141A]"
                   aria-label="Issues"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"></path><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"></path></svg>
@@ -852,7 +850,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
                 {/* Pull Requests */}
                 <button
                   onClick={() => navigate("/repositories")}
-                  className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                  className="text-gh-text-secondary hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#11141A]"
                   aria-label="Pull requests"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"></path></svg>
@@ -861,7 +859,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
                 {/* Notifications */}
                 <button
                   onClick={() => navigate("/notifications")}
-                  className="text-gh-text-secondary hover:text-white transition-colors relative h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#21262d]"
+                  className="text-gh-text-secondary hover:text-white transition-colors relative h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#11141A]"
                   aria-label="Notifications"
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 16a2 2 0 0 0 1.985-1.75c.017-.137-.097-.25-.235-.25h-3.5c-.138 0-.252.113-.235.25A2 2 0 0 0 8 16ZM3 5a5 5 0 0 1 10 0v2.947c0 .05.015.098.042.139l1.703 2.555A1.519 1.519 0 0 1 13.482 13H2.518a1.516 1.516 0 0 1-1.263-2.36l1.703-2.554A.255.255 0 0 0 3 7.947Zm5-3.5A3.5 3.5 0 0 0 4.5 5v2.947c0 .346-.102.683-.294.97l-1.703 2.556a.017.017 0 0 0-.003.01l.001.006c0 .002.002.004.004.006l.006.004.007.001h10.964l.007-.001.006-.004.004-.006.001-.007a.017.017 0 0 0-.003-.01l-1.703-2.554a1.745 1.745 0 0 1-.294-.97V5A3.5 3.5 0 0 0 8 1.5Z"></path></svg>
@@ -880,7 +878,7 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
                   >
                     <img
                       src={profile.avatar}
-                      className="size-5 rounded-full border border-[#30363d] hover:border-[#58a6ff] transition-colors"
+                      className="size-5 rounded-full border border-[#1E232E] hover:border-[#58a6ff] transition-colors"
                       alt="Profile"
                     />
                     <span className="material-symbols-outlined !text-[14px] text-gh-text-secondary -ml-0.5">arrow_drop_down</span>
@@ -911,11 +909,13 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
               <Route path="/workspaces" element={<WorkspacesView />} />
               <Route path="/community" element={<CommunityView />} />
               <Route path="/workspace/new" element={<CreateWorkspaceView />} />
-              <Route path="/workspace/:id" element={<WorkspaceIDE />} />
-              <Route path="/workspace/:id/ide" element={<WorkspaceIDE />} />
+              <Route path="/workspace/:id" element={<VSCodeWorkspaceView />} />
+              <Route path="/workspace/:id/ide" element={<VSCodeWorkspaceView />} />
               <Route path="/repositories" element={<RepositoriesView />} />
               <Route path="/repositories/new" element={<CreateRepoView />} />
               <Route path="/repositories/import" element={<ImportRepoView />} />
+              <Route path="/repo/:owner/:repo/pull/:number" element={<ReviewMode />} />
+              <Route path="/repositories/:id/pulls/:number" element={<ReviewMode />} />
               <Route path="/repo/:id/*" element={<RepoDetailView />} />
               <Route
                 path="/repositories/:id/discussions/:number"

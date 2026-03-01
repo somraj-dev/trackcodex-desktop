@@ -116,15 +116,15 @@ const WorkflowRunDetail: React.FC = () => {
   const getStatusBadge = (status: string, conclusion?: string) => {
     if (status === "QUEUED") {
       return (
-        <span className="px-2 py-1 rounded-full text-xs bg-gray-500/20 text-gray-400">
+        <span className="px-2 py-1 rounded-full text-xs bg-gray-500/20 text-[#a1a1aa]">
           Queued
         </span>
       );
     }
     if (status === "IN_PROGRESS") {
       return (
-        <span className="px-2 py-1 rounded-full text-xs bg-blue-500/20 text-blue-400 flex items-center gap-1">
-          <span className="size-2 bg-blue-400 rounded-full animate-pulse"></span>
+        <span className="px-2 py-1 rounded-full text-xs bg-[#0A0A0A]lue-500/20 text-blue-400 flex items-center gap-1">
+          <span className="size-2 bg-[#0A0A0A]lue-400 rounded-full animate-pulse"></span>
           In Progress
         </span>
       );
@@ -235,7 +235,7 @@ const WorkflowRunDetail: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={() => handleApprove("REJECTED")}
-              className="px-3 py-1.5 border border-[#30363d] text-[#f85149] rounded-lg text-sm hover:bg-red-500/10 transition-all font-bold"
+              className="px-3 py-1.5 border border-[#1E232E] text-[#f85149] rounded-lg text-sm hover:bg-red-500/10 transition-all font-bold"
             >
               Reject
             </button>

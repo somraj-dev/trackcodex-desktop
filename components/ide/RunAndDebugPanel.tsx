@@ -11,7 +11,7 @@ const RunAndDebugPanel = () => {
                 <span className="material-symbols-outlined !text-[16px] cursor-pointer hover:text-white">more_horiz</span>
             </div>
 
-            <div className="px-3 pb-3 border-b border-[#30363d]">
+            <div className="px-3 pb-3 border-b border-[#1E232E]">
                 <div className="flex items-center gap-1 bg-[#3c3c3c] p-1 rounded-sm border border-[#3c3c3c] hover:border-[#555]">
                     <button className="bg-[#388a34] hover:bg-[#44a03f] text-white p-0.5 rounded-sm flex items-center justify-center transition-colors">
                         <span className="material-symbols-outlined !text-[18px]">play_arrow</span>
@@ -31,7 +31,7 @@ const RunAndDebugPanel = () => {
 
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {/* VARIABLES Section */}
-                <div className="flex flex-col border-b border-[#30363d]">
+                <div className="flex flex-col border-b border-[#1E232E]">
                     <div className="flex items-center px-1 py-0.5 bg-[#2a2d2e] cursor-pointer group">
                         <span className="material-symbols-outlined !text-[16px] text-[#cccccc]">expand_more</span>
                         <span className="text-[11px] font-bold text-[#cccccc] uppercase tracking-wide">Variables</span>
@@ -47,7 +47,7 @@ const RunAndDebugPanel = () => {
                 </div>
 
                 {/* WATCH Section */}
-                <div className="flex flex-col border-b border-[#30363d]">
+                <div className="flex flex-col border-b border-[#1E232E]">
                     <div className="flex items-center px-1 py-0.5 bg-[#2a2d2e] cursor-pointer group justify-between pr-2">
                         <div className="flex items-center">
                             <span className="material-symbols-outlined !text-[16px] text-[#cccccc]">expand_more</span>
@@ -59,7 +59,7 @@ const RunAndDebugPanel = () => {
                 </div>
 
                 {/* CALL STACK Section */}
-                <div className="flex flex-col border-b border-[#30363d]">
+                <div className="flex flex-col border-b border-[#1E232E]">
                     <div className="flex items-center px-1 py-0.5 bg-[#2a2d2e] cursor-pointer group justify-between pr-2">
                         <div className="flex items-center">
                             <span className="material-symbols-outlined !text-[16px] text-[#cccccc]">expand_more</span>
@@ -76,7 +76,7 @@ const RunAndDebugPanel = () => {
                 </div>
 
                 {/* BREAKPOINTS Section */}
-                <div className="flex flex-col border-b border-[#30363d]">
+                <div className="flex flex-col border-b border-[#1E232E]">
                     <div className="flex items-center px-1 py-0.5 bg-[#2a2d2e] cursor-pointer group justify-between pr-2">
                         <div className="flex items-center">
                             <span className="material-symbols-outlined !text-[16px] text-[#cccccc]">expand_more</span>

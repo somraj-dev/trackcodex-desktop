@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Repository } from "../../types";
+import { api } from "../../services/api";
 
 interface RepoPullRequestsTabProps {
   repo: Repository;
@@ -19,9 +20,7 @@ const RepoPullRequestsTab: React.FC<RepoPullRequestsTabProps> = ({ repo }) => {
   const fetchPrs = async () => {
     setLoading(true);
     try {
-      const url = `/api/v1/repositories/${repo.id}/pulls?status=${filter}`;
-      const response = await fetch(url);
-      const data = await response.json();
+      const data = await api.repositories.getPulls(repo.id, filter);
       setPrs(data);
     } catch (err) {
       console.error("Failed to fetch PRs", err);
@@ -47,7 +46,7 @@ const RepoPullRequestsTab: React.FC<RepoPullRequestsTabProps> = ({ repo }) => {
     }
     if (pr.draft) {
       return (
-        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-gray-500">
+        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-500/20 text-[#888888]">
           Draft
         </span>
       );
@@ -106,11 +105,10 @@ const RepoPullRequestsTab: React.FC<RepoPullRequestsTabProps> = ({ repo }) => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setFilter("OPEN")}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-              filter === "OPEN"
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${filter === "OPEN"
                 ? "bg-primary text-white"
                 : "text-gh-text hover:bg-gh-bg-secondary border border-gh-border"
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined !text-[16px] inline-block mr-1">
               call_split
@@ -119,11 +117,10 @@ const RepoPullRequestsTab: React.FC<RepoPullRequestsTabProps> = ({ repo }) => {
           </button>
           <button
             onClick={() => setFilter("CLOSED")}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-              filter === "CLOSED"
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${filter === "CLOSED"
                 ? "bg-primary text-white"
                 : "text-gh-text hover:bg-gh-bg-secondary border border-gh-border"
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined !text-[16px] inline-block mr-1">
               close
@@ -132,11 +129,10 @@ const RepoPullRequestsTab: React.FC<RepoPullRequestsTabProps> = ({ repo }) => {
           </button>
           <button
             onClick={() => setFilter("MERGED")}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-              filter === "MERGED"
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${filter === "MERGED"
                 ? "bg-primary text-white"
                 : "text-gh-text hover:bg-gh-bg-secondary border border-gh-border"
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined !text-[16px] inline-block mr-1">
               merge
@@ -177,13 +173,12 @@ const RepoPullRequestsTab: React.FC<RepoPullRequestsTabProps> = ({ repo }) => {
             >
               <div className="flex items-start gap-4">
                 <span
-                  className={`material-symbols-outlined !text-[28px] mt-0.5 ${
-                    pr.status === "MERGED"
+                  className={`material-symbols-outlined !text-[28px] mt-0.5 ${pr.status === "MERGED"
                       ? "text-purple-500"
                       : pr.status === "CLOSED"
                         ? "text-red-500"
                         : "text-green-500"
-                  }`}
+                    }`}
                 >
                   {pr.status === "MERGED"
                     ? "merge"

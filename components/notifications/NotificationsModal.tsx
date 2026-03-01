@@ -28,14 +28,14 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+        className="absolute inset-0 bg-[#0A0A0A]lack/60 backdrop-blur-sm animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-2xl bg-[#0d1117] border border-[#30363d] rounded-2xl shadow-2xl flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200 ring-1 ring-white/10">
+      <div className="relative w-full max-w-2xl bg-[#0A0D14] border border-[#1E232E] rounded-2xl shadow-2xl flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200 ring-1 ring-white/10">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#30363d] bg-[#161b22]/50 rounded-t-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E232E] bg-[#11141A]/50 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg text-primary">
               <span className="material-symbols-outlined !text-[20px]">
@@ -82,7 +82,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
               {notifications.map((notif) => (
                 <div
                   key={notif.id}
-                  className={`p-4 rounded-xl border border-transparent hover:border-[#30363d] hover:bg-[#161b22] transition-all cursor-pointer group flex gap-4 ${!notif.read ? "bg-[#161b22]/50" : ""}`}
+                  className={`p-4 rounded-xl border border-transparent hover:border-[#1E232E] hover:bg-[#11141A] transition-all cursor-pointer group flex gap-4 ${!notif.read ? "bg-[#11141A]/50" : ""}`}
                 >
                   {/* Icon */}
                   <div
@@ -90,7 +90,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
                       notif.type === "job"
                         ? "bg-amber-500/10 text-amber-500"
                         : notif.type === "comment"
-                          ? "bg-blue-500/10 text-blue-500"
+                          ? "bg-[#0A0A0A]lue-500/10 text-blue-500"
                           : notif.type === "community"
                             ? "bg-purple-500/10 text-purple-500"
                             : "bg-slate-500/10 text-slate-400"
@@ -147,7 +147,7 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-[#30363d] bg-[#161b22]/30 rounded-b-2xl flex justify-end">
+        <div className="p-4 border-t border-[#1E232E] bg-[#11141A]/30 rounded-b-2xl flex justify-end">
           {/* Could add pagination or filters here later */}
         </div>
       </div>

@@ -36,7 +36,7 @@ const EditorCommentItem: React.FC<EditorCommentItemProps> = ({
 }) => {
   const navigate = useNavigate();
   return (
-    <div className={`py-4 group ${!isReply ? 'border-b border-white/5 last:border-0' : 'mt-4'}`}>
+    <div className={`py-4 group ${!isReply ? 'border-b border-white/5 last:border-[#1A1A1A]' : 'mt-4'}`}>
       <div className="flex gap-3">
         <img 
           src={comment.author.avatar} 
@@ -112,8 +112,8 @@ const EditorCommentThread: React.FC<EditorCommentThreadProps> = ({ lineNumber, c
   };
 
   return (
-    <div className="bg-[#161b22] border border-[#30363d] rounded-2xl my-4 mx-8 overflow-hidden shadow-2xl relative group/thread">
-      <div className="bg-[#0d1117] px-5 py-3 border-b border-[#30363d] flex items-center justify-between">
+    <div className="bg-[#11141A] border border-[#1E232E] rounded-2xl my-4 mx-8 overflow-hidden shadow-2xl relative group/thread">
+      <div className="bg-[#0A0D14] px-5 py-3 border-b border-[#1E232E] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
             <span className="material-symbols-outlined !text-[16px] filled">forum</span>
@@ -128,7 +128,7 @@ const EditorCommentThread: React.FC<EditorCommentThreadProps> = ({ lineNumber, c
         </button>
       </div>
       
-      <div className="p-5 max-h-[500px] overflow-y-auto custom-scrollbar flex flex-col bg-[#161b22]">
+      <div className="p-5 max-h-[500px] overflow-y-auto custom-scrollbar flex flex-col bg-[#11141A]">
         {comments.length === 0 ? (
           <div className="py-8 text-center flex flex-col items-center gap-3">
             <div className="size-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-600">
@@ -143,7 +143,7 @@ const EditorCommentThread: React.FC<EditorCommentThreadProps> = ({ lineNumber, c
         )}
       </div>
 
-      <div className="p-5 bg-black/20 border-t border-[#30363d]">
+      <div className="p-5 bg-[#0A0A0A]lack/20 border-t border-[#1E232E]">
         <form onSubmit={handleSubmit} className="space-y-3">
           {replyTo && (
             <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-xl px-4 py-2 animate-in slide-in-from-left-2 duration-200">
@@ -162,7 +162,7 @@ const EditorCommentThread: React.FC<EditorCommentThreadProps> = ({ lineNumber, c
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={replyTo ? "Write your reply..." : "Leave a comment..."}
-              className="w-full bg-[#0d1117] border-2 border-transparent focus:border-primary/50 bg-clip-padding rounded-xl p-4 text-[13px] text-slate-200 focus:ring-0 outline-none resize-none h-24 transition-all shadow-inner placeholder:text-slate-600"
+              className="w-full bg-[#0A0D14] border-2 border-transparent focus:border-primary/50 bg-clip-padding rounded-xl p-4 text-[13px] text-slate-200 focus:ring-0 outline-none resize-none h-24 transition-all shadow-inner placeholder:text-slate-600"
             />
           </div>
           <div className="flex justify-between items-center gap-2">
@@ -188,7 +188,7 @@ const EditorCommentThread: React.FC<EditorCommentThreadProps> = ({ lineNumber, c
                 <button 
                   type="submit"
                   disabled={!inputText.trim()}
-                  className="bg-primary hover:bg-blue-600 disabled:opacity-30 disabled:scale-100 text-white px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95"
+                  className="bg-primary hover:bg-[#0A0A0A]lue-600 disabled:opacity-30 disabled:scale-100 text-white px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95"
                 >
                   {replyTo ? 'Post Reply' : 'Add Comment'}
                 </button>

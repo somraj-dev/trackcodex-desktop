@@ -19,9 +19,9 @@ const AddEnvVarModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (v: an
     };
 
     return (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-[#0A0A0A]lack/80 backdrop-blur-sm animate-in fade-in duration-300">
             <div 
-                className="bg-[#1c1f26] border border-[#30363d] w-full max-w-lg rounded-xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-300"
+                className="bg-[#1c1f26] border border-[#1E232E] w-full max-w-lg rounded-xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-300"
                 onClick={(e) => e.stopPropagation()}
             >
                 <header className="p-4 flex items-center justify-between border-b border-gh-border">
@@ -64,9 +64,9 @@ const AddEnvVarModal = ({ onClose, onAdd }: { onClose: () => void; onAdd: (v: an
                         </div>
                     </div>
 
-                    <footer className="p-4 bg-[#161b22] border-t border-gh-border flex justify-end gap-3">
+                    <footer className="p-4 bg-[#11141A] border-t border-gh-border flex justify-end gap-3">
                         <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-300 hover:bg-slate-700 rounded-lg">Cancel</button>
-                        <button type="submit" className="px-5 py-2 text-sm bg-primary rounded-lg text-white font-bold hover:bg-blue-600 transition-colors flex items-center gap-2"><span className="material-symbols-outlined !text-base">add</span> Add Variable</button>
+                        <button type="submit" className="px-5 py-2 text-sm bg-primary rounded-lg text-white font-bold hover:bg-[#0A0A0A]lue-600 transition-colors flex items-center gap-2"><span className="material-symbols-outlined !text-base">add</span> Add Variable</button>
                     </footer>
                 </form>
             </div>

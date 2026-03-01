@@ -84,6 +84,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const idToken = await firebaseUser.getIdToken();
 
+          // Sync user to PostgreSQL backend immediately
+          fetch(`${API_BASE_URL}/auth/sync`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${idToken}`,
+            },
+            credentials: "include"
+          }).catch((err) => console.error("Failed to sync user to database:", err));
+
           // Check provider data for GitHub/Google
           for (const providerData of firebaseUser.providerData) {
             if (providerData.providerId === "github.com") {
@@ -158,11 +168,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
+      // Best effort backend session termination
       await api.post("/auth/logout");
-      await firebaseSignOut(auth);
     } catch (err) {
-      console.error("Logout failed", err);
+      console.error("Backend logout failed", err);
     } finally {
+      // Guarantee local Firebase session is destroyed NO MATTER WHAT
+      try {
+        await firebaseSignOut(auth);
+      } catch (fbErr) {
+        console.error("Firebase logout failed", fbErr);
+      }
+
       setUser(null);
       setCsrfToken(null);
       localStorage.removeItem("trackcodex_github_username");

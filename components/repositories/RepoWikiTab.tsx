@@ -84,7 +84,7 @@ const RepoWikiTab: React.FC<RepoWikiTabProps> = ({ repo }) => {
               onClick={() => setActiveSlug(page.slug)}
               className={`px-2 py-1.5 rounded-md cursor-pointer ${
                 activeSlug === page.slug
-                  ? "bg-[#21262d] font-medium border-l-[3px] border-[#f78166]"
+                  ? "bg-[#11141A] font-medium border-l-[3px] border-[#f78166]"
                   : "hover:underline opacity-75 hover:opacity-100"
               }`}
             >
@@ -110,11 +110,11 @@ const RepoWikiTab: React.FC<RepoWikiTabProps> = ({ repo }) => {
           + Add a custom page
         </button>
 
-        <div className="border-t border-[#30363d] pt-4">
+        <div className="border-t border-[#1E232E] pt-4">
           <div className="text-[#8b949e] font-bold text-xs mb-2 px-2">
             Clone this wiki locally
           </div>
-          <div className="flex items-center bg-[#0d1117] border border-[#30363d] rounded-md overflow-hidden">
+          <div className="flex items-center bg-[#0A0D14] border border-[#1E232E] rounded-md overflow-hidden">
             <input
               type="text"
               aria-label="Wiki Clone URL"
@@ -128,7 +128,7 @@ const RepoWikiTab: React.FC<RepoWikiTabProps> = ({ repo }) => {
 
       {/* Wiki Content */}
       <div className="flex-1 min-h-[400px]">
-        <div className="flex items-center justify-between border-b border-[#30363d] pb-4 mb-6">
+        <div className="flex items-center justify-between border-b border-[#1E232E] pb-4 mb-6">
           <h1 className="text-3xl font-normal text-[#c9d1d9]">
             {activeSlug.replace(/-/g, " ")}
           </h1>
@@ -143,7 +143,7 @@ const RepoWikiTab: React.FC<RepoWikiTabProps> = ({ repo }) => {
             <div className="flex gap-2">
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-3 py-1.5 bg-[#21262d] border border-[#30363d] text-[#c9d1d9] rounded-md text-sm font-bold hover:bg-[#30363d] transition-colors"
+                className="px-3 py-1.5 bg-[#11141A] border border-[#1E232E] text-[#c9d1d9] rounded-md text-sm font-bold hover:bg-[#30363d] transition-colors"
               >
                 Cancel
               </button>
@@ -158,7 +158,7 @@ const RepoWikiTab: React.FC<RepoWikiTabProps> = ({ repo }) => {
         </div>
 
         {loading ? (
-          <div className="text-center py-10 text-gray-500">
+          <div className="text-center py-10 text-[#888888]">
             Loading content...
           </div>
         ) : isEditing ? (
@@ -170,7 +170,7 @@ const RepoWikiTab: React.FC<RepoWikiTabProps> = ({ repo }) => {
               id="wiki-content"
               value={editVal}
               onChange={(e) => setEditVal(e.target.value)}
-              className="w-full h-[500px] bg-[#0d1117] border border-[#30363d] rounded-md p-4 text-[#c9d1d9] font-mono focus:border-[#58a6ff] focus:outline-none resize-none"
+              className="w-full h-[500px] bg-[#0A0D14] border border-[#1E232E] rounded-md p-4 text-[#c9d1d9] font-mono focus:border-[#58a6ff] focus:outline-none resize-none"
               aria-label="Edit wiki page content"
             />
           </>

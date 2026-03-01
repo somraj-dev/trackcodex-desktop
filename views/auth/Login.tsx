@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { auth, googleProvider, githubProvider } from "../../lib/firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail, GithubAuthProvider, linkWithCredential } from "firebase/auth";
 
 const Login = () => {
   const { login, isAuthenticated } = useAuth();
@@ -38,9 +38,30 @@ const Login = () => {
     try {
       await signInWithPopup(auth, githubProvider);
       // Auth state change is handled by onAuthStateChanged in AuthContext
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to initialize GitHub login");
+    } catch (error: any) {
+      if (error.code === 'auth/account-exists-with-different-credential' || (error.message && error.message.includes('account-exists-with-different-credential'))) {
+        const pendingAuthCredential = GithubAuthProvider.credentialFromError(error);
+        if (pendingAuthCredential) {
+          try {
+            // Bypass fetchSignInMethodsForEmail to avoid Email Enumeration Protection errors
+            // Automatically restart the Google Flow, and if successful, link GitHub to it.
+            const result = await signInWithPopup(auth, googleProvider);
+            await linkWithCredential(result.user, pendingAuthCredential);
+            return; // Success! Linked and logged in.
+          } catch (linkingError) {
+            console.error("Linking failed:", linkingError);
+            setError("Your email is registered with Google. Please click 'Continue with Google' to sign in.");
+            setIsLoading(false);
+            return;
+          }
+        }
+        setError("Your email is registered with Google. Please click 'Continue with Google' to sign in.");
+        setIsLoading(false);
+        return;
+      }
+      console.error(error);
+      setError(error.message || "Failed to initialize GitHub login");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -82,15 +103,15 @@ const Login = () => {
       <div className="hidden lg:flex w-[45%] bg-gh-bg flex-col justify-center items-center relative overflow-hidden p-12 text-gh-text-secondary">
         {/* Background Accents */}
         <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600 rounded-full blur-[120px]"></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-transparent rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-white rounded-full blur-[120px]"></div>
         </div>
 
         <div className="relative z-10 max-w-lg text-center">
           <h1 className="text-5xl font-bold mb-6 tracking-tight text-white leading-tight">
             Welcome back
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+            <span className="text-white">
               to the future
             </span>
           </h1>
@@ -111,10 +132,10 @@ const Login = () => {
       </div>
 
       {/* Right Panel - Light & Clean Form */}
-      <div className="flex-1 bg-white flex flex-col justify-center items-center p-6 lg:p-12 text-gray-900">
+      <div className="flex-1 bg-[#000000] flex flex-col justify-center items-center p-6 lg:p-12 text-white">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:text-left">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h2 className="text-3xl font-bold tracking-tight text-white">
               Sign in to TrackCodex
             </h2>
           </div>
@@ -124,7 +145,7 @@ const Login = () => {
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="flex items-center justify-center w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all bg-white text-gray-700 font-medium font-sans shadow-sm hover:shadow-md h-[50px]"
+              className="flex items-center justify-center w-full px-4 py-3 border border-[#333] rounded-lg hover:bg-[#111]   transition-all bg-[#000000] text-[#ededed] font-medium font-sans  hover:shadow-md h-[50px]"
             >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -137,7 +158,7 @@ const Login = () => {
               type="button"
               onClick={handleGithubLogin}
               disabled={isLoading}
-              className="flex items-center justify-center w-full px-4 py-3 bg-[#24292e] hover:bg-[#1b1f23] text-white rounded-lg focus:ring-4 focus:ring-gray-300 transition-all font-medium font-sans shadow-lg hover:shadow-xl h-[50px]"
+              className="flex items-center justify-center w-full px-4 py-3 bg-[#24292e] hover:bg-[#1b1f23] text-white rounded-lg   transition-all font-medium font-sans  hover:shadow-xl h-[50px]"
             >
               <svg
                 className="w-5 h-5 mr-3"
@@ -158,10 +179,10 @@ const Login = () => {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
+              <div className="w-full border-t border-[#333]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500 font-medium">
+              <span className="px-2 bg-[#000000] text-[#a1a1aa] font-medium">
                 or
               </span>
             </div>
@@ -171,7 +192,7 @@ const Login = () => {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-semibold text-gray-700 mb-2"
+                className="block text-sm font-semibold text-[#ededed] mb-2"
               >
                 Username or Email Address
               </label>
@@ -181,7 +202,7 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full px-4 py-2 border border-[#333] rounded-md focus:ring-2 focus:ring-[#888] focus:border-blue-500 outline-none transition-all"
               />
             </div>
 
@@ -211,7 +232,7 @@ const Login = () => {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-gh-bg border border-gh-border rounded-md text-sm text-gh-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                    className="w-full pl-10 pr-4 py-2 bg-gh-bg border border-gh-border rounded-md text-sm text-gh-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all "
                     placeholder="••••••••"
                   />
                 </div>
@@ -228,7 +249,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#1F2937] hover:bg-black text-white font-bold py-3 rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-[#1F2937] hover:bg-black text-white font-bold py-3 rounded-lg transition-all  hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Processing..." : "Sign in"}
               </button>

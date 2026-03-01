@@ -81,10 +81,10 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300 font-display">
-      <div className="bg-[#0d1117] border border-[#30363d] w-full max-w-5xl h-[85vh] rounded-2xl overflow-hidden shadow-2xl flex">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-[#0A0A0A]lack/90 backdrop-blur-md animate-in fade-in duration-300 font-display">
+      <div className="bg-[#0A0D14] border border-[#1E232E] w-full max-w-5xl h-[85vh] rounded-2xl overflow-hidden shadow-2xl flex">
         {/* Sidebar: Approval Workflow */}
-        <div className="w-64 border-r border-[#30363d] bg-[#010409] p-6 hidden md:flex flex-col">
+        <div className="w-64 border-r border-[#1E232E] bg-[#0A0D14] p-6 hidden md:flex flex-col">
           <div className="flex items-center gap-3 mb-8">
             <div className="size-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
               A
@@ -119,7 +119,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="size-5 rounded-full bg-blue-500 flex items-center justify-center mt-0.5 ring-4 ring-[#010409] animate-pulse">
+              <div className="size-5 rounded-full bg-[#0A0A0A]lue-500 flex items-center justify-center mt-0.5 ring-4 ring-[#010409] animate-pulse">
                 <span className="material-symbols-outlined !text-[12px] text-white">
                   schedule
                 </span>
@@ -145,8 +145,8 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
         </div>
 
         {/* Main Editor */}
-        <div className="flex-1 flex flex-col bg-[#0d1117] min-w-0">
-          <div className="h-16 border-b border-[#30363d] flex items-center justify-between px-6 bg-[#161b22]">
+        <div className="flex-1 flex flex-col bg-[#0A0D14] min-w-0">
+          <div className="h-16 border-b border-[#1E232E] flex items-center justify-between px-6 bg-[#11141A]">
             <h2 className="text-lg font-bold text-white">
               Offer Details & Terms
             </h2>
@@ -160,7 +160,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
               <button
                 form="offer-form"
                 type="submit"
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
+                className="px-5 py-2 bg-[#0A0A0A]lue-600 hover:bg-[#0A0A0A]lue-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2"
               >
                 {isSubmitting ? "Processing..." : "Send Offer"}
                 <span className="material-symbols-outlined !text-[16px]">
@@ -186,7 +186,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                     <label className="block text-[11px] font-bold text-slate-400 mb-2">
                       Base Salary (Annual)
                     </label>
-                    <div className="flex items-center gap-2 bg-[#161b22] border border-[#30363d] rounded-lg px-3 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+                    <div className="flex items-center gap-2 bg-[#11141A] border border-[#1E232E] rounded-lg px-3 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
                       <span className="text-slate-500 text-xs">USD</span>
                       <input
                         type="text"
@@ -211,7 +211,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                     </label>
                     <input
                       aria-label="Equity Options"
-                      className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                      className="w-full bg-[#11141A] border border-[#1E232E] rounded-lg px-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                       value={formData.equity}
                       onChange={(e) =>
                         setFormData({ ...formData, equity: e.target.value })
@@ -224,7 +224,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                     </label>
                     <input
                       aria-label="Sign-on Bonus"
-                      className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                      className="w-full bg-[#11141A] border border-[#1E232E] rounded-lg px-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                       value={formData.signOnBonus}
                       onChange={(e) =>
                         setFormData({
@@ -252,7 +252,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                     <input
                       type="date"
                       aria-label="Start Date"
-                      className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                      className="w-full bg-[#11141A] border border-[#1E232E] rounded-lg px-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                       value={formData.startDate}
                       onChange={(e) =>
                         setFormData({ ...formData, startDate: e.target.value })
@@ -270,7 +270,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                       </span>
                       <input
                         aria-label="Reporting Manager"
-                        className="w-full bg-[#161b22] border border-[#30363d] rounded-lg pl-10 pr-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        className="w-full bg-[#11141A] border border-[#1E232E] rounded-lg pl-10 pr-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         value={formData.reportingManager}
                         onChange={(e) =>
                           setFormData({
@@ -292,7 +292,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                       </span>
                       <input
                         aria-label="Office Location"
-                        className="w-full bg-[#161b22] border border-[#30363d] rounded-lg pl-10 pr-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        className="w-full bg-[#11141A] border border-[#1E232E] rounded-lg pl-10 pr-3 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         value={formData.officeLocation}
                         onChange={(e) =>
                           setFormData({
@@ -309,7 +309,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                     </label>
                     <textarea
                       placeholder="e.g. Must have active clearance, 3 years React experience..."
-                      className="w-full bg-[#161b22] border border-[#30363d] rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all h-24 resize-none"
+                      className="w-full bg-[#11141A] border border-[#1E232E] rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 outline-none transition-all h-24 resize-none"
                       value={formData.prerequisites}
                       onChange={(e) =>
                         setFormData({
@@ -322,7 +322,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                 </div>
               </section>
 
-              <section className="bg-[#161b22] rounded-xl p-4 border border-[#30363d] space-y-4">
+              <section className="bg-[#11141A] rounded-xl p-4 border border-[#1E232E] space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-white">
                     Include Relocation Package
@@ -336,7 +336,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                         includeRelocation: !formData.includeRelocation,
                       })
                     }
-                    className={`w-10 h-5 rounded-full relative transition-colors ${formData.includeRelocation ? "bg-blue-600" : "bg-[#30363d]"}`}
+                    className={`w-10 h-5 rounded-full relative transition-colors ${formData.includeRelocation ? "bg-[#0A0A0A]lue-600" : "bg-[#30363d]"}`}
                   >
                     <div
                       className={`absolute top-1 left-1 size-3 bg-white rounded-full transition-transform ${formData.includeRelocation ? "translate-x-5" : ""}`}
@@ -356,7 +356,7 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
                         customNDA: !formData.customNDA,
                       })
                     }
-                    className={`w-10 h-5 rounded-full relative transition-colors ${formData.customNDA ? "bg-blue-600" : "bg-[#30363d]"}`}
+                    className={`w-10 h-5 rounded-full relative transition-colors ${formData.customNDA ? "bg-[#0A0A0A]lue-600" : "bg-[#30363d]"}`}
                   >
                     <div
                       className={`absolute top-1 left-1 size-3 bg-white rounded-full transition-transform ${formData.customNDA ? "translate-x-5" : ""}`}

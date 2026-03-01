@@ -117,6 +117,11 @@ export const api = {
         method: "PATCH",
         body: JSON.stringify({ status }),
       }),
+    start: (id: string, repoId?: string) =>
+      request<{ url: string; port: number }>(`/workspaces/${id}/start`, {
+        method: "POST",
+        body: JSON.stringify({ repoId }),
+      }),
     delete: (id: string) =>
       request<void>(`/workspaces/${id}`, { method: "DELETE" }),
   },
@@ -128,6 +133,8 @@ export const api = {
       return (res as { repositories: Repository[] }).repositories || [];
     },
     get: (id: string) => request<Repository>(`/repositories/${id}`),
+    getByName: (owner: string, name: string) =>
+      request<Repository>(`/repositories/by-name/${owner}/${name}`),
     create: (data: Partial<Repository>) =>
       request<Repository>("/repositories", {
         method: "POST",
@@ -146,6 +153,39 @@ export const api = {
       request<string[]>(`/repositories/${id}/branches`),
     getCommitDiff: (id: string, sha: string) =>
       request<{ diff: string }>(`/repositories/${id}/commits/${sha}/diff`),
+    getIssues: (id: string, filter: string = "OPEN") =>
+      request<any[]>(`/repositories/${id}/issues?status=${filter}`),
+    createIssue: (id: string, data: { title: string; body: string }) =>
+      request<any>(`/repositories/${id}/issues`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    getPulls: (id: string, filter: string = "OPEN") =>
+      request<any[]>(`/repositories/${id}/pulls?status=${filter}`),
+    createPull: (id: string, data: any) =>
+      request<any>(`/repositories/${id}/pulls`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    getContents: (id: string, path: string = "", ref: string = "HEAD") =>
+      request<any[]>(
+        `/repositories/${id}/contents?path=${encodeURIComponent(path)}&ref=${ref}`,
+      ),
+    createFile: (id: string, data: {
+      path: string,
+      content: string,
+      message?: string,
+      branch?: string,
+      sha?: string
+    }) =>
+      request<any>(`/repositories/${id}/contents`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    getContent: (id: string, path: string, ref: string = "HEAD") =>
+      request<any>(
+        `/repositories/${id}/content?path=${encodeURIComponent(path)}&ref=${ref}`,
+      ),
     importRepo: (data: {
       sourceUrl: string;
       sourceUsername?: string;
@@ -155,6 +195,20 @@ export const api = {
       ownerId?: string;
     }) =>
       request<Repository>("/repositories/import", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  },
+  organizations: {
+    list: () => request<any[]>("/orgs"),
+    create: (data: { name: string }) =>
+      request<any>("/orgs", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    get: (id: string) => request<any>(`/orgs/${id}`),
+    invite: (id: string, data: { targetUserId: string; role: string }) =>
+      request<any>(`/orgs/${id}/invite`, {
         method: "POST",
         body: JSON.stringify(data),
       }),

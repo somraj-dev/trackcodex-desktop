@@ -89,8 +89,8 @@ const TerminalPanel = ({ workspaceId = 'default', onClose, onMaximize, logs = []
     }, []);
 
     return (
-        <div className="h-full flex flex-col bg-[#1e1e1e] border-t border-[#30363d] font-mono text-sm group">
-            <div className="flex items-center justify-between px-4 border-b border-[#30363d] h-[30px] shrink-0 bg-[#1e1e1e]">
+        <div className="h-full flex flex-col bg-[#1e1e1e] border-t border-[#1E232E] font-mono text-sm group">
+            <div className="flex items-center justify-between px-4 border-b border-[#1E232E] h-[30px] shrink-0 bg-[#1e1e1e]">
                 <span className="text-[11px] font-bold text-white">TERMINAL (THE FORGE)</span>
                 <div className="flex items-center gap-2">
                     <button onClick={onMaximize} className="text-[#cccccc] hover:text-white p-0.5" title="Toggle Maximize">

@@ -7,6 +7,9 @@ import {
   signInWithPopup,
   sendEmailVerification,
   updateProfile,
+  fetchSignInMethodsForEmail,
+  GithubAuthProvider,
+  linkWithCredential
 } from "firebase/auth";
 
 const Signup = () => {
@@ -39,9 +42,30 @@ const Signup = () => {
     try {
       await signInWithPopup(auth, githubProvider);
       // Auth state change handled by onAuthStateChanged in AuthContext
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to initialize GitHub login");
+    } catch (error: any) {
+      if (error.code === 'auth/account-exists-with-different-credential' || (error.message && error.message.includes('account-exists-with-different-credential'))) {
+        const pendingAuthCredential = GithubAuthProvider.credentialFromError(error);
+        if (pendingAuthCredential) {
+          try {
+            // Bypass fetchSignInMethodsForEmail to avoid Email Enumeration Protection errors
+            // Automatically restart the Google Flow, and if successful, link GitHub to it.
+            const result = await signInWithPopup(auth, googleProvider);
+            await linkWithCredential(result.user, pendingAuthCredential);
+            return; // Success! Linked and logged in.
+          } catch (linkingError) {
+            console.error("Linking failed:", linkingError);
+            setError("Your email is registered with Google. Please click 'Continue with Google' to sign in.");
+            setIsLoading(false);
+            return;
+          }
+        }
+        setError("Your email is registered with Google. Please click 'Continue with Google' to sign in.");
+        setIsLoading(false);
+        return;
+      }
+      console.error(error);
+      setError(error.message || "Failed to initialize GitHub login");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -88,14 +112,14 @@ const Signup = () => {
       <div className="hidden lg:flex w-[45%] bg-gh-bg flex-col justify-center items-center relative overflow-hidden p-12 text-gh-text-secondary">
         {/* Background Accents */}
         <div className="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600 rounded-full blur-[120px]"></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-transparent rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-white rounded-full blur-[120px]"></div>
         </div>
 
         <div className="relative z-10 max-w-lg text-center">
           <h1 className="text-5xl font-bold mb-6 tracking-tight text-white leading-tight">
             Create your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+            <span className="text-white">
               free account
             </span>
           </h1>
@@ -116,10 +140,10 @@ const Signup = () => {
       </div>
 
       {/* Right Panel - Light & Clean Form */}
-      <div className="flex-1 bg-white flex flex-col justify-center items-center p-6 lg:p-12 text-gray-900">
+      <div className="flex-1 bg-[#000000] flex flex-col justify-center items-center p-6 lg:p-12 text-white">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:text-left">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h2 className="text-3xl font-bold tracking-tight text-white">
               Sign up for TrackCodex
             </h2>
           </div>
@@ -134,7 +158,7 @@ const Signup = () => {
                 }
                 handleGoogleLogin();
               }}
-              className="flex items-center justify-center w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700 bg-white shadow-sm"
+              className="flex items-center justify-center w-full px-4 py-3 border border-[#333] rounded-lg hover:bg-[#111] transition-colors font-medium text-[#ededed] bg-[#000000] "
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                 <path
@@ -171,7 +195,7 @@ const Signup = () => {
                 }
                 handleGithubLogin();
               }}
-              className="flex items-center justify-center w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700 bg-white shadow-sm"
+              className="flex items-center justify-center w-full px-4 py-3 border border-[#333] rounded-lg hover:bg-[#111] transition-colors font-medium text-[#ededed] bg-[#000000] "
             >
               <svg
                 className="w-5 h-5 mr-3"
@@ -190,10 +214,10 @@ const Signup = () => {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
+              <div className="w-full border-t border-[#333]"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500 font-medium">
+              <span className="px-2 bg-[#000000] text-[#a1a1aa] font-medium">
                 or
               </span>
             </div>
@@ -209,7 +233,7 @@ const Signup = () => {
           {verificationSent ? (
             <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
               <div className="text-center space-y-2">
-                <div className="size-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                <div className="size-12 bg-white text-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
                   <svg
                     className="w-6 h-6"
                     fill="none"
@@ -224,12 +248,12 @@ const Signup = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-bold text-white">
                   Check your email
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[#a1a1aa]">
                   We sent a verification link to{" "}
-                  <span className="font-semibold text-gray-900">{email}</span>.
+                  <span className="font-semibold text-white">{email}</span>.
                   Click the link to verify your account.
                 </p>
               </div>
@@ -238,14 +262,14 @@ const Signup = () => {
                 <button
                   type="button"
                   onClick={handleContinue}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg hover:shadow-xl"
+                  className="w-full bg-white hover:bg-white text-white font-bold py-3 rounded-lg transition-all  hover:shadow-xl"
                 >
                   Continue to Dashboard
                 </button>
                 <button
                   type="button"
                   onClick={() => setVerificationSent(false)}
-                  className="w-full text-sm text-gray-500 hover:text-gray-900 font-medium"
+                  className="w-full text-sm text-[#a1a1aa] hover:text-white font-medium"
                 >
                   Back to details
                 </button>
@@ -259,7 +283,7 @@ const Signup = () => {
             /* Original Form */
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-[#ededed] mb-2">
                   Email Address *
                 </label>
                 <input
@@ -268,12 +292,12 @@ const Signup = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="name@example.com"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-2 border border-[#333] rounded-md focus:ring-2 focus:ring-[#888] focus:border-blue-500 outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-[#ededed] mb-2">
                   Password *
                 </label>
                 <input
@@ -282,15 +306,15 @@ const Signup = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="Create a password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-2 border border-[#333] rounded-md focus:ring-2 focus:ring-[#888] focus:border-blue-500 outline-none transition-all"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-[#a1a1aa] mt-1">
                   Must be at least 8 characters.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-[#ededed] mb-2">
                   Username *
                 </label>
                 <input
@@ -299,22 +323,22 @@ const Signup = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   required
                   placeholder="Choose a username"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-2 border border-[#333] rounded-md focus:ring-2 focus:ring-[#888] focus:border-blue-500 outline-none transition-all"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-[#a1a1aa] mt-1">
                   Only alphanumeric characters and hyphens.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-[#ededed] mb-2">
                   Your Country/Region *
                 </label>
                 <select
                   title="Select your country"
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                  className="w-full px-4 py-2 border border-[#333] rounded-md focus:ring-2 focus:ring-[#888] focus:border-blue-500 outline-none bg-[#000000]"
                 >
                   <option value="India">India</option>
                   <option value="United States">United States</option>
@@ -329,11 +353,11 @@ const Signup = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-[#1F2937] hover:bg-black text-white font-bold py-3 rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full bg-[#1F2937] hover:bg-black text-white font-bold py-3 rounded-lg transition-all  hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Continue" : "Continue"}
                 </button>
-                <p className="text-xs text-gray-500 text-center mt-4">
+                <p className="text-xs text-[#a1a1aa] text-center mt-4">
                   By creating an account, you agree to the{" "}
                   <a href="#" className="text-blue-600 hover:underline">
                     Terms of Service

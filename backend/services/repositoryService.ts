@@ -105,13 +105,26 @@ export class RepositoryService {
       await gitServer.ensureRepoExists(newRepo.id);
     }
 
-    // 5. Update Parent Stats
-    await prisma.repository.update({
-      where: { id: sourceRepo.id },
-      data: { forksCount: { increment: 1 } },
-    });
+    // 5. Update Parent Stats & Create Outbox Event
+    const [_, repo] = await prisma.$transaction([
+      prisma.repository.update({
+        where: { id: sourceRepo.id },
+        data: { forksCount: { increment: 1 } },
+      }),
+      prisma.repository.update({
+        where: { id: newRepo.id },
+        data: {
+          outboxEvents: {
+            create: {
+              topic: "repository",
+              payload: newRepo
+            }
+          }
+        },
+      })
+    ]);
 
-    return newRepo;
+    return repo;
   }
 
   /**
@@ -176,6 +189,14 @@ export class RepositoryService {
     } else {
       await gitServer.ensureRepoExists(newRepo.id);
     }
+
+    // 4. Create Outbox Event
+    await prisma.outboxEvent.create({
+      data: {
+        topic: "repository",
+        payload: newRepo,
+      }
+    });
 
     return newRepo;
   }

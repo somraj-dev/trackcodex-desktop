@@ -22,8 +22,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   };
 
   return (
-    <div className="absolute left-[70px] bottom-12 w-80 bg-[#161b22] border border-[#30363d] rounded-xl shadow-2xl z-[200] flex flex-col max-h-[400px] animate-in slide-in-from-left-2 duration-200">
-      <div className="p-4 border-b border-[#30363d] flex items-center justify-between bg-[#0d1117] rounded-t-xl">
+    <div className="absolute left-[70px] bottom-12 w-80 bg-[#11141A] border border-[#1E232E] rounded-xl shadow-2xl z-[200] flex flex-col max-h-[400px] animate-in slide-in-from-left-2 duration-200">
+      <div className="p-4 border-b border-[#1E232E] flex items-center justify-between bg-[#0A0D14] rounded-t-xl">
         <h3 className="text-sm font-bold text-white">Notifications</h3>
         {notifications.length > 0 && (
           <button
@@ -51,7 +51,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               className={`p-3 rounded-lg border transition-all cursor-pointer group relative ${
                 notif.read
                   ? "bg-transparent border-transparent hover:bg-white/5 opacity-60"
-                  : "bg-[#0d1117] border-blue-500/30 hover:border-blue-500/50"
+                  : "bg-[#0A0D14] border-blue-500/30 hover:border-blue-500/50"
               }`}
             >
               <div className="flex items-start gap-3">
@@ -61,7 +61,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                       ? "bg-emerald-500"
                       : notif.type === "alert"
                         ? "bg-red-500"
-                        : "bg-blue-500"
+                        : "bg-[#0A0A0A]lue-500"
                   }`}
                 ></div>
                 <div className="flex-1 min-w-0">

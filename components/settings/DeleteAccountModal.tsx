@@ -37,8 +37,8 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[#161b22] border border-[#30363d] rounded-lg shadow-xl p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A0A0A]lack/50 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-[#11141A] border border-[#1E232E] rounded-lg shadow-xl p-6">
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-xl font-bold text-[#f85149]">Delete Account</h2>
           <button
@@ -71,7 +71,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
-            className="w-full px-3 py-2 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] outline-none"
+            className="w-full px-3 py-2 bg-[#0A0D14] border border-[#1E232E] rounded-md text-[#c9d1d9] focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] outline-none"
             aria-label="Type your username to confirm account deletion"
             placeholder={user?.username}
           />
@@ -83,7 +83,7 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
           className={`w-full py-2 px-4 rounded-md font-bold text-white transition-all ${
             confirmText === user?.username && !isDeleting
               ? "bg-[#da3633] hover:bg-[#b62324]"
-              : "bg-[#21262d] text-[#8b949e] cursor-not-allowed"
+              : "bg-[#11141A] text-[#8b949e] cursor-not-allowed"
           }`}
         >
           {isDeleting ? "Deleting account..." : "Delete this account"}

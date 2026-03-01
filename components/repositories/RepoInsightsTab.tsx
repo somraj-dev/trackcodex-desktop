@@ -40,7 +40,7 @@ const RepoInsightsTab: React.FC<RepoInsightsTabProps> = ({ repo }) => {
           onClick={() => setActiveSection("Pulse")}
           className={`px-3 py-2 text-left text-sm font-medium ${
             activeSection === "Pulse"
-              ? "text-[#c9d1d9] bg-[#21262d] rounded-md border-l-2 border-[#f78166]"
+              ? "text-[#c9d1d9] bg-[#11141A] rounded-md border-l-2 border-[#f78166]"
               : "text-[#8b949e] hover:text-[#c9d1d9]"
           }`}
         >
@@ -61,11 +61,11 @@ const RepoInsightsTab: React.FC<RepoInsightsTabProps> = ({ repo }) => {
               Pulse (Last 7 days)
             </h2>
             {loading ? (
-              <div className="text-gray-500">Loading insights...</div>
+              <div className="text-[#888888]">Loading insights...</div>
             ) : !pulseData ? (
-              <div className="text-gray-500">No activity data available.</div>
+              <div className="text-[#888888]">No activity data available.</div>
             ) : (
-              <div className="bg-[#161b22] border border-[#30363d] rounded-md p-6">
+              <div className="bg-[#11141A] border border-[#1E232E] rounded-md p-6">
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="text-sm text-[#8b949e]">
                     Active pull requests
@@ -92,7 +92,7 @@ const RepoInsightsTab: React.FC<RepoInsightsTabProps> = ({ repo }) => {
                   </div>
                 </div>
 
-                <hr className="border-[#30363d] my-6" />
+                <hr className="border-[#1E232E] my-6" />
 
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="text-sm text-[#8b949e]">
@@ -104,7 +104,7 @@ const RepoInsightsTab: React.FC<RepoInsightsTabProps> = ({ repo }) => {
                   <div className="text-4xl font-bold text-white mb-1">
                     {pulseData.commits?.total || 0}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-[#888888]">
                     Commits by {pulseData.commits?.authors || 0} authors
                   </div>
                 </div>
