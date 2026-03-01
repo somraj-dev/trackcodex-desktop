@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../services/prisma";
 import { requireAuth } from "../middleware/auth";
-const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || "http://10.12.209.110:9200";
+const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || "https://bumpy-snakes-guess.loca.lt";
 
 // Shared prisma instance
 
