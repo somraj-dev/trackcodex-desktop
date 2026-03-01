@@ -158,11 +158,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
+      // Best effort backend session termination
       await api.post("/auth/logout");
-      await firebaseSignOut(auth);
     } catch (err) {
-      console.error("Logout failed", err);
+      console.error("Backend logout failed", err);
     } finally {
+      // Guarantee local Firebase session is destroyed NO MATTER WHAT
+      try {
+        await firebaseSignOut(auth);
+      } catch (fbErr) {
+        console.error("Firebase logout failed", fbErr);
+      }
+
       setUser(null);
       setCsrfToken(null);
       localStorage.removeItem("trackcodex_github_username");
