@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ActivityHeatmap } from '../components/profile/analytics/ActivityHeatmap';
 import { AIUsageChart } from '../components/profile/analytics/AIUsageChart';
 import { FreelancerCard } from '../components/profile/analytics/FreelancerCard';
-import { api } from '../services/api';
+import { apiInstance } from '../services/api';
 
 export const ProfileView: React.FC = () => {
     const { username } = useParams<{ username: string }>(); // e.g. /profile/johndoe
@@ -19,32 +19,17 @@ export const ProfileView: React.FC = () => {
         async function fetchData() {
             setLoading(true);
             try {
-                // Try to fetch real data
-                // For prototype, we might need to seed first, so we'll do a robust check
-
                 // 1. Get Profile
-                const profileRes = await fetch(`http://localhost:4000/api/v1/profile/${targetUser}`);
-                if (!profileRes.ok) {
-                    console.warn("User fetch failed, might be demo missing data");
-                    // Fallback or show error
-                } else {
-                    const data = await profileRes.json();
-                    setProfileData(data);
-                }
+                const profileRes = await apiInstance.get(`/profile/${targetUser}`);
+                setProfileData(profileRes.data);
 
-                // 2. Get Heatmap (New GitHub Parity Endpoint)
-                const heatmapRes = await fetch(`http://localhost:4000/api/v1/profile/${targetUser}/contributions`);
-                if (heatmapRes.ok) {
-                    const data = await heatmapRes.json();
-                    setHeatmapData(data); // { total_contributions, contributions: [], ... }
-                }
+                // 2. Get Heatmap
+                const heatmapRes = await apiInstance.get(`/profile/${targetUser}/contributions`);
+                setHeatmapData(heatmapRes.data);
 
                 // 3. Get AI Usage
-                const aiRes = await fetch(`http://localhost:4000/api/v1/profile/${targetUser}/ai-usage`);
-                if (aiRes.ok) {
-                    const data = await aiRes.json();
-                    setAiData(data);
-                }
+                const aiRes = await apiInstance.get(`/profile/${targetUser}/ai-usage`);
+                setAiData(aiRes.data);
 
             } catch (error) {
                 console.error("Failed to load profile", error);
@@ -58,12 +43,7 @@ export const ProfileView: React.FC = () => {
     const handleSeed = async () => {
         if (!profileData?.user?.id) return;
         setLoading(true);
-        await fetch('http://localhost:4000/api/v1/profile/seed-stats', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: profileData.user.id })
-        });
-        // Reload page or re-fetch
+        await apiInstance.post('/profile/seed-stats', { userId: profileData.user.id });
         window.location.reload();
     };
 

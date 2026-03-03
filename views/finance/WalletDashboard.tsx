@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../services/api';
 
 // Types
 interface Transaction {
@@ -24,22 +25,14 @@ const WalletDashboard = () => {
     const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
     const [depositAmount, setDepositAmount] = useState('1000');
 
-    useEffect(() => {
-        fetchWalletData();
-    }, []);
-
     const fetchWalletData = async () => {
         try {
-            // 1. Get Balance
-            const balRes = await fetch('http://localhost:4000/api/v1/wallet/balance', { headers: { 'x-user-id': 'user-1' } });
-            const balData = await balRes.json();
+            const [balData, txData] = await Promise.all([
+                api.get<WalletData>('/wallet/balance'),
+                api.get<Transaction[]>('/wallet/transactions'),
+            ]);
             setBalance(balData);
-
-            // 2. Get Transactions
-            const txRes = await fetch('http://localhost:4000/api/v1/wallet/transactions', { headers: { 'x-user-id': 'user-1' } });
-            const txData = await txRes.json();
             setTransactions(txData);
-
             setLoading(false);
         } catch (e) {
             console.error(e);
@@ -47,20 +40,16 @@ const WalletDashboard = () => {
         }
     };
 
+    useEffect(() => {
+        fetchWalletData();
+    }, []);
+
+
     const handleDeposit = async () => {
         try {
-            const res = await fetch('http://localhost:4000/api/v1/wallet/deposit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': 'user-1'
-                },
-                body: JSON.stringify({ amount: parseFloat(depositAmount) })
-            });
-            if (res.ok) {
-                setIsDepositModalOpen(false);
-                fetchWalletData(); // Refresh
-            }
+            await api.post('/wallet/deposit', { amount: parseFloat(depositAmount) });
+            setIsDepositModalOpen(false);
+            fetchWalletData();
         } catch (e) {
             console.error(e);
         }

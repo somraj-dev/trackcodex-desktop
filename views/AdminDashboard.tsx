@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("members");
@@ -13,40 +14,23 @@ const AdminDashboard = () => {
   // Fetch Data
   useEffect(() => {
     const fetchMembers = async () => {
-      // Demo: get first org ID or use hardcoded if user has none
       try {
-        // First get user orgs
-        const orgsRes = await fetch(
-          "http://localhost:4000/api/v1/organizations",
-          {
-            headers: { "x-user-id": "user-1" }, // Mock ID
-          },
-        );
-        const orgs = await orgsRes.json();
-        const targetOrgId = orgs[0]?.id || ORG_ID;
+        const orgs = await api.get<any[]>('/organizations');
+        const targetOrgId = (orgs as any)[0]?.id || ORG_ID;
 
         if (activeTab === "audit") {
-          const res = await fetch(
-            `http://localhost:4000/api/v1/organizations/${targetOrgId}/logs`,
-            {
-              headers: { "x-user-id": "user-1" },
-            },
-          );
-          const data = await res.json();
+          const data = await api.get<any>(`/organizations/${targetOrgId}/logs`);
           setLogs(
             data.logs?.map((l: any) => ({
               id: l.id,
               action: l.action,
-              user: "User", // Schema needs updating to include user name in log or join it
+              user: "User",
               timestamp: l.createdAt,
               details: JSON.stringify(l.metadata),
             })) || [],
           );
         } else {
-          const res = await fetch(
-            `http://localhost:4000/api/v1/organizations/${targetOrgId}/members`,
-          );
-          const data = await res.json();
+          const data = await api.get<any[]>(`/organizations/${targetOrgId}/members`);
           setMembers(data);
         }
       } catch (e) {
@@ -132,13 +116,12 @@ const AdminDashboard = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                          m.role === "OWNER"
+                        className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${m.role === "OWNER"
                             ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
                             : m.role === "ADMIN"
                               ? "bg-[#0A0A0A]lue-500/10 text-blue-400 border border-blue-500/20"
                               : "bg-gh-bg-tertiary text-gh-text-secondary border border-gh-border"
-                        }`}
+                          }`}
                       >
                         {m.role}
                       </span>

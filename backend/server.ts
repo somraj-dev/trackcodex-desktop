@@ -112,7 +112,9 @@ async function bootstrap() {
             }
             const allowedHosts = [
                 process.env.FRONTEND_URL || "https://trackcodex.com",
-                process.env.AWS_BACKEND_URL || "",  // AWS EC2 / ALB domain
+                "https://trackcodex.com",
+                "https://www.trackcodex.com",    // Vercel www variant
+                process.env.AWS_BACKEND_URL || "",
                 "http://localhost:3001",
                 "http://127.0.0.1:3001",
             ].filter(Boolean);

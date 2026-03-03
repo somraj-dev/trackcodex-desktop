@@ -4,6 +4,7 @@ import { Job } from '../../types';
 import JobCard from '../../components/jobs/JobCard';
 import PostJobModal from '../../components/jobs/PostJobModal';
 import { cacheService } from '../../services/cacheService';
+import { api } from '../../services/api';
 
 const MissionsView = () => {
   const navigate = useNavigate();
@@ -15,9 +16,7 @@ const MissionsView = () => {
   // Fetch Jobs from Real Backend with Cache
   useEffect(() => {
     cacheService.getOrFetch('missions_list', async () => {
-      const res = await fetch('http://localhost:4000/api/v1/jobs');
-      if (!res.ok) throw new Error('Failed to fetch jobs');
-      const data = await res.json();
+      const data = await api.get<any>('/jobs');
       return Array.isArray(data) ? data : [];
     }).then(data => {
       setLocalJobs(data);
@@ -47,12 +46,7 @@ const MissionsView = () => {
   const handlePostJob = async (newJobData: Partial<Job>) => {
     // Real Post to Backend
     try {
-      const res = await fetch('http://localhost:4000/api/v1/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newJobData)
-      });
-      const createdJob = await res.json();
+      const createdJob = await api.post<Job>('/jobs', newJobData);
       setLocalJobs(prev => [createdJob, ...prev]);
       setIsPostModalOpen(false);
     } catch (e) {
