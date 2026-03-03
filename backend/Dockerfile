@@ -1,38 +1,44 @@
 # Integravity Production Dockerfile
 # Optimized for Node.js, security, and scalability.
 
+# --- Builder Stage ---
 FROM node:20.20.0-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install all dependencies (including devDeps like Esbuild, Prisma CLI, etc.)
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
-# Build application
+# Copy source and config
 COPY . .
+
+# 1. Generate Prisma Client (Needs the schema file)
+# Use placeholder URL to satisfy validation during generation
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 RUN npx prisma generate --schema=backend/schema.prisma
-# We might need to adjust the build script if it expects to be in /backend
-# If npm run build:backend exists in root package.json:
+
+# 2. Build backend bundle
 RUN npm run build:backend
+
+# 3. PRUNE development dependencies to shrink the image
+# This removes Electron, Vite, etc., saving 300MB+
+RUN npm prune --production --legacy-peer-deps
+
 
 # --- Production Stage ---
 FROM node:20.20.0-alpine
 
 WORKDIR /app
 
-# Create non-root user
+# Create non-root user for security
 RUN addgroup -S trackcodex && adduser -S trackcodex -G trackcodex
 
-# Copy build artifacts from builder
+# Copy ONLY the essential artifacts from builder
 COPY --from=builder /app/dist-backend ./dist-backend
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/backend/schema.prisma ./backend/schema.prisma
-# Install ONLY production dependencies AS ROOT
-ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
-
-RUN npm install --production --legacy-peer-deps && \
-    npx prisma generate --schema=backend/schema.prisma
 
 # Create data directory and set ownership
 RUN mkdir -p /app/data/repos && \
