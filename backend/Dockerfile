@@ -21,23 +21,24 @@ FROM node:20.20.0-alpine
 
 WORKDIR /app
 
-# Least privilege security
+# Create non-root user
 RUN addgroup -S trackcodex && adduser -S trackcodex -G trackcodex
-USER trackcodex
 
-# Copy build artifacts
+# Copy build artifacts from builder
 COPY --from=builder /app/dist-backend ./dist-backend
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/backend/schema.prisma ./backend/schema.prisma
 
-# Install ONLY production dependencies (no Electron/Vite/Desktop bloat)
-# This will drastically reduce the image size
+# Install ONLY production dependencies AS ROOT
+# This prevents EACCES errors
 RUN npm install --production --legacy-peer-deps && \
     npx prisma generate --schema=backend/schema.prisma
 
-# Create data directory for cloned repositories and set permissions
-USER root
-RUN mkdir -p /app/data/repos && chown -R trackcodex:trackcodex /app/data
+# Create data directory and set ownership
+RUN mkdir -p /app/data/repos && \
+    chown -R trackcodex:trackcodex /app
+
+# Security: Switch to non-root user for runtime
 USER trackcodex
 
 EXPOSE 4000
