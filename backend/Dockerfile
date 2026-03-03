@@ -30,9 +30,9 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/backend/schema.prisma ./backend/schema.prisma
 
 # Install ONLY production dependencies AS ROOT
-# This prevents EACCES errors
+# Provide a dummy DATABASE_URL for prisma generate validation
 RUN npm install --production --legacy-peer-deps && \
-    npx prisma generate --schema=backend/schema.prisma
+    DATABASE_URL="postgresql://localhost:5432" npx prisma generate --schema=backend/schema.prisma
 
 # Create data directory and set ownership
 RUN mkdir -p /app/data/repos && \
