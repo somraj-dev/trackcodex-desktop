@@ -30,6 +30,11 @@ COPY --from=builder /app/dist-backend ./dist-backend
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
+# Create data directory for cloned repositories and set permissions
+USER root
+RUN mkdir -p /app/data/repos && chown -R trackcodex:trackcodex /app/data
+USER trackcodex
+
 EXPOSE 4000
 
 ENV NODE_ENV=production
