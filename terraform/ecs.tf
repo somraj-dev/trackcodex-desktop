@@ -45,6 +45,21 @@ resource "aws_ecs_task_definition" "app" {
           hostPort      = 4000
         }
       ]
+      environment = [
+        { name = "NODE_ENV", value = "production" },
+        { name = "FRONTEND_URL", value = "https://trackcodex.com" },
+        { name = "BACKEND_URL", value = "https://api.trackcodex.com" }
+      ]
+      secrets = [
+        {
+          name      = "DATABASE_URL"
+          valueFrom = "${aws_secretsmanager_secret.backend_secrets.arn}:DATABASE_URL::"
+        },
+        {
+          name      = "JWT_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.backend_secrets.arn}:JWT_SECRET::"
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -56,6 +71,7 @@ resource "aws_ecs_task_definition" "app" {
     }
   ])
 }
+
 
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/${var.project_name}"

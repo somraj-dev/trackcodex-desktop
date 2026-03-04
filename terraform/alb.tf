@@ -17,9 +17,10 @@ resource "aws_alb_target_group" "app" {
     protocol            = "HTTP"
     matcher             = "200"
     timeout             = "3"
-    path                = "/health"
+    path                = "/api/health"
     unhealthy_threshold = "2"
   }
+
 }
 
 resource "aws_alb_listener" "front_end" {
