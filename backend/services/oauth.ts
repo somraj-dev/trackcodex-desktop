@@ -9,14 +9,14 @@ const getGoogleClientId = () => process.env.GOOGLE_CLIENT_ID || "";
 const getGoogleClientSecret = () => process.env.GOOGLE_CLIENT_SECRET || "";
 const getGoogleRedirectUri = () =>
   process.env.GOOGLE_REDIRECT_URI ||
-  `${process.env.FRONTEND_URL || "http://localhost:3001"}/auth/callback/google`;
+  `${process.env.FRONTEND_URL || "https://trackcodex.com"}/auth/callback/google`;
 
 const getGithubClientId = () =>
   process.env.GITHUB_CLIENT_ID || process.env.VITE_GITHUB_CLIENT_ID || "";
 const getGithubClientSecret = () => process.env.GITHUB_CLIENT_SECRET || "";
 const getGithubRedirectUri = () =>
   process.env.GITHUB_REDIRECT_URI ||
-  `${process.env.FRONTEND_URL || "http://localhost:3001"}/auth/callback/github`;
+  `${process.env.FRONTEND_URL || "https://trackcodex.com"}/auth/callback/github`;
 
 console.log("--- OAuth Service Initialization (Lazy) ---");
 // We can't log values here reliably if dotenv loads later, but we can log that we are initialized.

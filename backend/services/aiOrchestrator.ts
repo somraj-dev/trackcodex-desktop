@@ -14,7 +14,7 @@ export class AIOrchestrator {
   private static GOOGLE_API_KEY =
     process.env.GEMINI_API_KEY || process.env.VITE_API_KEY || "";
   private static LOCAL_URL =
-    process.env.LOCAL_AI_URL || "http://localhost:11434/api/chat";
+    process.env.LOCAL_AI_URL || "https://api.trackcodex.com/ai/chat";
 
   private static initGoogle() {
     if (!this.googleAI && this.GOOGLE_API_KEY) {

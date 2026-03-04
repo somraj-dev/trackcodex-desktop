@@ -46,7 +46,7 @@ export interface ShannonFinding {
 // --- Configuration ---
 
 const SHANNON_CONFIG = {
-    baseUrl: process.env.SHANNON_ADAPTER_URL || "http://localhost:4100",
+    baseUrl: process.env.SHANNON_ADAPTER_URL || "https://api.trackcodex.com",
     timeout: parseInt(process.env.SHANNON_TIMEOUT_MS || "30000", 10),
     enabled: process.env.SHANNON_ENABLED !== "false",
     maxRetries: 2,

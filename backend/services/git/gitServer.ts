@@ -239,7 +239,7 @@ export class GitServer {
 
   private installHooks(repoPath: string) {
     const hookPath = path.join(repoPath, "hooks", "pre-receive");
-    const backendUrl = env.BACKEND_URL || "http://localhost:4000";
+    const backendUrl = env.BACKEND_URL || "https://api.trackcodex.com";
 
     // Hook script calls back to the running backend
     const script = `#!/bin/sh

@@ -22,8 +22,8 @@ class RealtimeService {
     this.workspaceId = workspaceId || null;
 
     // Use centralized API_URL, fallback to location.origin for relative calls, 
-    // or localhost:4000 for local dev if API_URL is missing.
-    const host = API_URL || (window.location.hostname === "localhost" ? "http://localhost:4000" : window.location.origin);
+    // Fallback to production API URL if API_URL env is missing
+    const host = API_URL || "https://api.trackcodex.com";
 
     console.log(`🔌 Connecting to Realtime via Socket.io: ${host}`);
 

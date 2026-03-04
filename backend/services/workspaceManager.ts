@@ -6,8 +6,8 @@ import { DockerService } from "./docker";
 import getPort from "get-port";
 import { env } from "../config/env";
 
-// OpenVSCode Server URL (Docker service on port 8080)
-const OPENVSCODE_URL = process.env.OPENVSCODE_URL || "http://localhost:8080";
+// OpenVSCode Server URL
+const OPENVSCODE_URL = process.env.OPENVSCODE_URL || "https://ide.trackcodex.com";
 const OPENVSCODE_TOKEN = process.env.OPENVSCODE_TOKEN || "trackcodex";
 
 // Local workspaces directory — bind-mounted into the Docker container at /home/workspace
@@ -68,9 +68,14 @@ export class WorkspaceManager {
       const { port: hostPort } = await DockerService.createContainer(workspaceId, "gitpod/openvscode-server:latest", port);
 
       // 3. Build the IDE URL
-      // Use the frontend's origin hostname or env.BACKEND_URL to ensure it's reachable
-      const host = env.BACKEND_URL.replace(/https?:\/\//, "").split(":")[0];
-      const protocol = env.BACKEND_URL.startsWith("https") ? "https" : "http";
+      // Use the production domain to ensure it's reachable externally, not localhost
+      const host = "trackcodex.com";
+      const protocol = "https";
+
+      // In production, we might want this to route through a proxy (e.g., workspace-id.trackcodex.com)
+      // For now, if we are mapping ports directly to the host, we use the host IP/domain and the mapped port.
+      // However, exposing raw ports on a production domain might require firewall rules.
+      // Assuming the current architecture maps port directly to the host domain:
       const url = `${protocol}://${host}:${hostPort}/?folder=/home/workspace`;
 
       console.warn(`[WorkspaceManager] IDE URL (Provisioned): ${url}`);

@@ -171,11 +171,9 @@ async function bootstrap() {
         cors: {
             origin: [
                 allowedOriginRegex,
-                process.env.FRONTEND_URL || "http://localhost:3001",
-                "http://127.0.0.1:3001",
-                "http://localhost:3001",
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
+                "https://trackcodex.com",
+                "https://api.trackcodex.com",
+                "https://www.trackcodex.com",
             ],
             methods: ["GET", "POST"],
             credentials: true,
@@ -275,7 +273,7 @@ async function bootstrap() {
     if (process.env.NODE_ENV !== "production") {
         server.get("/", async (request, reply) => {
             if (request.headers["accept"]?.includes("text/html")) {
-                return reply.redirect(process.env.FRONTEND_URL || "http://localhost:3001");
+                return reply.redirect(process.env.FRONTEND_URL || "https://trackcodex.com");
             }
             return reply.redirect("/api/health");
         });
