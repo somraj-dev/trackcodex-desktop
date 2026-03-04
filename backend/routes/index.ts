@@ -86,6 +86,15 @@ export async function routes(fastify: FastifyInstance) {
   await fastify.register(ideConfigRoutes);
   await fastify.register(galleryRoutes, { prefix: "/api/gallery" });
 
+  const { forgeAIRoutes } = await import("./forgeai");
+  await fastify.register(forgeAIRoutes, { prefix: "/forgeai" });
+
+  const { walletRoutes } = await import("./wallet");
+  await fastify.register(walletRoutes, { prefix: "/wallet" });
+
+  const { securityRoutes } = await import("./security");
+  await fastify.register(securityRoutes);
+
   const { default: deploymentRoutes } = await import("./deployments");
   await fastify.register(deploymentRoutes);
   await fastify.register(integrationRoutes);

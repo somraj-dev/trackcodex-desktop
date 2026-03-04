@@ -686,6 +686,7 @@ model Wallet {
   userId       String        @unique
   user         User          @relation(fields: [userId], references: [id])
   balance      Float         @default(0.0)
+  currency     String        @default("USD")
   transactions Transaction[]
   updatedAt    DateTime      @updatedAt
 }
@@ -697,6 +698,7 @@ model Transaction {
   amount      Float
   type        String // DEPOSIT, WITHDRAW, ESCROW_HOLD, RELEASE
   description String?
+  status      String   @default("PENDING") // PENDING, COMPLETED, FAILED
   referenceId String? // ID of job or external ref
   createdAt   DateTime @default(now())
 }

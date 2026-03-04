@@ -413,7 +413,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         setIsAILoading(true);
         try {
             const context = messages.slice(-5).map(m => `${m.sender.username}: ${m.content}`).join("\n");
-            const res = await api.post("/forge/query", {
+            const res = await api.post("/forgeai/complete", {
                 prompt: `You are ForgeAI, helping a developer in chat. Recent messages:\n${context}\n\nProvide a concise, helpful response or code explanation.`,
             });
 
