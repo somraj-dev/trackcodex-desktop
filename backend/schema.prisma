@@ -1,11 +1,10 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // --- Auth & Security ---
@@ -19,6 +18,7 @@ model User {
   avatar           String?
   role             String    @default("user") // 'user', 'admin', 'super_admin'
   profileCompleted Boolean   @default(false)
+  orcidId          String?   @unique
   emailVerified    Boolean   @default(false)
   emailVerifiedAt  DateTime?
   twoFactorEnabled Boolean   @default(false)
@@ -40,11 +40,20 @@ model User {
   twitter  String?
   linkedin String?
   github   String?
-  
-  profileReadme String? @db.Text
-  showReadme    Boolean @default(true)
-  showResume    Boolean @default(true)
-  resumeUrl     String?
+
+  // Profile README & Resume
+  profileReadme    String?   @db.Text
+  resumeUrl        String?
+  resumeFilename   String?
+  resumeUploadedAt DateTime?
+  showResume       Boolean   @default(false)
+  showReadme       Boolean   @default(true)
+
+  // Portfolio & Repository Display
+  showPortfolio     Boolean  @default(true)
+  showRepositories  Boolean  @default(true)
+  showContributions Boolean  @default(true)
+  pinnedItems       String[]
 
   // Relations
   oauthAccounts     OAuthAccount[]
@@ -60,76 +69,56 @@ model User {
   teamMembers       TeamMember[]
   jobApplications   JobApplication[]
 
-  // Collaboration Additions
-  authoredIssues Issue[]       @relation("IssueAuthor")
-  authoredPRs    PullRequest[] @relation("PRAuthor")
-  comments       Comment[]
-
-  customProfile        Profile?
-  sshKeys              SSHKey[]
-  gpgKeys              GPGKey[]
-  followings           Follow[]              @relation("Following")
-  followers            Follow[]              @relation("Followers")
-  activities           Activity[]
-  environmentReviewers EnvironmentReviewer[]
-  deploymentApprovals  DeploymentApproval[]
-  userExtensions       UserExtension[]
-
-  // Collaboration Additions
   workspaceMemberships    WorkspaceMember[]
   workspaceStars          WorkspaceStar[]
   workspaceInvitesSent    WorkspaceMember[] @relation("InvitedBy")
   workspaceInvitesCreated WorkspaceInvite[]
-  repositories            Repository[]
-  notifications           Notification[]
-  followRequestsSent      FollowRequest[] @relation("FollowRequestsSent")
-  followRequestsReceived  FollowRequest[] @relation("FollowRequestsReceived")
 
-  // Messaging Relations
+  customProfile       Profile?
+  sshKeys             SSHKey[]
+  gpgKeys             GPGKey[]
+  repositories        Repository[]         @relation("RepoOwner")
+  followings          Follow[]             @relation("Following")
+  followers           Follow[]             @relation("Followers")
+  auditLogs           AuditLog[]
+  mergedPRs           PullRequest[]        @relation("PRMerger")
+  prreviews           PRReview[]
+  issues              Issue[]              @relation("IssueAuthor")
+  pullRequests        PullRequest[]        @relation("PRAuthor")
+  closedIssues        Issue[]              @relation("IssueCloser")
+  issueAssignees      IssueAssignee[]
+  discussions         Discussion[]         @relation("DiscussionAuthor")
+  discussionComments  DiscussionComment[]  @relation("DiscussionCommentAuthor")
+  discussionReactions DiscussionReaction[] @relation("DiscussionReactions")
+  comments            Comment[]
+
+  // Messaging
   conversationParticipants ConversationParticipant[]
-  sentMessages             Message[]
-}
+  sentMessages             Message[]                 @relation("MessageSender")
+  Issue                    Issue[]
 
-// --- Messaging ---
+  // Portfolio
+  portfolioItems PortfolioItem[]
 
-model Conversation {
-  id            String   @id @default(uuid())
-  type          String   @default("DIRECT") // DIRECT, GROUP
-  lastMessageAt DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  // Community
+  communityPosts       CommunityPost[]
+  communityComments    CommunityComment[]
+  postLikes            CommunityPostLike[]
+  communitiesCreated   Community[]         @relation("CommunityCreator")
+  communityMemberships CommunityMember[]
+  notifications        Notification[]
 
-  participants ConversationParticipant[]
-  messages     Message[]
-}
+  // Skill Radar
+  skillScore   UserSkillScore?
+  skillMetrics SkillRawMetrics?
 
-model ConversationParticipant {
-  id             String       @id @default(uuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lastReadAt     DateTime?
-  joinedAt       DateTime     @default(now())
-
-  @@unique([conversationId, userId])
-  @@index([conversationId])
-  @@index([userId])
-}
-
-model Message {
-  id             String       @id @default(uuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  senderId       String
-  sender         User         @relation(fields: [senderId], references: [id])
-  content        String       @db.Text
-  metadata       Json?        @default("{}")  // For reactions, read receipts, etc.
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-
-  @@index([conversationId])
-  @@index([senderId])
+  // Additional Relations from Backend
+  activities             Activity[]
+  followRequestsSent     FollowRequest[]       @relation("FollowRequestsSent")
+  followRequestsReceived FollowRequest[]       @relation("FollowRequestsReceived")
+  environmentReviewers   EnvironmentReviewer[]
+  deploymentApprovals    DeploymentApproval[]
+  userExtensions         UserExtension[]
 }
 
 model Profile {
@@ -269,17 +258,18 @@ model FeatureFlag {
 model Organization {
   id        String       @id @default(uuid())
   name      String
-  avatar    String?
   createdAt DateTime     @default(now())
   members   OrgMember[]
   jobs      Job[]
   repos     Repository[]
 
-  enterpriseId String?
-  enterprise   Enterprise? @relation(fields: [enterpriseId], references: [id])
-  teams        Team[]
-  webhooks     Webhook[]
-  activities   Activity[]
+  enterpriseId     String?
+  enterprise       Enterprise?       @relation(fields: [enterpriseId], references: [id])
+  teams            Team[]
+  auditLogs        AuditLog[]
+  encryptedSecrets EncryptedSecret[]
+  webhooks         Webhook[]
+  activities       Activity[]
 }
 
 model OrgMember {
@@ -305,16 +295,21 @@ model Repository {
   updatedAt   DateTime @updatedAt
   settings    Json?    @default("{}")
 
+  ownerId String
+  owner   User   @relation("RepoOwner", fields: [ownerId], references: [id])
+
   // Visibility (Integravity Expansion)
-  visibility String @default("PUBLIC") // PUBLIC, PRIVATE, INTERNAL
+  visibility String  @default("PUBLIC") // PUBLIC, PRIVATE, INTERNAL
+  isTemplate Boolean @default(false)
+
+  deletedAt    DateTime?
+  dependencies Json? // Parsed dependency graph data
 
   // Relations
   branchProtections BranchProtection[]
   statusChecks      StatusCheck[]
 
   // Organizations & Context
-  ownerId      String?
-  owner        User?         @relation(fields: [ownerId], references: [id])
   orgId        String?
   org          Organization? @relation(fields: [orgId], references: [id])
   enterpriseId String? // Denormalized for RLS
@@ -334,9 +329,11 @@ model Repository {
   openIssuesCount Int       @default(0)
   lastSyncAt      DateTime?
 
+  // Repository Integration
+  githubId String? @unique // Using String for flexibility with GitHub IDs
+  htmlUrl  String?
   cloneUrl String?
   sshUrl   String?
-  htmlUrl  String?
 
   securityAlerts  SecurityAlert[]
   aiTasks         AITask[]
@@ -344,23 +341,22 @@ model Repository {
   teamPermissions RepoPermission[]
 
   // Collaboration (Integravity Phase 4)
-  issues       Issue[]
-  pullRequests PullRequest[]
-  labels       Label[]
-  milestones   Milestone[]
-
+  issues           Issue[]
+  pullRequests     PullRequest[]
+  labels           Label[]
+  milestones       Milestone[]
+  projectBoards    ProjectBoard[]
+  discussions      Discussion[]
   // CI/CD (Integravity Phase 5)
-  workflowRuns WorkflowRun[]
-
-  // External Integrations (Integravity Phase 7)
-  webhooks Webhook[]
-
-  // Activity Feed (Integravity Phase 8)
-  activities Activity[]
-
-  // Environments (Elite Governance Additions)
-  environments Environment[]
-  codeSymbols  CodeSymbol[]
+  workflowRuns     WorkflowRun[]
+  activityLogs     ActivityLog[]
+  auditLogs        AuditLog[]
+  workflows        Workflow[]
+  encryptedSecrets EncryptedSecret[]
+  webhooks         Webhook[]
+  activities       Activity[]
+  environments     Environment[]
+  codeSymbols      CodeSymbol[]
 }
 
 model Issue {
@@ -379,13 +375,70 @@ model Issue {
   milestoneId String?
   milestone   Milestone? @relation(fields: [milestoneId], references: [id])
 
-  labels   Label[]
-  comments Comment[]
+  labels    Label[]
+  comments  Comment[]
+  assignees IssueAssignee[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Close tracking
+  closedAt     DateTime?
+  closedBy     String?
+  closedByUser User?     @relation("IssueCloser", fields: [closedBy], references: [id])
+  stateReason  String? // completed, not_planned, reopened
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  boardCards BoardCard[]
+  user       User?       @relation(fields: [userId], references: [id])
+  userId     String?
 
   @@unique([repoId, number])
+}
+
+model IssueAssignee {
+  id        String   @id @default(uuid())
+  issueId   String
+  issue     Issue    @relation(fields: [issueId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([issueId, userId])
+}
+
+model ProjectBoard {
+  id          String        @id @default(uuid())
+  repoId      String
+  repo        Repository    @relation(fields: [repoId], references: [id])
+  name        String
+  description String?       @db.Text
+  layout      String        @default("KANBAN") // KANBAN, TABLE
+  columns     BoardColumn[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model BoardColumn {
+  id        String       @id @default(uuid())
+  boardId   String
+  board     ProjectBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  name      String
+  position  Int
+  cards     BoardCard[]
+  createdAt DateTime     @default(now())
+}
+
+model BoardCard {
+  id        String       @id @default(uuid())
+  columnId  String
+  column    BoardColumn  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  issueId   String?
+  issue     Issue?       @relation(fields: [issueId], references: [id])
+  prId      String?
+  pr        PullRequest? @relation(fields: [prId], references: [id])
+  noteTitle String?
+  noteBody  String?      @db.Text
+  position  Int
+  createdAt DateTime     @default(now())
 }
 
 model PullRequest {
@@ -407,11 +460,31 @@ model PullRequest {
 
   labels   Label[]
   comments Comment[]
+  reviews  PRReview[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Merge tracking
+  mergedAt     DateTime?
+  mergedBy     String?
+  mergedByUser User?     @relation("PRMerger", fields: [mergedBy], references: [id])
+  closedAt     DateTime?
+  diffStats    Json? // { additions, deletions, changedFiles }
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  boardCards BoardCard[]
 
   @@unique([repoId, number])
+}
+
+model PRReview {
+  id            String      @id @default(uuid())
+  pullRequestId String
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id])
+  reviewerId    String
+  reviewer      User        @relation(fields: [reviewerId], references: [id])
+  status        String // APPROVED, CHANGES_REQUESTED, COMMENTED
+  body          String?     @db.Text
+  createdAt     DateTime    @default(now())
 }
 
 model Comment {
@@ -464,6 +537,58 @@ model Milestone {
   @@unique([repoId, title])
 }
 
+model Discussion {
+  id        String               @id @default(uuid())
+  repoId    String
+  repo      Repository           @relation(fields: [repoId], references: [id])
+  number    Int
+  title     String
+  body      String?              @db.Text
+  category  String               @default("GENERAL") // Q&A, IDEAS, GENERAL, ANNOUNCEMENTS
+  authorId  String
+  author    User                 @relation("DiscussionAuthor", fields: [authorId], references: [id])
+  locked    Boolean              @default(false)
+  answerId  String?              @unique
+  answer    DiscussionComment?   @relation("MarkedAnswer", fields: [answerId], references: [id])
+  comments  DiscussionComment[]  @relation("DiscussionComments")
+  reactions DiscussionReaction[]
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@unique([repoId, number])
+}
+
+model DiscussionComment {
+  id                String               @id @default(uuid())
+  discussionId      String
+  discussion        Discussion           @relation("DiscussionComments", fields: [discussionId], references: [id], onDelete: Cascade)
+  parentId          String?
+  parent            DiscussionComment?   @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies           DiscussionComment[]  @relation("CommentReplies")
+  authorId          String
+  author            User                 @relation("DiscussionCommentAuthor", fields: [authorId], references: [id])
+  body              String               @db.Text
+  reactions         DiscussionReaction[]
+  markedAsAnswerFor Discussion?          @relation("MarkedAnswer")
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+}
+
+model DiscussionReaction {
+  id           String             @id @default(uuid())
+  userId       String
+  user         User               @relation("DiscussionReactions", fields: [userId], references: [id])
+  discussionId String?
+  discussion   Discussion?        @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  commentId    String?
+  comment      DiscussionComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  emoji        String // 👍, ❤️, 🎉, 😄, 😕, 🚀, 👀
+  createdAt    DateTime           @default(now())
+
+  @@unique([userId, discussionId, emoji])
+  @@unique([userId, commentId, emoji])
+}
+
 model BranchProtection {
   id      String     @id @default(uuid())
   repoId  String
@@ -504,11 +629,11 @@ model SecurityAlert {
   repoId String
   repo   Repository @relation(fields: [repoId], references: [id])
 
-  type        String // SCA, SAST, SECRET
+  type        String  @default("VULNERABILITY") // SECRET, SCA, SAST
   severity    String // LOW, MEDIUM, HIGH, CRITICAL
   description String
-  resource    String? // e.g. "package.json", "src/auth.ts"
-  status      String  @default("OPEN") // OPEN, DISMISSED, FIXED
+  resource    String? // file path or package.json
+  status      String  @default("OPEN") // OPEN, FIXED, DISMISSED
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -519,33 +644,39 @@ model AITask {
   repoId    String
   repo      Repository @relation(fields: [repoId], references: [id])
   taskName  String
+  prompt    String     @db.Text
+  context   Json? // File context, diffs, etc.
   model     String
-  status    String // Pending, Processing, Completed, Failed
+  status    String // PENDING, PROCESSING, COMPLETED, FAILED
   result    String? // JSON string or text result
   createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Workspace {
-  id             String   @id @default(uuid())
-  name           String
-  description    String?
-  status         String   @default("Active")
-  ownerId        String
-  owner          User     @relation(fields: [ownerId], references: [id])
-  repoUrl        String?
-  visibility     String   @default("public")
-  accessPassword String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  status      String  @default("Active")
+  ownerId     String
+  owner       User    @relation(fields: [ownerId], references: [id])
 
-  // Collaboration Relations
+  // Repo Integration
+  repoUrl        String?
+  visibility     String  @default("public") // public, private
+  accessPassword String?
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  activityLogs   ActivityLog[]
+  communityPosts CommunityPost[]
+
   members    WorkspaceMember[]
   invites    WorkspaceInvite[]
   stars      WorkspaceStar[]
   starsCount Int               @default(0)
   forksCount Int               @default(0)
   forkedFrom String?
-  activityLogs ActivityLog[]
 }
 
 model WorkspaceMember {
@@ -667,16 +798,6 @@ model FreelancerProfile {
   rating        Float       @default(0.0)
   isPublic      Boolean     @default(true)
   reviews       JobReview[]
-
-  // --- Hiring (Candidate Discovery) & Growth ---
-  aiComplexityScore Float     @default(0.0)
-  prQuality         Float     @default(0.0)
-  discoveryStatus   String    @default("Idle") // "Passing", "Idle", "Top Match"
-  techStackMatches  Json?     // e.g. [{ skill: "React", alignment: 90 }]
-  
-  // Growth fields
-  skillRadar        Json?     // array of SkillRadarData
-  growthPaths       Json?     // array of GrowthPathItem
 }
 
 // --- Finance ---
@@ -686,7 +807,6 @@ model Wallet {
   userId       String        @unique
   user         User          @relation(fields: [userId], references: [id])
   balance      Float         @default(0.0)
-  currency     String        @default("USD")
   transactions Transaction[]
   updatedAt    DateTime      @updatedAt
 }
@@ -698,7 +818,6 @@ model Transaction {
   amount      Float
   type        String // DEPOSIT, WITHDRAW, ESCROW_HOLD, RELEASE
   description String?
-  status      String   @default("PENDING") // PENDING, COMPLETED, FAILED
   referenceId String? // ID of job or external ref
   createdAt   DateTime @default(now())
 }
@@ -714,15 +833,20 @@ model EscrowContract {
 }
 
 model ActivityLog {
-  id          String   @id @default(uuid())
-  userId      String?
-  action      String
-  metadata    Json?
-  workspaceId String?
-  createdAt   DateTime @default(now())
+  id      String  @id @default(uuid())
+  userId  String?
+  action  String
+  details Json?
 
-  user      User?      @relation(fields: [userId], references: [id])
-  workspace Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+
+  repoId String?
+  repo   Repository? @relation(fields: [repoId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
 }
 
 // --- ENTERPRISE FEATURES ---
@@ -769,6 +893,98 @@ model EnterpriseMember {
   @@unique([enterpriseId, userId])
 }
 
+// --- Community Features ---
+
+model CommunityPost {
+  id      String  @id @default(uuid())
+  title   String?
+  content String  @db.Text
+  type    String  @default("discussion") // discussion, question, showcase, job_alert, repo_update
+
+  // Metadata for rich posts
+  mediaUrl    String?
+  codeSnippet Json? // { language, code }
+  repoLink    Json? // { name, description, stars, language }
+  jobDetails  Json? // { company, role, salary, location }
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  likes Int @default(0)
+  views Int @default(0)
+
+  comments CommunityComment[]
+  likedBy  CommunityPostLike[]
+
+  // New Relations
+  communityId String?
+  community   Community? @relation(fields: [communityId], references: [id])
+
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+
+  researchPaperUrl String? // For academic/research posts
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Community {
+  id           String  @id @default(uuid())
+  slug         String  @unique
+  name         String
+  description  String? @db.Text
+  avatar       String?
+  coverImage   String?
+  isSearchable Boolean @default(true)
+
+  creatorId String
+  creator   User   @relation("CommunityCreator", fields: [creatorId], references: [id])
+
+  members CommunityMember[]
+  posts   CommunityPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CommunityMember {
+  id          String    @id @default(uuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  role        String    @default("MEMBER") // MEMBER, MODERATOR, ADMIN
+  joinedAt    DateTime  @default(now())
+
+  @@unique([communityId, userId])
+}
+
+model CommunityComment {
+  id   String @id @default(uuid())
+  text String @db.Text
+
+  postId String
+  post   CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CommunityPostLike {
+  id        String        @id @default(uuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([postId, userId])
+}
+
 model SSOConfig {
   id           String     @id @default(uuid())
   enterpriseId String     @unique
@@ -785,12 +1001,45 @@ model SSOConfig {
   updatedAt DateTime @updatedAt
 }
 
+// --- Messaging System ---
+
+model Conversation {
+  id   String  @id @default(uuid())
+  type String  @default("DIRECT") // DIRECT, GROUP
+  name String? // For group chats
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation("MessageSender", fields: [senderId], references: [id])
+
+  content String @db.Text
+  type    String @default("TEXT") // TEXT, IMAGE, CODE, SYSTEM
+
+  readBy Json? // Array of userIds who read the message
+  metadata Json? // Additional metadata for reactions, code snippets, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Policy {
   id           String     @id @default(uuid())
   enterpriseId String
   enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
 
-  // Types: REPO_VISIBILITY, LICENSE_CHECK, SECRET_SCANNING, 
+  // Types: REPO_VISIBILITY, LICENSE_CHECK, SECRET_SCANNING,
   //        OFFLINE_MODE, DEVICE_TRUST, RUNNER_CONSTRAINT, CLIPBOARD_SCANNING
   type     String
   name     String
@@ -802,11 +1051,20 @@ model Policy {
 }
 
 model AuditLog {
-  id           String     @id @default(uuid())
-  enterpriseId String
-  enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
+  id String @id @default(uuid())
 
-  actorId   String
+  enterpriseId String?
+  enterprise   Enterprise? @relation(fields: [enterpriseId], references: [id])
+
+  orgId        String?
+  organization Organization? @relation(fields: [orgId], references: [id])
+
+  repoId String?
+  repo   Repository? @relation(fields: [repoId], references: [id])
+
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id])
+
   action    String // AUTH_LOGIN, REPO_DELETE, POLICY_CHANGE, EXECUTION_START
   resource  String
   details   Json?
@@ -851,6 +1109,9 @@ model WorkflowRun {
   repoId String
   repo   Repository @relation(fields: [repoId], references: [id])
 
+  workflowId String?
+  workflow   Workflow? @relation(fields: [workflowId], references: [id])
+
   workflowName String // e.g. "CI", "Deploy"
   commitSha    String
   event        String // push, pull_request, workflow_dispatch
@@ -859,8 +1120,10 @@ model WorkflowRun {
 
   jobs WorkflowJob[]
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  artifacts Artifact[]
   deployments Deployment[]
 }
 
@@ -878,13 +1141,80 @@ model WorkflowJob {
   runnerId String?
   runner   Runner? @relation(fields: [runnerId], references: [id])
 
-  steps Json? // Detailed steps execution state
-  logs  String? @db.Text
+  needs      String[] // Array of Job Names this job depends on
+  definition Json? // Snapshot of the job definition (env, steps, etc)
+  matrix     Json? // Matrix context for this job (e.g. { node: 18, os: linux })
+  steps      Json? // Detailed steps execution state
+  logs       String?  @db.Text
+
+  // Drone/Engine Mapping
+  externalId String? // ID in Drone/Engine
 
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  environment   Environment? @relation(fields: [environmentId], references: [id])
+  environment   Environment? @relation("EnvironmentJobs", fields: [environmentId], references: [id])
   environmentId String?
+}
+
+// Integravity Native CI Models
+
+model Workflow {
+  id     String     @id @default(uuid())
+  repoId String
+  repo   Repository @relation(fields: [repoId], references: [id])
+  name   String // 'Build and Test'
+  path   String // '.trackcodex/workflows/ci.yml'
+  state  String     @default("ACTIVE") // ACTIVE, DISABLED
+
+  versions WorkflowVersion[]
+  runs     WorkflowRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([repoId, path])
+}
+
+model WorkflowVersion {
+  id          String   @id @default(uuid())
+  workflowId  String
+  workflow    Workflow @relation(fields: [workflowId], references: [id])
+  version     Int // Incremental
+  yamlContent String   @db.Text
+  commitSha   String
+
+  createdAt DateTime @default(now())
+}
+
+model EncryptedSecret {
+  id    String @id @default(uuid())
+  name  String
+  value String @db.Text // Encrypted value
+
+  // Scope
+  repoId String?
+  repo   Repository?   @relation(fields: [repoId], references: [id])
+  orgId  String?
+  org    Organization? @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([repoId, name])
+  @@unique([orgId, name])
+}
+
+model Artifact {
+  id            String      @id @default(uuid())
+  workflowRunId String
+  workflowRun   WorkflowRun @relation(fields: [workflowRunId], references: [id])
+
+  name      String
+  path      String // S3 Key
+  sizeBytes Int
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
 }
 
 // --- Billing & Usage ---
@@ -961,8 +1291,9 @@ model Team {
   members     TeamMember[]
   permissions RepoPermission[]
 
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   environmentReviewers EnvironmentReviewer[]
 }
 
@@ -988,26 +1319,153 @@ model RepoPermission {
   @@unique([teamId, repoId])
 }
 
-// --- Integrations & Webhooks (Integravity Phase 7) ---
+model PortfolioItem {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title        String
+  description  String   @db.Text
+  imageUrl     String?
+  demoUrl      String?
+  sourceUrl    String?
+  technologies String[]
+
+  featured Boolean @default(false)
+  order    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, featured])
+  @@index([userId, order])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  link      String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+// --- Skill Radar Engine ---
+
+model UserSkillScore {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Normalized Scores (0-100)
+  coding          Float @default(0)
+  quality         Float @default(0)
+  bugDetection    Float @default(0)
+  security        Float @default(0)
+  collaboration   Float @default(0)
+  architecture    Float @default(0)
+  consistency     Float @default(0)
+  communityImpact Float @default(0)
+
+  lastCalculatedAt DateTime @default(now())
+
+  snapshots RadarSnapshot[]
+}
+
+model SkillRawMetrics {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Coding
+  commitsPushed    Int   @default(0)
+  prCreated        Int   @default(0)
+  prMerged         Int   @default(0)
+  linesChanged     Int   @default(0)
+  mergeSuccessRate Float @default(0.0)
+
+  // Quality
+  prApprovalRate   Float @default(0.0)
+  rejectionRate    Float @default(0.0)
+  revertRate       Float @default(0.0)
+  testCoverageGain Float @default(0.0)
+
+  // Bug Detection
+  bugsReported Int   @default(0)
+  bugsFixed    Int   @default(0)
+  bugAccuracy  Float @default(0.0)
+
+  // Security
+  securityIssuesReported Int @default(0)
+  vulnerabilitiesFixed   Int @default(0)
+
+  // Collaboration
+  commentsPosted    Int @default(0)
+  prReviewsGiven    Int @default(0)
+  crossRepoContribs Int @default(0)
+
+  // Architecture
+  reposCreated        Int @default(0)
+  workspacesCreated   Int @default(0)
+  largeFeaturesMerged Int @default(0)
+  designDocsCreated   Int @default(0)
+
+  // Consistency
+  currentStreak    Int @default(0)
+  weeklyActiveDays Int @default(0)
+
+  // Community
+  starsReceived Int @default(0)
+  forks         Int @default(0)
+  followers     Int @default(0)
+  karma         Int @default(0)
+
+  updatedAt DateTime @updatedAt
+}
+
+model ActivityEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String // e.g., 'COMMIT_PUSH', 'PR_MERGE', 'BUG_FIX'
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  // Optional relations for context
+  repoId      String?
+  workspaceId String?
+
+  @@index([userId, type])
+  @@index([timestamp])
+}
+
+model RadarSnapshot {
+  id        String         @id @default(uuid())
+  userId    String
+  userScore UserSkillScore @relation(fields: [userId], references: [userId])
+
+  scores    Json // Stores the state of 8 axes at this point in time
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// --- Consolidated Models from Backend ---
 
 model Webhook {
   id     String  @id @default(uuid())
   url    String
-  secret String? // Used for HMAC signing
-
-  // Context
+  secret String?
   orgId  String?
   org    Organization? @relation(fields: [orgId], references: [id])
   repoId String?
   repo   Repository?   @relation(fields: [repoId], references: [id])
-
-  // Config
-  events      String[] // e.g. ["push", "pull_request"]
+  events      String[]
   active      Boolean  @default(true)
-  contentType String   @default("application/json") // json, form
-
+  contentType String   @default("application/json")
   deliveries WebhookDelivery[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -1016,57 +1474,40 @@ model WebhookDelivery {
   id        String  @id @default(uuid())
   webhookId String
   webhook   Webhook @relation(fields: [webhookId], references: [id])
-
   event        String
-  guid         String // Unique ID for this delivery attempt
+  guid         String
   requestBody  Json
   responseBody String? @db.Text
   responseCode Int?
-  duration     Int? // ms
-  status       String // SUCCESS, FAILURE, PENDING
-
+  duration     Int?
+  status       String
   createdAt DateTime @default(now())
 }
 
-// --- Activity Feed (Integravity Phase 8) ---
-
 model Activity {
   id      String @id @default(uuid())
-  type    String // ISSUE_OPENED, PR_MERGED, REPO_CREATED, etc.
+  type    String
   actorId String
   actor   User   @relation(fields: [actorId], references: [id])
-
-  // Context
   orgId  String?
   org    Organization? @relation(fields: [orgId], references: [id])
   repoId String?
   repo   Repository?   @relation(fields: [repoId], references: [id])
-
-  details Json? // Metadata e.g. { issueNumber: 5, prTitle: "Fix bug" }
-
+  details Json?
   createdAt DateTime @default(now())
 }
-
-// --- Elite Governance: Environments & Deployment Gates ---
 
 model Environment {
   id     String     @id @default(uuid())
   repoId String
   repo   Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
-  name   String // e.g. "production", "staging"
-
-  // Settings
-  waitDuration Int? // Minutes to wait before failing if no approval
-
-  // Protection Rules
+  name   String
+  waitDuration Int?
   reviewers EnvironmentReviewer[]
-
   deployments  Deployment[]
-  workflowJobs WorkflowJob[] // Jobs targeting this environment
-
+  workflowJobs WorkflowJob[] @relation("EnvironmentJobs") // Jobs targeting this environment
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@unique([repoId, name])
 }
 
@@ -1078,7 +1519,6 @@ model EnvironmentReviewer {
   user          User?       @relation(fields: [userId], references: [id])
   teamId        String?
   team          Team?       @relation(fields: [teamId], references: [id])
-
   @@unique([environmentId, userId])
   @@unique([environmentId, teamId])
 }
@@ -1089,10 +1529,8 @@ model Deployment {
   environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
   workflowRunId String
   workflowRun   WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
-
-  status    String               @default("WAITING") // WAITING, APPROVED, REJECTED, IN_PROGRESS, COMPLETED
+  status    String               @default("WAITING")
   approvals DeploymentApproval[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -1103,10 +1541,8 @@ model DeploymentApproval {
   deployment   Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
   userId       String
   user         User       @relation(fields: [userId], references: [id])
-
-  status  String // APPROVED, REJECTED
+  status  String
   comment String? @db.Text
-
   createdAt DateTime @default(now())
 }
 
@@ -1114,57 +1550,40 @@ model CodeSymbol {
   id     String     @id @default(uuid())
   repoId String
   repo   Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
-
   name      String
-  type      String // CLASS, FUNCTION, INTERFACE, CONSTANT
+  type      String
   path      String
   line      Int
   signature String? @db.Text
-
   createdAt DateTime @default(now())
-
   @@index([repoId])
   @@index([name])
 }
 
-// --- Code Security System (CSS) ---
-
 model CodeScan {
   id           String  @id @default(uuid())
   repositoryId String
-  triggeredBy  String // userId or "system"
-  status       String  @default("QUEUED") // QUEUED, IN_PROGRESS, COMPLETED, FAILED
-  scanType     String  @default("FULL") // FULL, INCREMENTAL, PR_CHECK
+  triggeredBy  String
+  status       String  @default("QUEUED")
+  scanType     String  @default("FULL")
   commitSha    String?
   branch       String?
-
-  // Results Summary
   totalFindings Int @default(0)
   criticalCount Int @default(0)
   highCount     Int @default(0)
   mediumCount   Int @default(0)
   lowCount      Int @default(0)
-
-  // Scores
   secureCodingScore Float?
   riskScore         Float?
-
-  // Shannon Integration
   shannonEnabled Boolean @default(false)
-  shannonScanId  String? // External ID from Shannon adapter
-
-  // Timing
+  shannonScanId  String?
   startedAt   DateTime?
   completedAt DateTime?
   durationMs  Int?
-
   errorMessage String? @db.Text
-
   vulnerabilities Vulnerability[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([repositoryId])
   @@index([status])
 }
@@ -1174,64 +1593,42 @@ model Vulnerability {
   scanId       String
   scan         CodeScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
   repositoryId String
-
-  // Location
   filePath    String
   lineNumber  Int
   endLine     Int?
   codeSnippet String? @db.Text
-
-  // Classification
-  vulnerabilityType String // SQL_INJECTION, XSS, AUTH_BYPASS, SSRF, PATH_TRAVERSAL, etc.
-  severity          String // CRITICAL, HIGH, MEDIUM, LOW, INFO
-  confidenceScore   Float  @default(0) // 0.0 to 1.0
-
-  // Data Flow
-  source       String? @db.Text // Taint source description
-  sink         String? @db.Text // Taint sink description
-  dataFlowPath String? @db.Text // JSON array of flow steps
-
-  // AHI Validation
+  vulnerabilityType String
+  severity          String
+  confidenceScore   Float  @default(0)
+  source       String? @db.Text
+  sink         String? @db.Text
+  dataFlowPath String? @db.Text
   ahiExploitable Boolean?
   ahiSeverity    String?
   ahiReasoning   String?  @db.Text
   ahiPatchCode   String?  @db.Text
   ahiConfidence  Float?
-
-  // Shannon Validation
   shannonConfirmed Boolean?
   shannonDetails   String?  @db.Text
-
-  // Combined validation
-  validationSource String @default("CSS") // CSS, SHANNON, BOTH
-
-  // Status
-  status        String  @default("OPEN") // OPEN, CONFIRMED, DISMISSED, FIXED
+  validationSource String @default("CSS")
+  status        String  @default("OPEN")
   dismissedBy   String?
   fixedInCommit String?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([scanId])
   @@index([repositoryId])
   @@index([severity])
   @@index([vulnerabilityType])
 }
 
-// ============================================================
-// Radar Engine — 4-Layer Governing Architecture
-// ============================================================
-
-// --- Layer 1: Domain Scoring ---
-
 model RepositoryDomainScore {
   id                  String   @id @default(uuid())
   userId              String   @unique
-  secureCodingScore   Float    @default(0) // 0-100: from scan results
-  fixSpeedScore       Float    @default(0) // 0-100: vuln detection → fix time
-  riskManagementScore Float    @default(0) // 0-100: repeated vuln history
-  consistencyScore    Float    @default(0) // 0-100: regularity of secure commits
+  secureCodingScore   Float    @default(0)
+  fixSpeedScore       Float    @default(0)
+  riskManagementScore Float    @default(0)
+  consistencyScore    Float    @default(0)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }
@@ -1239,9 +1636,9 @@ model RepositoryDomainScore {
 model MarketplaceDomainScore {
   id                           String   @id @default(uuid())
   userId                       String   @unique
-  professionalReliabilityScore Float    @default(0) // 0-100: job success + rating
-  deliveryDisciplineScore      Float    @default(0) // 0-100: on-time delivery %
-  appliedSecurityScore         Float    @default(0) // 0-100: security compliance
+  professionalReliabilityScore Float    @default(0)
+  deliveryDisciplineScore      Float    @default(0)
+  appliedSecurityScore         Float    @default(0)
   createdAt                    DateTime @default(now())
   updatedAt                    DateTime @updatedAt
 }
@@ -1249,44 +1646,36 @@ model MarketplaceDomainScore {
 model OssDomainScore {
   id                      String   @id @default(uuid())
   userId                  String   @unique
-  engineeringDepthScore   Float    @default(0) // 0-100: PRs + code reviews
-  securityLeadershipScore Float    @default(0) // 0-100: security patches + approvals
-  ossImpactScore          Float    @default(0) // 0-100: stars, forks, adoption
+  engineeringDepthScore   Float    @default(0)
+  securityLeadershipScore Float    @default(0)
+  ossImpactScore          Float    @default(0)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 }
 
-// --- Layer 2: Radar Aggregation ---
-
 model UserRadarState {
   id          String   @id @default(uuid())
   userId      String
-  axisName    String // SECURE_ENGINEERING, APPLIED_SECURITY, PROFESSIONAL_RELIABILITY, ENGINEERING_DEPTH, SECURITY_LEADERSHIP
-  axisScore   Float    @default(0) // 0-100 clamped
+  axisName    String
+  axisScore   Float    @default(0)
   lastUpdated DateTime @default(now()) @updatedAt
-
   @@unique([userId, axisName])
   @@index([userId])
 }
 
-// --- Layer 3: Governance ---
-
 model GovernanceRule {
   id          String   @id @default(uuid())
-  axisName    String // Which radar axis this rule evaluates
-  operator    String // LT, GT, LTE, GTE
-  threshold   Float // Score threshold
-  action      String // BLOCK_MERGE, REQUIRE_APPROVAL, REDUCE_RANKING, GRANT_PRIVILEGES
+  axisName    String
+  operator    String
+  threshold   Float
+  action      String
   description String?  @db.Text
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   @@index([axisName])
   @@index([active])
 }
-
-// --- Layer 4: Historical Tracking ---
 
 model RadarHistory {
   id         String   @id @default(uuid())
@@ -1294,57 +1683,34 @@ model RadarHistory {
   axisName   String
   score      Float
   recordedAt DateTime @default(now())
-
   @@index([userId])
   @@index([userId, axisName])
 }
 
-// --- Open VSX Extension Registry ---
-
 model UserExtension {
   id          String   @id @default(uuid())
   userId      String
-  extensionId String // e.g. "esbenp.prettier-vscode"
+  extensionId String
   publisher   String
   name        String
   version     String
   enabled     Boolean  @default(true)
   installedAt DateTime @default(now())
   lastUsed    DateTime @default(now())
-
   user User @relation(fields: [userId], references: [id])
-
   @@unique([userId, extensionId])
   @@index([userId])
 }
 
-// --- Outbox Pattern (Elasticsearch Sync) ---
 model OutboxEvent {
   id          String   @id @default(uuid())
-  topic       String   // e.g., "activity_log.created", "issue.updated"
-  payload     Json     // The actual data to send to ES
+  topic       String
+  payload     Json
   processed   Boolean  @default(false)
   error       String?  @db.Text
   createdAt   DateTime @default(now())
   processedAt DateTime?
-
-  @@index([processed, createdAt]) 
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // e.g., "FOLLOW", "FOLLOW_REQUEST", "SYSTEM"
-  title     String
-  message   String
-  link      String?
-  metadata  Json?    @default("{}")
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([read])
+  @@index([processed, createdAt])
 }
 
 model FollowRequest {
@@ -1353,9 +1719,19 @@ model FollowRequest {
   follower    User     @relation("FollowRequestsSent", fields: [followerId], references: [id], onDelete: Cascade)
   followingId String
   following   User     @relation("FollowRequestsReceived", fields: [followingId], references: [id], onDelete: Cascade)
-  status      String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  status      String   @default("PENDING")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   @@unique([followerId, followingId])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime?
+  @@unique([conversationId, userId])
 }

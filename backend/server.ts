@@ -108,38 +108,49 @@ async function bootstrap() {
     await server.register(cors, {
         origin: (origin, cb) => {
             if (!origin) {
-                // Allow requests with no origin (like mobile apps or curl requests)
                 cb(null, true);
                 return;
             }
+
             const allowedHosts = [
                 process.env.FRONTEND_URL || "https://trackcodex.com",
                 "https://trackcodex.com",
-                "https://www.trackcodex.com",    // Vercel www variant
+                "https://www.trackcodex.com",
                 process.env.AWS_BACKEND_URL || "",
                 "http://localhost:3001",
                 "http://127.0.0.1:3001",
             ].filter(Boolean);
-            if (
+
+            const isAllowed =
                 allowedHosts.includes(origin) ||
+                /https?:\/\/([a-z0-9-]+\.)?trackcodex\.com$/.test(origin) ||
                 /http:\/\/localhost:\d+/.test(origin) ||
                 /http:\/\/127\.0\.0\.1:\d+/.test(origin) ||
-                (process.env.AWS_EC2_DOMAIN ? origin.endsWith(process.env.AWS_EC2_DOMAIN) : false)
-            ) {
+                (process.env.AWS_EC2_DOMAIN ? origin.endsWith(process.env.AWS_EC2_DOMAIN) : false);
+
+            if (isAllowed) {
                 cb(null, true);
                 return;
             }
+
+            console.warn(`[CORS] Rejected origin: ${origin}`);
             cb(new Error("Not allowed by CORS"), false);
         },
-        credentials: true, // Required for HttpOnly cookies
+        credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders: [
             "Content-Type",
             "Authorization",
+            "Accept",
             "X-CSRF-Token",
+            "X-Requested-With",
             "x-user-id",
+            "Cache-Control",
+            "X-Amz-Date",
+            "X-Api-Key",
+            "X-Amz-Security-Token"
         ],
-        maxAge: 86400, // cache preflight response for 24 hours
+        maxAge: 86400,
     });
 
     /* DISABLED FOR DEBUGGING 429 ISSUES

@@ -24,6 +24,7 @@ model User {
   twoFactorEnabled Boolean   @default(false)
   accountLocked    Boolean   @default(false)
   tokenVersion     Int       @default(1)
+  isPrivate        Boolean   @default(false)
 
   deletedAt          DateTime?
   deleteScheduledFor DateTime?
@@ -77,7 +78,7 @@ model User {
   sshKeys             SSHKey[]
   gpgKeys             GPGKey[]
   repositories        Repository[]         @relation("RepoOwner")
-  following           Follow[]             @relation("Following")
+  followings          Follow[]             @relation("Following")
   followers           Follow[]             @relation("Followers")
   auditLogs           AuditLog[]
   mergedPRs           PullRequest[]        @relation("PRMerger")
@@ -110,6 +111,14 @@ model User {
   // Skill Radar
   skillScore   UserSkillScore?
   skillMetrics SkillRawMetrics?
+
+  // Additional Relations from Backend
+  activities             Activity[]
+  followRequestsSent     FollowRequest[]       @relation("FollowRequestsSent")
+  followRequestsReceived FollowRequest[]       @relation("FollowRequestsReceived")
+  environmentReviewers   EnvironmentReviewer[]
+  deploymentApprovals    DeploymentApproval[]
+  userExtensions         UserExtension[]
 }
 
 model Profile {
@@ -259,6 +268,8 @@ model Organization {
   teams            Team[]
   auditLogs        AuditLog[]
   encryptedSecrets EncryptedSecret[]
+  webhooks         Webhook[]
+  activities       Activity[]
 }
 
 model OrgMember {
@@ -342,6 +353,10 @@ model Repository {
   auditLogs        AuditLog[]
   workflows        Workflow[]
   encryptedSecrets EncryptedSecret[]
+  webhooks         Webhook[]
+  activities       Activity[]
+  environments     Environment[]
+  codeSymbols      CodeSymbol[]
 }
 
 model Issue {
@@ -1001,20 +1016,6 @@ model Conversation {
   updatedAt     DateTime @updatedAt
 }
 
-model ConversationParticipant {
-  id             String       @id @default(uuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  joinedAt   DateTime  @default(now())
-  lastReadAt DateTime?
-
-  @@unique([conversationId, userId])
-}
-
 model Message {
   id             String       @id @default(uuid())
   conversationId String
@@ -1027,6 +1028,7 @@ model Message {
   type    String @default("TEXT") // TEXT, IMAGE, CODE, SYSTEM
 
   readBy Json? // Array of userIds who read the message
+  metadata Json? // Additional metadata for reactions, code snippets, etc.
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1037,7 +1039,7 @@ model Policy {
   enterpriseId String
   enterprise   Enterprise @relation(fields: [enterpriseId], references: [id])
 
-  // Types: REPO_VISIBILITY, LICENSE_CHECK, SECRET_SCANNING, 
+  // Types: REPO_VISIBILITY, LICENSE_CHECK, SECRET_SCANNING,
   //        OFFLINE_MODE, DEVICE_TRUST, RUNNER_CONSTRAINT, CLIPBOARD_SCANNING
   type     String
   name     String
@@ -1122,6 +1124,7 @@ model WorkflowRun {
   updatedAt DateTime @updatedAt
 
   artifacts Artifact[]
+  deployments Deployment[]
 }
 
 model WorkflowJob {
@@ -1147,8 +1150,10 @@ model WorkflowJob {
   // Drone/Engine Mapping
   externalId String? // ID in Drone/Engine
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  environment   Environment? @relation("EnvironmentJobs", fields: [environmentId], references: [id])
+  environmentId String?
 }
 
 // Integravity Native CI Models
@@ -1288,6 +1293,8 @@ model Team {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  environmentReviewers EnvironmentReviewer[]
 }
 
 model TeamMember {
@@ -1443,4 +1450,288 @@ model RadarSnapshot {
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// --- Consolidated Models from Backend ---
+
+model Webhook {
+  id     String  @id @default(uuid())
+  url    String
+  secret String?
+  orgId  String?
+  org    Organization? @relation(fields: [orgId], references: [id])
+  repoId String?
+  repo   Repository?   @relation(fields: [repoId], references: [id])
+  events      String[]
+  active      Boolean  @default(true)
+  contentType String   @default("application/json")
+  deliveries WebhookDelivery[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WebhookDelivery {
+  id        String  @id @default(uuid())
+  webhookId String
+  webhook   Webhook @relation(fields: [webhookId], references: [id])
+  event        String
+  guid         String
+  requestBody  Json
+  responseBody String? @db.Text
+  responseCode Int?
+  duration     Int?
+  status       String
+  createdAt DateTime @default(now())
+}
+
+model Activity {
+  id      String @id @default(uuid())
+  type    String
+  actorId String
+  actor   User   @relation(fields: [actorId], references: [id])
+  orgId  String?
+  org    Organization? @relation(fields: [orgId], references: [id])
+  repoId String?
+  repo   Repository?   @relation(fields: [repoId], references: [id])
+  details Json?
+  createdAt DateTime @default(now())
+}
+
+model Environment {
+  id     String     @id @default(uuid())
+  repoId String
+  repo   Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  name   String
+  waitDuration Int?
+  reviewers EnvironmentReviewer[]
+  deployments  Deployment[]
+  workflowJobs WorkflowJob[] @relation("EnvironmentJobs") // Jobs targeting this environment
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([repoId, name])
+}
+
+model EnvironmentReviewer {
+  id            String      @id @default(uuid())
+  environmentId String
+  environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  teamId        String?
+  team          Team?       @relation(fields: [teamId], references: [id])
+  @@unique([environmentId, userId])
+  @@unique([environmentId, teamId])
+}
+
+model Deployment {
+  id            String      @id @default(uuid())
+  environmentId String
+  environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  workflowRunId String
+  workflowRun   WorkflowRun @relation(fields: [workflowRunId], references: [id], onDelete: Cascade)
+  status    String               @default("WAITING")
+  approvals DeploymentApproval[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DeploymentApproval {
+  id           String     @id @default(uuid())
+  deploymentId String
+  deployment   Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  status  String
+  comment String? @db.Text
+  createdAt DateTime @default(now())
+}
+
+model CodeSymbol {
+  id     String     @id @default(uuid())
+  repoId String
+  repo   Repository @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  name      String
+  type      String
+  path      String
+  line      Int
+  signature String? @db.Text
+  createdAt DateTime @default(now())
+  @@index([repoId])
+  @@index([name])
+}
+
+model CodeScan {
+  id           String  @id @default(uuid())
+  repositoryId String
+  triggeredBy  String
+  status       String  @default("QUEUED")
+  scanType     String  @default("FULL")
+  commitSha    String?
+  branch       String?
+  totalFindings Int @default(0)
+  criticalCount Int @default(0)
+  highCount     Int @default(0)
+  mediumCount   Int @default(0)
+  lowCount      Int @default(0)
+  secureCodingScore Float?
+  riskScore         Float?
+  shannonEnabled Boolean @default(false)
+  shannonScanId  String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  durationMs  Int?
+  errorMessage String? @db.Text
+  vulnerabilities Vulnerability[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([repositoryId])
+  @@index([status])
+}
+
+model Vulnerability {
+  id           String   @id @default(uuid())
+  scanId       String
+  scan         CodeScan @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  repositoryId String
+  filePath    String
+  lineNumber  Int
+  endLine     Int?
+  codeSnippet String? @db.Text
+  vulnerabilityType String
+  severity          String
+  confidenceScore   Float  @default(0)
+  source       String? @db.Text
+  sink         String? @db.Text
+  dataFlowPath String? @db.Text
+  ahiExploitable Boolean?
+  ahiSeverity    String?
+  ahiReasoning   String?  @db.Text
+  ahiPatchCode   String?  @db.Text
+  ahiConfidence  Float?
+  shannonConfirmed Boolean?
+  shannonDetails   String?  @db.Text
+  validationSource String @default("CSS")
+  status        String  @default("OPEN")
+  dismissedBy   String?
+  fixedInCommit String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([scanId])
+  @@index([repositoryId])
+  @@index([severity])
+  @@index([vulnerabilityType])
+}
+
+model RepositoryDomainScore {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  secureCodingScore   Float    @default(0)
+  fixSpeedScore       Float    @default(0)
+  riskManagementScore Float    @default(0)
+  consistencyScore    Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model MarketplaceDomainScore {
+  id                           String   @id @default(uuid())
+  userId                       String   @unique
+  professionalReliabilityScore Float    @default(0)
+  deliveryDisciplineScore      Float    @default(0)
+  appliedSecurityScore         Float    @default(0)
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+}
+
+model OssDomainScore {
+  id                      String   @id @default(uuid())
+  userId                  String   @unique
+  engineeringDepthScore   Float    @default(0)
+  securityLeadershipScore Float    @default(0)
+  ossImpactScore          Float    @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model UserRadarState {
+  id          String   @id @default(uuid())
+  userId      String
+  axisName    String
+  axisScore   Float    @default(0)
+  lastUpdated DateTime @default(now()) @updatedAt
+  @@unique([userId, axisName])
+  @@index([userId])
+}
+
+model GovernanceRule {
+  id          String   @id @default(uuid())
+  axisName    String
+  operator    String
+  threshold   Float
+  action      String
+  description String?  @db.Text
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([axisName])
+  @@index([active])
+}
+
+model RadarHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  axisName   String
+  score      Float
+  recordedAt DateTime @default(now())
+  @@index([userId])
+  @@index([userId, axisName])
+}
+
+model UserExtension {
+  id          String   @id @default(uuid())
+  userId      String
+  extensionId String
+  publisher   String
+  name        String
+  version     String
+  enabled     Boolean  @default(true)
+  installedAt DateTime @default(now())
+  lastUsed    DateTime @default(now())
+  user User @relation(fields: [userId], references: [id])
+  @@unique([userId, extensionId])
+  @@index([userId])
+}
+
+model OutboxEvent {
+  id          String   @id @default(uuid())
+  topic       String
+  payload     Json
+  processed   Boolean  @default(false)
+  error       String?  @db.Text
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
+  @@index([processed, createdAt])
+}
+
+model FollowRequest {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("FollowRequestsSent", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("FollowRequestsReceived", fields: [followingId], references: [id], onDelete: Cascade)
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([followerId, followingId])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  joinedAt   DateTime  @default(now())
+  lastReadAt DateTime?
+  @@unique([conversationId, userId])
 }

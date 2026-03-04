@@ -6,6 +6,19 @@ import App from "./App";
 
 ReactGA.initialize("G-W5D71CTTBZ");
 
+// Premium Console Appreciation Message
+console.log(
+  "%c🚀 TrackCodex %c Special thanks to Sahil John %c✨",
+  "color: #ffffff; background: #007bff; padding: 5px 10px; border-radius: 5px 0 0 5px; font-weight: bold; font-family: 'Inter', sans-serif;",
+  "color: #ffffff; background: #343a40; padding: 5px 10px; font-family: 'Inter', sans-serif;",
+  "color: #ffffff; background: #6c757d; padding: 5px 10px; border-radius: 0 5px 5px 0; font-family: 'Inter', sans-serif;"
+);
+console.log(
+  "%cWe appreciate your belief in the vision of TrackCodex. %cLet's build the future together!",
+  "color: #007bff; font-weight: bold; font-size: 14px;",
+  "color: #6c757d; font-style: italic;"
+);
+
 const rootElement = document.getElementById("root");
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
