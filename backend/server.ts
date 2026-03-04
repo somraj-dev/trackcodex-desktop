@@ -185,7 +185,7 @@ async function bootstrap() {
     await server.register(websocket);
 
     // Initialize RealtimeService with the IO instance
-    RealtimeService.init((server as unknown as { io: any }).io);
+    RealtimeService.init((server as unknown as { io: unknown }).io);
 
     // 8. GraphQL API (Mercurius)
     try {
@@ -199,7 +199,7 @@ async function bootstrap() {
             graphiql: process.env.NODE_ENV !== "production",
             path: "/graphql",
             context: (request: FastifyRequest) => {
-                return { user: (request as any).user };
+                return { user: (request as FastifyRequest & { user?: unknown }).user };
             },
         });
     } catch (err) {
@@ -233,7 +233,7 @@ async function bootstrap() {
     try {
         const gitModule = await import("./routes/git");
         await server.register(gitModule.default || gitModule, { prefix: "/git" });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.warn("[WARN] Git routes failed to load:", (err as Error).message);
     }
 
@@ -254,7 +254,7 @@ async function bootstrap() {
         // Artifact Upload routes (depends on multipart)
         const artifactsModule = await import("./routes/artifacts");
         await server.register(artifactsModule.default || artifactsModule, { prefix: "/api/artifacts" });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.warn("[WARN] Multipart/Artifacts failed to load:", (err as Error).message);
     }
 
@@ -286,9 +286,9 @@ async function bootstrap() {
     try {
         const cssModule = await import("./routes/css");
         await server.register(cssModule.default || cssModule);
-        console.log("🛡️ [CSS] Code Security System routes registered");
-    } catch (err: any) {
-        console.warn("[WARN] CSS routes failed to load:", err.message);
+        console.warn("🛡️ [CSS] Code Security System routes registered");
+    } catch (err: unknown) {
+        console.warn("[WARN] CSS routes failed to load:", (err as Error).message);
     }
 
     // Serve Frontend in Production (Optional based on folder existence)
@@ -337,8 +337,8 @@ async function bootstrap() {
 
         // Log to file for persistence
         try {
-            const errAny = error as any;
-            const errorLog = `\n[${new Date().toISOString()}] ERROR: ${errAny.message}\n${errAny.stack || ""}\n`;
+            const errTyped = error as Error & { code?: string };
+            const errorLog = `\n[${new Date().toISOString()}] ERROR: ${errTyped.message}\n${errTyped.stack || ""}\n`;
             fs.appendFileSync("./backend_crash.log", errorLog);
         } catch {
             /* ignore */
@@ -398,7 +398,7 @@ async function bootstrap() {
         // Bad Request (400) - Validation errors
         if (
             statusCode === 400 ||
-            (error as { validation?: any }).validation ||
+            (error as { validation?: unknown }).validation ||
             (error as Error).name === "ValidationError" ||
             errorMsg.includes("required") ||
             errorMsg.includes("invalid")
@@ -459,7 +459,7 @@ async function bootstrap() {
                 await prisma.$connect();
                 connected = true;
                 console.warn("✅ Connected to PostgreSQL database successfully");
-            } catch (err: any) {
+            } catch (err: unknown) {
                 retries--;
                 console.error(`❌ Connection failed [Retry ${10 - retries}/10]: ${err.message}`);
 
@@ -493,7 +493,7 @@ async function bootstrap() {
 
         // 14. Start the Background Outbox Poller for Elasticsearch Sync
         startOutboxWorker();
-        console.log("📨 [Worker] Outbox daemon started for Kafka synchronization.");
+        console.warn("📨 [Worker] Outbox daemon started for Kafka synchronization.");
 
     } catch (err) {
         console.error("❌ [FATAL] Backend startup failed:");
