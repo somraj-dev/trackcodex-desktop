@@ -194,4 +194,26 @@ export async function messageRoutes(fastify: FastifyInstance) {
 
     return message;
   });
+
+  // 5. Mark Conversation as Read
+  fastify.put("/conversations/:id/read", async (request, reply) => {
+    const user = (request as any).user;
+    const { id } = request.params as { id: string };
+
+    if (!user) throw new AppError("Unauthorized", 401);
+
+    await prisma.conversationParticipant.update({
+      where: {
+        conversationId_userId: {
+          conversationId: id,
+          userId: user.id,
+        },
+      },
+      data: {
+        lastReadAt: new Date(),
+      },
+    });
+
+    return { success: true };
+  });
 }

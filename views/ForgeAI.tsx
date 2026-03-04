@@ -23,9 +23,6 @@ const ForgeAIView = () => {
     apiKey: "",
     model: "deepseek-coder",
   });
-  const [connectionStatus, setConnectionStatus] = useState<
-    "idle" | "testing" | "connected" | "failed"
-  >("idle");
 
   // Load settings from localStorage
   useEffect(() => {
@@ -36,49 +33,6 @@ const ForgeAIView = () => {
     if (savedConfig) setDeepseekConfig(JSON.parse(savedConfig));
   }, []);
 
-  // Save settings to localStorage
-  const saveSettings = () => {
-    localStorage.setItem("forgeai_provider", provider);
-    localStorage.setItem(
-      "forgeai_deepseek_config",
-      JSON.stringify(deepseekConfig),
-    );
-    setShowSettings(false);
-  };
-
-  // Test DeepSeek connection
-  const testConnection = async () => {
-    setConnectionStatus("testing");
-    try {
-      const response = await fetch(
-        `${deepseekConfig.serverUrl}/v1/chat/completions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(deepseekConfig.apiKey && {
-              Authorization: `Bearer ${deepseekConfig.apiKey}`,
-            }),
-          },
-          body: JSON.stringify({
-            model: deepseekConfig.model,
-            messages: [{ role: "user", content: "Hello" }],
-            max_tokens: 10,
-          }),
-        },
-      );
-
-      if (response.ok) {
-        setConnectionStatus("connected");
-        setTimeout(() => setConnectionStatus("idle"), 3000);
-      } else {
-        setConnectionStatus("failed");
-      }
-    } catch (error) {
-      console.error("Connection test failed:", error);
-      setConnectionStatus("failed");
-    }
-  };
 
   const handleAsk = async () => {
     if (!prompt.trim()) return;
@@ -91,9 +45,8 @@ const ForgeAIView = () => {
         body: JSON.stringify({
           prompt,
           provider,
-          model:
-            provider === "google" ? "gemini-1.5-flash" : deepseekConfig.model,
-          workspaceId: localStorage.getItem("current_workspace_id"), // Try to get context
+          model: provider === "google" ? "gemini-1.5-flash" : deepseekConfig.model,
+          workspaceId: localStorage.getItem("current_workspace_id"),
         }),
       });
 
@@ -109,7 +62,7 @@ const ForgeAIView = () => {
       setResults((prev) => [
         {
           type: "Error",
-          content: `Failed to connect to ForgeAI Orchestrator. ${error instanceof Error ? error.message : ""}`,
+          content: `Failed to connect to ForgeAI. ${error instanceof Error ? error.message : ""}`,
         },
         ...prev,
       ]);
@@ -119,247 +72,144 @@ const ForgeAIView = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gh-bg font-display">
-      <div className="p-8 border-b border-gh-border flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-3">
-            <span className="material-symbols-outlined text-primary filled">
-              auto_awesome
-            </span>
-            ForgeAI Insights
-            <span className="text-xs font-normal text-gh-text-secondary ml-2">
-              ({provider === "google" ? "Google GenAI" : "DeepSeek Coder"})
-            </span>
-          </h1>
-          <p className="text-gh-text-secondary text-sm mt-1">
-            Your advanced engineering co-pilot for code analysis and project
-            strategy.
-          </p>
+    <div className="flex-1 flex flex-col bg-[#1a1a1a] text-[#e3e3e3] font-sans selection:bg-primary/30">
+      {/* Top Navigation / Badge */}
+      <div className="pt-12 flex justify-center">
+        <div className="px-4 py-1.5 bg-[#262626] border border-[#333] rounded-full text-[13px] text-[#999] font-medium flex items-center gap-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors shadow-sm">
+          <span>Free plan</span>
+          <span className="opacity-40">•</span>
+          <span className="text-[#bbb]">Upgrade</span>
         </div>
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className="size-10 bg-gh-bg-secondary border border-gh-border rounded-xl flex items-center justify-center hover:bg-gh-bg transition-colors"
-          title="Settings"
-        >
-          <span className="material-symbols-outlined text-gh-text-secondary">
-            settings
-          </span>
-        </button>
       </div>
 
-      {/* Settings Panel */}
-      {showSettings && (
-        <div className="bg-gh-bg-secondary border-b border-gh-border p-6">
-          <div className="max-w-2xl mx-auto space-y-6">
-            <h3 className="text-lg font-bold text-gh-text mb-4">
-              AI Provider Settings
-            </h3>
+      {/* Main Hero Section */}
+      <div className="flex-1 flex flex-col items-center justify-center -mt-20 px-6 overflow-y-auto custom-scrollbar">
+        <div className="w-full max-w-3xl flex flex-col items-center gap-10">
 
-            {/* Provider Selection */}
-            <div>
-              <label className="text-sm font-medium text-gh-text-secondary block mb-2">
-                Provider
-              </label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="provider"
-                    value="google"
-                    checked={provider === "google"}
-                    onChange={(e) => setProvider(e.target.value as Provider)}
-                    className="accent-primary"
-                  />
-                  <span className="text-gh-text-secondary">Google GenAI</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="provider"
-                    value="deepseek"
-                    checked={provider === "deepseek"}
-                    onChange={(e) => setProvider(e.target.value as Provider)}
-                    className="accent-primary"
-                  />
-                  <span className="text-gh-text-secondary">
-                    DeepSeek (Local)
-                  </span>
-                </label>
-              </div>
+          {/* Header with Serif Font */}
+          <div className="flex items-center gap-4 select-none">
+            <div className="size-10 flex items-center justify-center text-[#d97757]">
+              <span className="material-symbols-outlined !text-[44px] filled">
+                blur_on
+              </span>
             </div>
+            <h1 className="text-[44px] font-serif font-medium text-[#d1d1d1] tracking-tight">
+              Golden hour thinking
+            </h1>
+          </div>
 
-            {/* DeepSeek Configuration */}
-            {provider === "deepseek" && (
-              <div className="space-y-4 p-4 bg-gh-bg rounded-xl border border-gh-border">
-                <div>
-                  <label className="text-sm font-medium text-gh-text-secondary block mb-2">
-                    Server URL
-                  </label>
-                  <input
-                    type="text"
-                    value={deepseekConfig.serverUrl}
-                    onChange={(e) =>
-                      setDeepseekConfig({
-                        ...deepseekConfig,
-                        serverUrl: e.target.value,
-                      })
-                    }
-                    placeholder="http://192.168.1.100:8000"
-                    className="w-full bg-gh-bg-secondary border border-gh-border rounded-lg px-4 py-2 text-gh-text focus:ring-1 focus:ring-primary outline-none"
-                  />
-                  <p className="text-xs text-gh-text-secondary mt-1">
-                    URL of your DeepSeek server (e.g.,
-                    http://192.168.1.100:8000)
+          {/* Chat Results Area (Hidden if empty) */}
+          {results.length > 0 && (
+            <div className="w-full space-y-4 mb-4">
+              {results.slice(0, 3).map((res, i) => (
+                <div key={i} className="p-5 rounded-2xl bg-[#222] border border-[#333] shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <p className="text-sm leading-relaxed text-[#bbb]">
+                    {res.content.length > 300 ? res.content.substring(0, 300) + "..." : res.content}
                   </p>
                 </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gh-text-secondary block mb-2">
-                    API Key (Optional)
-                  </label>
-                  <input
-                    type="password"
-                    value={deepseekConfig.apiKey}
-                    onChange={(e) =>
-                      setDeepseekConfig({
-                        ...deepseekConfig,
-                        apiKey: e.target.value,
-                      })
-                    }
-                    placeholder="Leave empty if not required"
-                    className="w-full bg-gh-bg-secondary border border-gh-border rounded-lg px-4 py-2 text-gh-text focus:ring-1 focus:ring-primary outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gh-text-secondary block mb-2">
-                    Model Name
-                  </label>
-                  <input
-                    type="text"
-                    value={deepseekConfig.model}
-                    onChange={(e) =>
-                      setDeepseekConfig({
-                        ...deepseekConfig,
-                        model: e.target.value,
-                      })
-                    }
-                    placeholder="deepseek-coder"
-                    className="w-full bg-gh-bg-secondary border border-gh-border rounded-lg px-4 py-2 text-gh-text focus:ring-1 focus:ring-primary outline-none"
-                  />
-                </div>
-
-                <button
-                  onClick={testConnection}
-                  disabled={connectionStatus === "testing"}
-                  className="flex items-center gap-2 px-4 py-2 bg-gh-bg-secondary border border-gh-border rounded-lg text-gh-text-secondary hover:bg-gh-bg transition-colors disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-sm">
-                    {connectionStatus === "testing"
-                      ? "progress_activity"
-                      : connectionStatus === "connected"
-                        ? "check_circle"
-                        : connectionStatus === "failed"
-                          ? "error"
-                          : "wifi"}
-                  </span>
-                  {connectionStatus === "testing"
-                    ? "Testing..."
-                    : connectionStatus === "connected"
-                      ? "Connected!"
-                      : connectionStatus === "failed"
-                        ? "Connection Failed"
-                        : "Test Connection"}
-                </button>
-              </div>
-            )}
-
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowSettings(false)}
-                className="px-4 py-2 bg-gh-bg-secondary border border-gh-border rounded-lg text-gh-text-secondary hover:bg-gh-bg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveSettings}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                Save Settings
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-6">
-        <div className="max-w-4xl mx-auto flex flex-col gap-6">
-          {results.length === 0 && (
-            <div className="py-20 text-center">
-              <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
-                <span className="material-symbols-outlined !text-[40px] filled">
-                  psychology
-                </span>
-              </div>
-              <h2 className="text-xl font-bold text-gh-text mb-2">
-                How can I assist you today?
-              </h2>
-              <p className="text-gh-text-secondary max-w-sm mx-auto">
-                Ask about architecture, security vulnerabilities, or refactoring
-                opportunities in your current workspace.
-              </p>
+              ))}
             </div>
           )}
 
-          {results.map((res, i) => (
-            <div
-              key={i}
-              className={`p-6 rounded-2xl border ${res.type === "Error" ? "border-red-500/20 bg-red-500/5 text-red-400" : "border-gh-border bg-gh-bg-secondary text-gh-text-secondary"}`}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-xs filled text-primary">
-                  auto_awesome
-                </span>
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  ForgeAI Response
-                </span>
-              </div>
-              <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap">
-                {res.content}
+          {/* Premium Chat Input */}
+          <div className="w-full">
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-[#d97757]/10 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+              <div className="relative bg-[#222222] border border-[#333] rounded-[28px] p-2 pr-4 shadow-2xl">
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleAsk())
+                  }
+                  placeholder="How can I help you today?"
+                  className="w-full bg-transparent border-none px-6 py-5 text-[17px] text-white placeholder-[#666] focus:ring-0 outline-none min-h-[140px] resize-none leading-relaxed"
+                />
+
+                <div className="flex items-center justify-between pl-3 pb-2 pt-2 border-t border-[#333]/10 mt-2">
+                  <div className="flex items-center gap-1">
+                    <button className="size-10 flex items-center justify-center text-[#888] hover:text-white hover:bg-white/5 rounded-full transition-all">
+                      <span className="material-symbols-outlined !text-[22px]">add</span>
+                    </button>
+                    <div className="h-4 w-[1px] bg-[#333] mx-1"></div>
+                    <button
+                      onClick={() => setShowSettings(!showSettings)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-white/5 rounded-full text-[#999] text-[13px] font-medium transition-all hover:text-white"
+                    >
+                      <span className="text-xs">Sonnet 4.6</span>
+                      <span className="text-[#666]">Extended</span>
+                      <span className="material-symbols-outlined !text-[16px] opacity-60">expand_more</span>
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={handleAsk}
+                    disabled={isAnalyzing || !prompt.trim()}
+                    className={`size-10 rounded-full flex items-center justify-center transition-all ${prompt.trim() ? "bg-[#d97757] text-white shadow-lg shadow-[#d97757]/20" : "bg-[#333] text-[#555] opacity-50"
+                      }`}
+                  >
+                    <span className={`material-symbols-outlined !text-[20px] ${isAnalyzing ? "animate-spin" : ""}`}>
+                      {isAnalyzing ? "progress_activity" : "arrow_upward"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
-          ))}
+
+            {/* Sub-toolbar tags */}
+            <div className="flex flex-wrap justify-center gap-2 mt-8">
+              <PillButton icon="code" label="Code" />
+              <PillButton icon="edit_note" label="Write" />
+              <PillButton icon="school" label="Learn" />
+              <PillButton icon="local_cafe" label="Life stuff" />
+              <PillButton icon="lightbulb" label="Claude's choice" />
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <div className="p-8 bg-gh-bg-secondary border-t border-gh-border">
-        <div className="max-w-4xl mx-auto relative">
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === "Enter" &&
-              !e.shiftKey &&
-              (e.preventDefault(), handleAsk())
-            }
-            placeholder="Ask ForgeAI for technical insights or security analysis..."
-            className="w-full bg-gh-bg border border-gh-border rounded-2xl p-5 pr-20 text-gh-text focus:ring-1 focus:ring-primary outline-none min-h-[100px] resize-none"
-          />
-          <button
-            onClick={handleAsk}
-            disabled={isAnalyzing || !prompt.trim()}
-            className="absolute right-4 bottom-4 size-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg disabled:opacity-50"
-          >
-            <span
-              className={`material-symbols-outlined ${isAnalyzing ? "animate-spin" : ""}`}
+      {/* Settings Modal (Minimal) */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6" onClick={() => setShowSettings(false)}>
+          <div className="bg-[#222] border border-[#333] rounded-[32px] w-full max-w-md p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold mb-6">Model Settings</h3>
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-[#2a2a2a] border border-[#444] flex items-center justify-between cursor-pointer hover:bg-[#333] transition-all">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-primary filled">google</span>
+                  <div>
+                    <p className="font-bold text-sm">Google GenAI</p>
+                    <p className="text-xs text-[#888]">Gemini 1.5 Flash</p>
+                  </div>
+                </div>
+                <input
+                  type="radio"
+                  checked={provider === 'google'}
+                  onChange={() => setProvider('google')}
+                  className="accent-primary size-4"
+                  aria-label="Google GenAI"
+                />
+              </div>
+            </div>
+            <button
+              onClick={() => setShowSettings(false)}
+              className="w-full mt-8 py-3 bg-[#d97757] text-white font-bold rounded-2xl hover:bg-[#e0886a] transition-all"
             >
-              {isAnalyzing ? "progress_activity" : "send"}
-            </span>
-          </button>
+              Close Settings
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
+
+const PillButton = ({ icon, label }: { icon: string; label: string }) => (
+  <button className="flex items-center gap-2 px-4 py-2.5 bg-transparent border border-[#333] hover:border-[#444] hover:bg-white/5 rounded-full transition-all group">
+    <span className="material-symbols-outlined !text-[18px] text-[#777] group-hover:text-[#999] transition-colors">{icon}</span>
+    <span className="text-[14px] text-[#999] group-hover:text-[#bbb] transition-colors">{label}</span>
+  </button>
+);
 
 export default ForgeAIView;

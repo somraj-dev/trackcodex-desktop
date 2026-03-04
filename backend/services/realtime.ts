@@ -85,6 +85,33 @@ export class RealtimeService {
         }
       });
 
+      socket.on("TYPING_START", (payload: { conversationId: string }) => {
+        if (payload.conversationId) {
+          socket.to(payload.conversationId).emit("TYPING_START", {
+            conversationId: payload.conversationId,
+            userId
+          });
+        }
+      });
+
+      socket.on("TYPING_STOP", (payload: { conversationId: string }) => {
+        if (payload.conversationId) {
+          socket.to(payload.conversationId).emit("TYPING_STOP", {
+            conversationId: payload.conversationId,
+            userId
+          });
+        }
+      });
+
+      socket.on("DEV_STATUS_UPDATE", (payload: { status: string, conversationId: string }) => {
+        if (payload.conversationId) {
+          socket.to(payload.conversationId).emit("DEV_STATUS_UPDATE", {
+            userId,
+            status: payload.status
+          });
+        }
+      });
+
       socket.on("disconnect", () => {
         this.cleanup(userId, socket);
         console.log(`🔌 User ${userId} disconnected from Socket.io`);
