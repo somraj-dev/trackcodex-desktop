@@ -30,11 +30,17 @@ export class GitServer {
     if (!fs.existsSync(repoPath)) {
       try {
         fs.mkdirSync(repoPath, { recursive: true });
-        // Enforce SHA-256 for all new repos (Crytographic Integrity System)
-        await this.spawnGit(
-          ["init", "--bare", "--object-format=sha256"],
-          repoPath,
-        );
+        // Try SHA-256 first, fall back to default if git version is too old
+        try {
+          await this.spawnGit(
+            ["init", "--bare", "--object-format=sha256"],
+            repoPath,
+          );
+        } catch {
+          // SHA-256 not supported — use default (SHA-1)
+          console.warn("[GitServer] SHA-256 not supported, using default object format");
+          await this.spawnGit(["init", "--bare"], repoPath);
+        }
         this.installHooks(repoPath);
         return true;
       } catch (e) {

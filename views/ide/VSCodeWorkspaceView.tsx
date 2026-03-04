@@ -70,7 +70,7 @@ const VSCodeWorkspaceView: React.FC = () => {
             }
 
             // Start workspace — pass repoId so backend clones from remote
-            let url = "http://localhost:8080";
+            let url = "https://ide.trackcodex.com";
             try {
                 const searchParams = new URLSearchParams(window.location.search);
                 const isLiveSync = searchParams.get("liveSync") === "true";
@@ -81,7 +81,7 @@ const VSCodeWorkspaceView: React.FC = () => {
                     repoId,
                     liveSync: isLiveSync
                 });
-                url = data.url || "http://localhost:8080";
+                url = data.url || "https://ide.trackcodex.com";
             } catch (err) {
                 console.warn("Workspace start API returned error, using default VS Code Web URL", err);
             }
@@ -93,7 +93,7 @@ const VSCodeWorkspaceView: React.FC = () => {
         } catch (err) {
             console.error("Failed to start workspace:", err);
             // Fallback — try to connect to the default VS Code Web
-            setVsCodeUrl("http://localhost:8080");
+            setVsCodeUrl("https://ide.trackcodex.com");
             setStatus("ready");
         }
     }, [id]);

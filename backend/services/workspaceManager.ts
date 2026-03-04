@@ -2,9 +2,6 @@ import path from "path";
 import fs from "fs";
 import { execSync } from "child_process";
 import { AutoSyncService } from "./autoSyncService";
-import { DockerService } from "./docker";
-import getPort from "get-port";
-import { env } from "../config/env";
 
 // OpenVSCode Server URL
 const OPENVSCODE_URL = process.env.OPENVSCODE_URL || "https://ide.trackcodex.com";
@@ -16,8 +13,8 @@ const WORKSPACES_ROOT = path.join(process.cwd(), "workspaces");
 export class WorkspaceManager {
   /**
    * Start a workspace for a given repo.
-   * Clones the repo from the remote source if not already cloned, then
-   * returns the OpenVSCode Server URL pointing to the folder.
+   * Uses the shared OpenVSCode container from docker-compose, returning
+   * a URL that points to the already-running IDE on port 8080.
    */
   static async startWorkspace(
     workspaceId: string,
@@ -55,37 +52,19 @@ export class WorkspaceManager {
         fs.mkdirSync(workspacePath, { recursive: true });
       }
 
-      // --- Provision Dedicated Docker Container ---
-      console.warn(`[WorkspaceManager] Provisioning container for ${repoName}...`);
+      // Use the shared OpenVSCode container that is already running via docker-compose
+      // It mounts ./workspaces:/home/workspace and listens on port 8080
+      const ideHost = OPENVSCODE_URL;
+      const url = `${ideHost}/?folder=/home/workspace/${repoName}&tkn=${OPENVSCODE_TOKEN}`;
 
-      // 1. Find a free port on the host
-      const port = await getPort({
-        port: [3000, 3001, 3002, 3003, 3004, 3005, 3000 + Math.floor(Math.random() * 1000)]
-      });
-
-      // 2. Start the container via DockerService
-      // Note: DockerService.createContainer handles removing old ones and starting the new one
-      const { port: hostPort } = await DockerService.createContainer(workspaceId, "gitpod/openvscode-server:latest", port);
-
-      // 3. Build the IDE URL
-      // Use the production domain to ensure it's reachable externally, not localhost
-      const host = "trackcodex.com";
-      const protocol = "https";
-
-      // In production, we might want this to route through a proxy (e.g., workspace-id.trackcodex.com)
-      // For now, if we are mapping ports directly to the host, we use the host IP/domain and the mapped port.
-      // However, exposing raw ports on a production domain might require firewall rules.
-      // Assuming the current architecture maps port directly to the host domain:
-      const url = `${protocol}://${host}:${hostPort}/?folder=/home/workspace`;
-
-      console.warn(`[WorkspaceManager] IDE URL (Provisioned): ${url}`);
+      console.warn(`[WorkspaceManager] IDE URL: ${url}`);
 
       // Start Auto-Sync if requested
       if (options?.liveSync) {
         AutoSyncService.start(workspacePath, workspaceId);
       }
 
-      return { url, port: hostPort };
+      return { url, port: 8080 };
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error(`[WorkspaceManager] Failed: ${msg}`);
