@@ -49,7 +49,7 @@ services:
       context: .
       dockerfile: docker/ide.Dockerfile
     ports:
-      - "80:8080"   # OpenVSCode Web UI — mapped to 80 for Cloudflare SSL proxy
+      - "8080:8080"   # OpenVSCode Web UI (TrackCodex Custom)
     volumes:
       - ./workspaces:/home/workspace   # Bind mount so backend + container share files
     environment:
