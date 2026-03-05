@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth, googleProvider, githubProvider } from "../../lib/firebase";
 import {
-  signInWithPopup,
-  GithubAuthProvider,
-  linkWithCredential
+  signInWithPopup
 } from "firebase/auth";
 
 const Signup = () => {
@@ -17,6 +15,14 @@ const Signup = () => {
   const [error, setError] = useState("");
   const [verificationSent, setVerificationSent] = useState(false);
   const [emailPrefs, setEmailPrefs] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Password validation logic
+  const passwordCriteria = {
+    minLength: password.length >= 15,
+    complex: password.length >= 8 && /[0-9]/.test(password) && /[a-z]/.test(password)
+  };
+  const isPasswordValid = passwordCriteria.minLength || passwordCriteria.complex;
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
@@ -24,8 +30,11 @@ const Signup = () => {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err: unknown) {
-      console.error(err);
-      setError((err as Error).message || "Failed to initialize Google login");
+      const firebaseError = err as { code?: string; message?: string };
+      if (firebaseError.code !== 'auth/popup-closed-by-user' && firebaseError.code !== 'auth/cancelled-popup-request') {
+        console.error(err);
+        setError(firebaseError.message || "Failed to initialize Google login");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -39,21 +48,18 @@ const Signup = () => {
     } catch (err: unknown) {
       const firebaseError = err as { code?: string; message?: string };
       if (firebaseError.code === 'auth/account-exists-with-different-credential') {
-        const pendingAuthCredential = GithubAuthProvider.credentialFromError(firebaseError as import("firebase/auth").AuthError);
-        if (pendingAuthCredential) {
-          try {
-            const result = await signInWithPopup(auth, googleProvider);
-            await linkWithCredential(result.user, pendingAuthCredential);
-            return;
-          } catch (linkingError) {
-            console.error("Linking failed:", linkingError);
-            setError("Your email is registered with Google. Please click 'Continue with Google' to sign in.");
-            return;
+        navigate("/auth/resolve-conflict", {
+          state: {
+            email: (firebaseError as any).customData?.email || (firebaseError as any).email,
+            existingProvider: 'google.com'
           }
-        }
+        });
+        return;
       }
-      console.error(error);
-      setError(error.message || "Failed to initialize GitHub login");
+      if (firebaseError.code !== 'auth/popup-closed-by-user' && firebaseError.code !== 'auth/cancelled-popup-request') {
+        console.error(err);
+        setError(firebaseError.message || "Failed to initialize GitHub login");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -79,14 +85,26 @@ const Signup = () => {
         }),
       });
 
-      const data = await response.json();
+      let data: any = {};
+      try {
+        const text = await response.text();
+        data = text ? JSON.parse(text) : {};
+      } catch (err) {
+        console.error("Non-JSON response received:", err);
+        data = { message: "Unexpected server response. Please try again later." };
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || "Signup failed");
+        throw new Error(data.message || data.error || "Signup failed");
       }
 
       // 2. Success - Verification email is sent by backend via Resend
       setVerificationSent(true);
+
+      // 3. Redirect to onboarding after a short delay
+      setTimeout(() => {
+        navigate("/onboarding");
+      }, 2000);
     } catch (error: unknown) {
       console.error(error);
       const err = error as Error;
@@ -105,7 +123,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-white font-sans overflow-hidden">
+    <div className="flex min-h-screen lg:h-screen bg-white font-sans">
       {/* Left Panel - Exact GitHub Style Dark Panel */}
       <div className="hidden lg:flex w-1/2 bg-[#0d1117] relative flex-col justify-center p-16 overflow-hidden">
         {/* Subtle space-like background */}
@@ -142,7 +160,7 @@ const Signup = () => {
       </div>
 
       {/* Right Panel - Exact GitHub Style White Panel */}
-      <div className="flex-1 flex flex-col relative bg-white">
+      <div className="flex-1 flex flex-col relative bg-white overflow-y-auto">
         {/* Already have an account link */}
         <div className="absolute top-10 right-10 text-[13px]">
           <span className="text-gray-500">Already have an account? </span>
@@ -222,23 +240,41 @@ const Signup = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     title="Enter your email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white text-gray-900 font-medium"
                     placeholder="Email"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-800 mb-2">Password*</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    title="Enter your password"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white"
-                    placeholder="Password"
-                  />
-                  <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      title="Enter your password"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white text-gray-900 font-medium pr-10"
+                      placeholder="Password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? (
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <p className={`text-[11px] mt-2 leading-relaxed transition-colors duration-200 ${isPasswordValid ? "text-green-600 font-medium" : "text-gray-500"}`}>
                     Password should be at least 15 characters OR at least 8 characters including a number and a lowercase letter.
                   </p>
                 </div>
@@ -251,7 +287,7 @@ const Signup = () => {
                     onChange={(e) => setUsername(e.target.value)}
                     required
                     title="Enter your username"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white text-gray-900 font-medium"
                     placeholder="Username"
                   />
                   <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">

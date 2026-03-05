@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { env } from "../config/env";
 import { emailService } from "../services/emailService";
 import { prisma } from "../services/prisma";
 import bcrypt from "bcryptjs";
@@ -782,11 +783,21 @@ export async function authRoutes(fastify: FastifyInstance) {
       if (!email) throw BadRequest("Email required");
 
       try {
-        // Use Firebase Admin to generate password reset link
-        const resetLink = await firebaseAdmin.auth().generatePasswordResetLink(email);
+        // Use Firebase Admin to generate password reset link with redirection to our frontend
+        const actionCodeSettings = {
+          url: `${env.FRONTEND_URL}/reset-password`,
+          handleCodeInApp: true,
+        };
+        const resetLink = await firebaseAdmin.auth().generatePasswordResetLink(email, actionCodeSettings);
 
-        // Send password reset email via Resend
-        await emailService.sendPasswordResetEmail(email, resetLink);
+        // Fetch user from DB to get username
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: { username: true }
+        });
+
+        // Send password reset email via Resend with username
+        await emailService.sendPasswordResetEmail(email, resetLink, user?.username || undefined);
 
         // Always return success to prevent email enumeration
         return { message: "If an account exists, a password reset email has been sent" };

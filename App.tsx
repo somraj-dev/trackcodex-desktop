@@ -79,6 +79,8 @@ const Signup = React.lazy(() => import("./views/auth/Signup"));
 const OAuthCallback = React.lazy(() => import("./views/auth/OAuthCallback"));
 const ForgotPassword = React.lazy(() => import("./views/auth/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("./views/auth/ResetPassword"));
+const Onboarding = React.lazy(() => import("./views/auth/Onboarding"));
+const ResolveConflict = React.lazy(() => import("./views/auth/ResolveConflict"));
 const SignOut = React.lazy(() => import("./views/auth/SignOut"));
 const LandingPage = React.lazy(() => import("./views/LandingPage"));
 
@@ -1206,6 +1208,7 @@ const AppContent = () => {
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/auth/resolve-conflict" element={<ResolveConflict />} />
                     <Route path="/" element={<LandingPage />} />
                     <Route path="*" element={<RedirectToLogin />} />
                   </>
@@ -1216,6 +1219,7 @@ const AppContent = () => {
               {isAuthenticated && (
                 <>
                   <Route path="/logout" element={<SignOut />} />
+                  <Route path="/onboarding" element={<Onboarding />} />
                   <Route path="/*" element={<ProtectedApp isFocusMode={false} />} />
                 </>
               )}

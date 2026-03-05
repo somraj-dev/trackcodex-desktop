@@ -229,7 +229,7 @@ export const emailService = {
   /**
    * Send password reset link
    */
-  sendPasswordResetEmail: async (to: string, link: string) => {
+  sendPasswordResetEmail: async (to: string, link: string, username?: string) => {
     try {
       const transport = await getTransporter();
       await transport.sendMail({
@@ -237,17 +237,20 @@ export const emailService = {
         to,
         subject: "Reset your TrackCodex password",
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 6px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <h2 style="color: #24292e;">Password Reset</h2>
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; border: 1px solid #e1e4e8; border-radius: 12px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #24292e; font-size: 24px; font-weight: 600;">Change password for @${username || to.split('@')[0]}</h2>
             </div>
-            <p>We received a request to reset your password. Click the button below to choose a new one.</p>
+            <p style="color: #24292e; font-size: 16px; line-height: 1.5;">We received a request to reset the password for your TrackCodex account. Click the button below to choose a new one.</p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="${link}" style="background-color: #24292f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
             </div>
-            <p style="color: #586069; font-size: 14px;">This link will expire in 1 hour.</p>
-            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin-top: 30px; margin-bottom: 20px;" />
-            <p style="color: #586069; font-size: 12px; text-align: center;">If you didn't request a password reset, you can safely ignore this email.</p>
+            <p style="color: #586069; font-size: 14px; text-align: center;">This link will expire in 1 hour. If you did not request a password reset, please ignore this email.</p>
+            <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 30px 0;" />
+            <p style="color: #8c959f; font-size: 12px; text-align: center;">
+                &copy; 2026 TrackCodex Inc. <br />
+                Sent to you because you requested a password reset.
+            </p>
           </div>
         `,
       });
