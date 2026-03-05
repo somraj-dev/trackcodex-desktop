@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EmptyState from "../components/common/EmptyState";
 import { useNotifications } from "../context/NotificationContext";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "../utils/dateUtils";
 
 const NotificationsView = () => {
   const navigate = useNavigate();
@@ -308,7 +308,7 @@ const NotificationsView = () => {
                         </span>
                         <span className="text-[#8b949e] text-[12px]">•</span>
                         <span className="text-[12px] text-[#8b949e]">
-                          {formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}
+                          {formatDistanceToNow(notif.timestamp, { addSuffix: true })}
                         </span>
                       </div>
 

@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { api } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { useMessaging } from "../../context/MessagingContext";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "../../utils/dateUtils";
 
 const MessagesView = () => {
     const { user } = useAuth();
@@ -127,7 +127,7 @@ const MessagesView = () => {
                                             }`}>
                                             <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                                             <div className={`text-[11px] mt-1 opacity-70 flex items-center gap-1 ${isMine ? "justify-end" : "justify-start"}`}>
-                                                {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
+                                                {formatDistanceToNow(msg.createdAt, { addSuffix: true })}
                                                 {isMine && <span className="material-symbols-outlined !text-[14px] ml-1">done_all</span>}
                                             </div>
                                         </div>

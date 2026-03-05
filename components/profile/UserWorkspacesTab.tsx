@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../services/api";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "../../utils/dateUtils";
 
 // Assuming a simplified workspace type for the tab view
 interface WorkspaceOverview {
@@ -106,7 +106,7 @@ const UserWorkspacesTab: React.FC<UserWorkspacesTabProps> = ({ userId }) => {
                                         </span>
                                     )}
                                 </div>
-                                <span>Updated {formatDistanceToNow(new Date(ws.updatedAt))} ago</span>
+                                <span>Updated {formatDistanceToNow(ws.updatedAt)} ago</span>
                             </div>
                         </div>
                     ))}

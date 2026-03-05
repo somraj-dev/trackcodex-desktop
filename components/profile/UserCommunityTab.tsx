@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../services/api";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "../../utils/dateUtils";
 import { CommunityPost } from "../../types";
 
 interface UserCommunityTabProps {
@@ -123,7 +123,7 @@ const UserCommunityTab: React.FC<UserCommunityTabProps> = ({ userId }) => {
                                         </span>
                                         {(post as any).time && (
                                             <span>
-                                                {formatDistanceToNow(new Date((post as any).time))} ago
+                                                {formatDistanceToNow((post as any).time)} ago
                                             </span>
                                         )}
                                     </div>

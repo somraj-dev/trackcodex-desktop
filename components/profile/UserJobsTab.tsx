@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../services/api";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "../../utils/dateUtils";
 
 // Assuming a simplified job type for the tab view
 interface JobOverview {
@@ -102,7 +102,7 @@ const UserJobsTab: React.FC<UserJobsTabProps> = ({ userId }) => {
                                             </div>
                                         )}
 
-                                        <span>Modified {formatDistanceToNow(new Date(job.createdAt))} ago</span>
+                                        <span>Modified {formatDistanceToNow(job.createdAt)} ago</span>
                                     </div>
                                 </div>
                             </div>

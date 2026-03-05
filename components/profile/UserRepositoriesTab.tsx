@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../services/api";
 import { Repository } from "../../types";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "../../utils/dateUtils";
 
 interface UserRepositoriesTabProps {
     userId: string;
@@ -128,7 +128,7 @@ const UserRepositoriesTab: React.FC<UserRepositoriesTabProps> = ({ userId }) => 
 
                                         {repo.updatedAt && (
                                             <span className="whitespace-nowrap">
-                                                Updated {formatDistanceToNow(new Date(repo.updatedAt))} ago
+                                                Updated {formatDistanceToNow(repo.updatedAt)} ago
                                             </span>
                                         )}
                                     </div>
