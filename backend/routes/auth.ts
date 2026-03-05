@@ -141,14 +141,21 @@ export async function authRoutes(fastify: FastifyInstance) {
           newUser = result[0];
         } catch (dbError: any) {
           // Compensating Transaction (Saga): Rollback Firebase user if DB insert fails
-          console.error("Database registration failed, rolling back Firebase user:", dbError);
+          console.error("Database registration failed (Prisma Transaction), rolling back Firebase user:", dbError);
           await firebaseAdmin.auth().deleteUser(firebaseUid).catch(console.error);
-          throw BadRequest(dbError.message || "Failed to create user in database. Registration cancelled.");
+          throw BadRequest("Database error during user creation. Please try again or choose a different username.");
         }
 
         // 3.5 Send verification email via Resend
-        const verificationLink = await firebaseAdmin.auth().generateEmailVerificationLink(email);
-        await emailService.sendVerificationEmail(email, verificationLink);
+        try {
+          const verificationLink = await firebaseAdmin.auth().generateEmailVerificationLink(email);
+          await emailService.sendVerificationEmail(email, verificationLink);
+        } catch (emailErr: any) {
+          console.error("Failed to send verification email (but user was created):", emailErr);
+          // Don't throw a full error, allow creation to proceed and return a specific message
+          request.log.error({ msg: "Email Verification Dispatch Failed", detail: emailErr.message });
+          // We will inject a warning into the success response later
+        }
 
         // 4. Create Session
         const sessionId = crypto.randomUUID();
@@ -172,7 +179,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         // 5. Set Cookie
         const isProduction = process.env.NODE_ENV === "production";
-        reply.setCookie("session_id", sessionId, {
+        reply.cookie("session_id", sessionId, {
           path: "/",
           httpOnly: true,
           secure: isProduction || request.headers["x-forwarded-proto"] === "https",
@@ -390,7 +397,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         // 4. Set HttpOnly Cookie - Session stability refined for Render/Production
 
         const isProduction = process.env.NODE_ENV === "production";
-        reply.setCookie("session_id", sessionId, {
+        reply.cookie("session_id", sessionId, {
           path: "/",
           httpOnly: true,
           secure: isProduction || request.headers["x-forwarded-proto"] === "https",
@@ -504,7 +511,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         );
 
         const isProduction = process.env.NODE_ENV === "production";
-        reply.setCookie("session_id", sessionId, {
+        reply.cookie("session_id", sessionId, {
           path: "/",
           httpOnly: true,
           secure: isProduction || request.headers["x-forwarded-proto"] === "https",
@@ -618,7 +625,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         );
 
         const isProduction = process.env.NODE_ENV === "production";
-        reply.setCookie("session_id", sessionId, {
+        reply.cookie("session_id", sessionId, {
           path: "/",
           httpOnly: true,
           secure: isProduction || request.headers["x-forwarded-proto"] === "https",
@@ -1244,7 +1251,7 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         // 3. Set the Cookie
         const isProduction = process.env.NODE_ENV === "production";
-        reply.setCookie("session_id", sessionId, {
+        reply.cookie("session_id", sessionId, {
           path: "/",
           httpOnly: true,
           secure: isProduction || request.headers["x-forwarded-proto"] === "https",

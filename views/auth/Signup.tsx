@@ -16,6 +16,79 @@ const Signup = () => {
   const [verificationSent, setVerificationSent] = useState(false);
   const [emailPrefs, setEmailPrefs] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showCountrySelector, setShowCountrySelector] = useState(false);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [isEmailAlreadyInUse, setIsEmailAlreadyInUse] = useState(false);
+
+  const countries = [
+    { name: "Afghanistan", code: "AF" }, { name: "Albania", code: "AL" }, { name: "Algeria", code: "DZ" },
+    { name: "Andorra", code: "AD" }, { name: "Angola", code: "AO" }, { name: "Antigua and Barbuda", code: "AG" },
+    { name: "Argentina", code: "AR" }, { name: "Armenia", code: "AM" }, { name: "Australia", code: "AU" },
+    { name: "Austria", code: "AT" }, { name: "Azerbaijan", code: "AZ" }, { name: "Bahamas", code: "BS" },
+    { name: "Bahrain", code: "BH" }, { name: "Bangladesh", code: "BD" }, { name: "Barbados", code: "BB" },
+    { name: "Belarus", code: "BY" }, { name: "Belgium", code: "BE" }, { name: "Belize", code: "BZ" },
+    { name: "Benin", code: "BJ" }, { name: "Bhutan", code: "BT" }, { name: "Bolivia", code: "BO" },
+    { name: "Bosnia and Herzegovina", code: "BA" }, { name: "Botswana", code: "BW" }, { name: "Brazil", code: "BR" },
+    { name: "Brunei", code: "BN" }, { name: "Bulgaria", code: "BG" }, { name: "Burkina Faso", code: "BF" },
+    { name: "Burundi", code: "BI" }, { name: "Cabo Verde", code: "CV" }, { name: "Cambodia", code: "KH" },
+    { name: "Cameroon", code: "CM" }, { name: "Canada", code: "CA" }, { name: "Central African Republic", code: "CF" },
+    { name: "Chad", code: "TD" }, { name: "Chile", code: "CL" }, { name: "China", code: "CN" },
+    { name: "Colombia", code: "CO" }, { name: "Comoros", code: "KM" }, { name: "Congo", code: "CG" },
+    { name: "Costa Rica", code: "CR" }, { name: "Croatia", code: "HR" }, { name: "Cuba", code: "CU" },
+    { name: "Cyprus", code: "CY" }, { name: "Czechia", code: "CZ" }, { name: "Denmark", code: "DK" },
+    { name: "Djibouti", code: "DJ" }, { name: "Dominican Republic", code: "DO" }, { name: "Ecuador", code: "EC" },
+    { name: "Egypt", code: "EG" }, { name: "El Salvador", code: "SV" }, { name: "Equatorial Guinea", code: "GQ" },
+    { name: "Eritrea", code: "ER" }, { name: "Estonia", code: "EE" }, { name: "Eswatini", code: "SZ" },
+    { name: "Ethiopia", code: "ET" }, { name: "Fiji", code: "FJ" }, { name: "Finland", code: "FI" },
+    { name: "France", code: "FR" }, { name: "Gabon", code: "GA" }, { name: "Gambia", code: "GM" },
+    { name: "Georgia", code: "GE" }, { name: "Germany", code: "DE" }, { name: "Ghana", code: "GH" },
+    { name: "Greece", code: "GR" }, { name: "Grenada", code: "GD" }, { name: "Guatemala", code: "GT" },
+    { name: "Guinea", code: "GN" }, { name: "Guinea-Bissau", code: "GW" }, { name: "Guyana", code: "GY" },
+    { name: "Haiti", code: "HT" }, { name: "Honduras", code: "HN" }, { name: "Hungary", code: "HU" },
+    { name: "Iceland", code: "IS" }, { name: "India", code: "IN" }, { name: "Indonesia", code: "ID" },
+    { name: "Iran", code: "IR" }, { name: "Iraq", code: "IQ" }, { name: "Ireland", code: "IE" },
+    { name: "Israel", code: "IL" }, { name: "Italy", code: "IT" }, { name: "Jamaica", code: "JM" },
+    { name: "Japan", code: "JP" }, { name: "Jordan", code: "JO" }, { name: "Kazakhstan", code: "KZ" },
+    { name: "Kenya", code: "KE" }, { name: "Kiribati", code: "KI" }, { name: "Kuwait", code: "KW" },
+    { name: "Kyrgyzstan", code: "KG" }, { name: "Laos", code: "LA" }, { name: "Latvia", code: "LV" },
+    { name: "Lebanon", code: "LB" }, { name: "Lesotho", code: "LS" }, { name: "Liberia", code: "LR" },
+    { name: "Libya", code: "LY" }, { name: "Liechtenstein", code: "LI" }, { name: "Lithuania", code: "LT" },
+    { name: "Luxembourg", code: "LU" }, { name: "Madagascar", code: "MG" }, { name: "Malawi", code: "MW" },
+    { name: "Malaysia", code: "MY" }, { name: "Maldives", code: "MV" }, { name: "Mali", code: "ML" },
+    { name: "Malta", code: "MT" }, { name: "Marshall Islands", code: "MH" }, { name: "Mauritania", code: "MR" },
+    { name: "Mauritius", code: "MU" }, { name: "Mexico", code: "MX" }, { name: "Micronesia", code: "FM" },
+    { name: "Moldova", code: "MD" }, { name: "Monaco", code: "MC" }, { name: "Mongolia", code: "MN" },
+    { name: "Montenegro", code: "ME" }, { name: "Morocco", code: "MA" }, { name: "Mozambique", code: "MZ" },
+    { name: "Myanmar", code: "MM" }, { name: "Namibia", code: "NA" }, { name: "Nauru", code: "NR" },
+    { name: "Nepal", code: "NP" }, { name: "Netherlands", code: "NL" }, { name: "New Zealand", code: "NZ" },
+    { name: "Nicaragua", code: "NI" }, { name: "Niger", code: "NE" }, { name: "Nigeria", code: "NG" },
+    { name: "North Korea", code: "KP" }, { name: "North Macedonia", code: "MK" }, { name: "Norway", code: "NO" },
+    { name: "Oman", code: "OM" }, { name: "Pakistan", code: "PK" }, { name: "Palau", code: "PW" },
+    { name: "Palestine State", code: "PS" }, { name: "Panama", code: "PA" }, { name: "Papua New Guinea", code: "PG" },
+    { name: "Paraguay", code: "PY" }, { name: "Peru", code: "PE" }, { name: "Philippines", code: "PH" },
+    { name: "Poland", code: "PL" }, { name: "Portugal", code: "PT" }, { name: "Qatar", code: "QA" },
+    { name: "Romania", code: "RO" }, { name: "Russia", code: "RU" }, { name: "Rwanda", code: "RW" },
+    { name: "Samoa", code: "WS" }, { name: "San Marino", code: "SM" }, { name: "Sao Tome and Principe", code: "ST" },
+    { name: "Saudi Arabia", code: "SA" }, { name: "Senegal", code: "SN" }, { name: "Serbia", code: "RS" },
+    { name: "Seychelles", code: "SC" }, { name: "Sierra Leone", code: "SL" }, { name: "Singapore", code: "SG" },
+    { name: "Slovakia", code: "SK" }, { name: "Slovenia", code: "SI" }, { name: "Solomon Islands", code: "SB" },
+    { name: "Somalia", code: "SO" }, { name: "South Africa", code: "ZA" }, { name: "South Korea", code: "KR" },
+    { name: "South Sudan", code: "SS" }, { name: "Spain", code: "ES" }, { name: "Sri Lanka", code: "LK" },
+    { name: "Sudan", code: "SD" }, { name: "Suriname", code: "SR" }, { name: "Sweden", code: "SE" },
+    { name: "Switzerland", code: "CH" }, { name: "Syria", code: "SY" }, { name: "Tajikistan", code: "TJ" },
+    { name: "Tanzania", code: "TZ" }, { name: "Thailand", code: "TH" }, { name: "Timor-Leste", code: "TL" },
+    { name: "Togo", code: "TG" }, { name: "Tonga", code: "TO" }, { name: "Trinidad and Tobago", code: "TT" },
+    { name: "Tunisia", code: "TN" }, { name: "Turkey", code: "TR" }, { name: "Turkmenistan", code: "TM" },
+    { name: "Tuvalu", code: "TV" }, { name: "Uganda", code: "UG" }, { name: "Ukraine", code: "UA" },
+    { name: "United Arab Emirates", code: "AE" }, { name: "United Kingdom", code: "GB" }, { name: "United States", code: "US" },
+    { name: "Uruguay", code: "UY" }, { name: "Uzbekistan", code: "UZ" }, { name: "Vanuatu", code: "VU" },
+    { name: "Vatican City", code: "VA" }, { name: "Venezuela", code: "VE" }, { name: "Vietnam", code: "VN" },
+    { name: "Yemen", code: "YE" }, { name: "Zambia", code: "ZM" }, { name: "Zimbabwe", code: "ZW" }
+  ];
+
+  const filteredCountries = countries.filter(c =>
+    c.name.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   // Password validation logic
   const passwordCriteria = {
@@ -72,24 +145,58 @@ const Signup = () => {
 
     try {
       // 1. Backend Registration (Syncs with Prisma and handles Firebase creation)
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          name: username,
-          username,
-          country,
-          emailPreferences: emailPrefs
-        }),
-      });
+      let response;
+      let backendUrl = (import.meta as any).env.VITE_BACKEND_URL || "";
+
+      // Fix for IPv6 localhost vs IPv4 0.0.0.0 Fastify issues
+      if (backendUrl.includes("localhost")) {
+        console.warn("VITE_BACKEND_URL uses 'localhost'. If connection fails, switch to '127.0.0.1'");
+      }
+
+      try {
+        response = await fetch(`${backendUrl}/api/v1/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            name: username,
+            username,
+            country,
+            emailPreferences: emailPrefs
+          }),
+        });
+      } catch (fetchErr: any) {
+        console.error("Fetch failed (Network Error):", fetchErr);
+        // Fallback to relative path which relies on Vite proxy
+        if (backendUrl) {
+          console.log("Attempting fallback to relative Vite proxy route (/api/v1/...)");
+          try {
+            response = await fetch(`/api/v1/auth/register`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email,
+                password,
+                name: username,
+                username,
+                country,
+                emailPreferences: emailPrefs
+              }),
+            });
+          } catch (fallbackErr) {
+            throw new Error("Unable to connect to the server. Please check your network connection or ensure the backend is running.");
+          }
+        } else {
+          throw new Error("Unable to connect to the server. Please check your network connection or ensure the backend is running.");
+        }
+      }
 
       let data: any = {};
       try {
         const text = await response.text();
         data = text ? JSON.parse(text) : {};
-      } catch (err) {
+      } catch (err: any) {
         console.error("Non-JSON response received:", err);
         data = { message: "Unexpected server response. Please try again later." };
       }
@@ -106,10 +213,14 @@ const Signup = () => {
         navigate("/onboarding");
       }, 2000);
     } catch (error: unknown) {
-      console.error(error);
+      console.error("Signup validation error:", error);
       const err = error as Error;
-      if (err.message.includes("Email already registered")) {
-        setError("An account with this email already exists.");
+
+      if (err.message.includes("Email already registered") || err.message.includes("auth/email-already-in-use")) {
+        setIsEmailAlreadyInUse(true);
+        setError(""); // Clear general error
+      } else if (err.message.includes("Failed to fetch") || err.message.includes("Unable to connect")) {
+        setError("Unable to connect to the TrackCodex server. Please ensure you are connected to the internet and the backend is running.");
       } else {
         setError(err.message || "Signup failed. Please try again.");
       }
@@ -160,7 +271,7 @@ const Signup = () => {
       </div>
 
       {/* Right Panel - Exact GitHub Style White Panel */}
-      <div className="flex-1 flex flex-col relative bg-white overflow-y-auto">
+      <div className="flex-1 flex flex-col relative bg-white overflow-y-auto no-scrollbar">
         {/* Already have an account link */}
         <div className="absolute top-10 right-10 text-[13px]">
           <span className="text-gray-500">Already have an account? </span>
@@ -169,8 +280,8 @@ const Signup = () => {
           </Link>
         </div>
 
-        <div className="flex-1 flex items-center justify-center p-8 lg:p-16">
-          <div className="w-full max-w-[440px] space-y-8">
+        <div className="flex-1 flex items-center justify-center p-8 lg:py-10 lg:px-16">
+          <div className="w-full max-w-[440px] space-y-5">
             <h2 className="text-[26px] font-semibold text-gray-900 tracking-tight">
               Sign up for TrackCodex
             </h2>
@@ -179,6 +290,7 @@ const Signup = () => {
             <div className="space-y-3">
               <button
                 onClick={handleGoogleLogin}
+                title="Continue with Google"
                 className="w-full flex items-center justify-center px-4 py-[10px] border border-gray-300 rounded-md bg-white hover:bg-gray-50 transition-all text-sm font-semibold text-gray-700 shadow-sm"
               >
                 <svg className="w-4 h-4 mr-3" viewBox="0 0 24 24">
@@ -191,6 +303,7 @@ const Signup = () => {
               </button>
               <button
                 onClick={handleGithubLogin}
+                title="Continue with GitHub"
                 className="w-full flex items-center justify-center px-4 py-[10px] border border-gray-300 rounded-md bg-[#f6f8fa] hover:bg-[#ebedef] transition-all text-sm font-semibold text-gray-900 shadow-sm"
               >
                 <svg className="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 24 24">
@@ -213,7 +326,7 @@ const Signup = () => {
             )}
 
             {verificationSent ? (
-              <div className="space-y-6 text-center animate-in slide-in-from-bottom-4 duration-300">
+              <div className="space-y-5 text-center animate-in slide-in-from-bottom-4 duration-300">
                 <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -223,15 +336,15 @@ const Signup = () => {
                 <p className="text-gray-600 leading-relaxed">
                   We sent a verification link to <span className="font-semibold">{email}</span>. <br />Click the link to verify your account.
                 </p>
-                <button onClick={handleContinue} className="w-full bg-[#24292f] hover:bg-[#1a1e22] text-white font-semibold py-3 rounded-md transition-all shadow-sm">
+                <button onClick={handleContinue} title="Continue to Dashboard" className="w-full bg-[#24292f] hover:bg-[#1a1e22] text-white font-semibold py-3 rounded-md transition-all shadow-sm">
                   Continue to Dashboard
                 </button>
-                <button onClick={() => setVerificationSent(false)} className="text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">
+                <button onClick={() => setVerificationSent(false)} title="Edit details" className="text-sm text-gray-500 hover:text-gray-900 font-medium transition-colors">
                   Edit signup details
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-800 mb-2">Email*</label>
                   <input
@@ -240,9 +353,20 @@ const Signup = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     title="Enter your email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white text-gray-900 font-medium"
+                    className={`w-full px-3 py-2 border ${isEmailAlreadyInUse ? "border-red-500 ring-1 ring-red-500" : "border-gray-300"} rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white text-gray-900 font-medium`}
                     placeholder="Email"
                   />
+                  {isEmailAlreadyInUse && (
+                    <div className="mt-2 text-[12px] flex items-start gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <svg className="w-4 h-4 text-red-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                      </svg>
+                      <div className="text-red-600 leading-normal">
+                        The email you have provided is already associated with an account. <br />
+                        <Link to="/login" className="text-blue-600 hover:underline font-medium">Sign in</Link> or <Link to="/forgot-password" className="text-blue-600 hover:underline font-medium">reset your password</Link>.
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -260,6 +384,7 @@ const Signup = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      title={showPassword ? "Hide password" : "Show password"}
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       {showPassword ? (
@@ -274,7 +399,7 @@ const Signup = () => {
                       )}
                     </button>
                   </div>
-                  <p className={`text-[11px] mt-2 leading-relaxed transition-colors duration-200 ${isPasswordValid ? "text-green-600 font-medium" : "text-gray-500"}`}>
+                  <p className={`text-[11px] mt-1 leading-relaxed transition-colors duration-200 ${isPasswordValid ? "text-green-600 font-medium" : "text-gray-500"}`}>
                     Password should be at least 15 characters OR at least 8 characters including a number and a lowercase letter.
                   </p>
                 </div>
@@ -290,7 +415,7 @@ const Signup = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 bg-white text-gray-900 font-medium"
                     placeholder="Username"
                   />
-                  <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
                     Username may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen.
                   </p>
                 </div>
@@ -298,210 +423,77 @@ const Signup = () => {
                 <div>
                   <label className="block text-sm font-semibold text-gray-800 mb-2">Your Country/Region*</label>
                   <div className="relative">
-                    <select
-                      value={country}
-                      title="Select your country"
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-full px-3 py-[10px] border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white appearance-none text-[15px]"
+                    <button
+                      type="button"
+                      onClick={() => setShowCountrySelector(!showCountrySelector)}
+                      className="w-full px-3 py-[9px] border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-left text-[14px] flex items-center justify-between"
                     >
-                      <option value="AF">Afghanistan</option>
-                      <option value="AL">Albania</option>
-                      <option value="DZ">Algeria</option>
-                      <option value="AD">Andorra</option>
-                      <option value="AO">Angola</option>
-                      <option value="AG">Antigua and Barbuda</option>
-                      <option value="AR">Argentina</option>
-                      <option value="AM">Armenia</option>
-                      <option value="AU">Australia</option>
-                      <option value="AT">Austria</option>
-                      <option value="AZ">Azerbaijan</option>
-                      <option value="BS">Bahamas</option>
-                      <option value="BH">Bahrain</option>
-                      <option value="BD">Bangladesh</option>
-                      <option value="BB">Barbados</option>
-                      <option value="BY">Belarus</option>
-                      <option value="BE">Belgium</option>
-                      <option value="BZ">Belize</option>
-                      <option value="BJ">Benin</option>
-                      <option value="BT">Bhutan</option>
-                      <option value="BO">Bolivia</option>
-                      <option value="BA">Bosnia and Herzegovina</option>
-                      <option value="BW">Botswana</option>
-                      <option value="BR">Brazil</option>
-                      <option value="BN">Brunei</option>
-                      <option value="BG">Bulgaria</option>
-                      <option value="BF">Burkina Faso</option>
-                      <option value="BI">Burundi</option>
-                      <option value="CV">Cabo Verde</option>
-                      <option value="KH">Cambodia</option>
-                      <option value="CM">Cameroon</option>
-                      <option value="CA">Canada</option>
-                      <option value="CF">Central African Republic</option>
-                      <option value="TD">Chad</option>
-                      <option value="CL">Chile</option>
-                      <option value="CN">China</option>
-                      <option value="CO">Colombia</option>
-                      <option value="KM">Comoros</option>
-                      <option value="CG">Congo</option>
-                      <option value="CR">Costa Rica</option>
-                      <option value="HR">Croatia</option>
-                      <option value="CU">Cuba</option>
-                      <option value="CY">Cyprus</option>
-                      <option value="CZ">Czechia</option>
-                      <option value="DK">Denmark</option>
-                      <option value="DJ">Djibouti</option>
-                      <option value="DO">Dominican Republic</option>
-                      <option value="EC">Ecuador</option>
-                      <option value="EG">Egypt</option>
-                      <option value="SV">El Salvador</option>
-                      <option value="GQ">Equatorial Guinea</option>
-                      <option value="ER">Eritrea</option>
-                      <option value="EE">Estonia</option>
-                      <option value="SZ">Eswatini</option>
-                      <option value="ET">Ethiopia</option>
-                      <option value="FJ">Fiji</option>
-                      <option value="FI">Finland</option>
-                      <option value="FR">France</option>
-                      <option value="GA">Gabon</option>
-                      <option value="GM">Gambia</option>
-                      <option value="GE">Georgia</option>
-                      <option value="DE">Germany</option>
-                      <option value="GH">Ghana</option>
-                      <option value="GR">Greece</option>
-                      <option value="GD">Grenada</option>
-                      <option value="GT">Guatemala</option>
-                      <option value="GN">Guinea</option>
-                      <option value="GW">Guinea-Bissau</option>
-                      <option value="GY">Guyana</option>
-                      <option value="HT">Haiti</option>
-                      <option value="HN">Honduras</option>
-                      <option value="HU">Hungary</option>
-                      <option value="IS">Iceland</option>
-                      <option value="IN">India</option>
-                      <option value="ID">Indonesia</option>
-                      <option value="IR">Iran</option>
-                      <option value="IQ">Iraq</option>
-                      <option value="IE">Ireland</option>
-                      <option value="IL">Israel</option>
-                      <option value="IT">Italy</option>
-                      <option value="JM">Jamaica</option>
-                      <option value="JP">Japan</option>
-                      <option value="JO">Jordan</option>
-                      <option value="KZ">Kazakhstan</option>
-                      <option value="KE">Kenya</option>
-                      <option value="KI">Kiribati</option>
-                      <option value="KW">Kuwait</option>
-                      <option value="KG">Kyrgyzstan</option>
-                      <option value="LA">Laos</option>
-                      <option value="LV">Latvia</option>
-                      <option value="LB">Lebanon</option>
-                      <option value="LS">Lesotho</option>
-                      <option value="LR">Liberia</option>
-                      <option value="LY">Libya</option>
-                      <option value="LI">Liechtenstein</option>
-                      <option value="LT">Lithuania</option>
-                      <option value="LU">Luxembourg</option>
-                      <option value="MG">Madagascar</option>
-                      <option value="MW">Malawi</option>
-                      <option value="MY">Malaysia</option>
-                      <option value="MV">Maldives</option>
-                      <option value="ML">Mali</option>
-                      <option value="MT">Malta</option>
-                      <option value="MH">Marshall Islands</option>
-                      <option value="MR">Mauritania</option>
-                      <option value="MU">Mauritius</option>
-                      <option value="MX">Mexico</option>
-                      <option value="FM">Micronesia</option>
-                      <option value="MD">Moldova</option>
-                      <option value="MC">Monaco</option>
-                      <option value="MN">Mongolia</option>
-                      <option value="ME">Montenegro</option>
-                      <option value="MA">Morocco</option>
-                      <option value="MZ">Mozambique</option>
-                      <option value="MM">Myanmar</option>
-                      <option value="NA">Namibia</option>
-                      <option value="NR">Nauru</option>
-                      <option value="NP">Nepal</option>
-                      <option value="NL">Netherlands</option>
-                      <option value="NZ">New Zealand</option>
-                      <option value="NI">Nicaragua</option>
-                      <option value="NE">Niger</option>
-                      <option value="NG">Nigeria</option>
-                      <option value="KP">North Korea</option>
-                      <option value="MK">North Macedonia</option>
-                      <option value="NO">Norway</option>
-                      <option value="OM">Oman</option>
-                      <option value="PK">Pakistan</option>
-                      <option value="PW">Palau</option>
-                      <option value="PS">Palestine State</option>
-                      <option value="PA">Panama</option>
-                      <option value="PG">Papua New Guinea</option>
-                      <option value="PY">Paraguay</option>
-                      <option value="PE">Peru</option>
-                      <option value="PH">Philippines</option>
-                      <option value="PL">Poland</option>
-                      <option value="PT">Portugal</option>
-                      <option value="QA">Qatar</option>
-                      <option value="RO">Romania</option>
-                      <option value="RU">Russia</option>
-                      <option value="RW">Rwanda</option>
-                      <option value="WS">Samoa</option>
-                      <option value="SM">San Marino</option>
-                      <option value="ST">Sao Tome and Principe</option>
-                      <option value="SA">Saudi Arabia</option>
-                      <option value="SN">Senegal</option>
-                      <option value="RS">Serbia</option>
-                      <option value="SC">Seychelles</option>
-                      <option value="SL">Sierra Leone</option>
-                      <option value="SG">Singapore</option>
-                      <option value="SK">Slovakia</option>
-                      <option value="SI">Slovenia</option>
-                      <option value="SB">Solomon Islands</option>
-                      <option value="SO">Somalia</option>
-                      <option value="ZA">South Africa</option>
-                      <option value="KR">South Korea</option>
-                      <option value="SS">South Sudan</option>
-                      <option value="ES">Spain</option>
-                      <option value="LK">Sri Lanka</option>
-                      <option value="SD">Sudan</option>
-                      <option value="SR">Suriname</option>
-                      <option value="SE">Sweden</option>
-                      <option value="CH">Switzerland</option>
-                      <option value="SY">Syria</option>
-                      <option value="TJ">Tajikistan</option>
-                      <option value="TZ">Tanzania</option>
-                      <option value="TH">Thailand</option>
-                      <option value="TL">Timor-Leste</option>
-                      <option value="TG">Togo</option>
-                      <option value="TO">Tonga</option>
-                      <option value="TT">Trinidad and Tobago</option>
-                      <option value="TN">Tunisia</option>
-                      <option value="TR">Turkey</option>
-                      <option value="TM">Turkmenistan</option>
-                      <option value="TV">Tuvalu</option>
-                      <option value="UG">Uganda</option>
-                      <option value="UA">Ukraine</option>
-                      <option value="AE">United Arab Emirates</option>
-                      <option value="GB">United Kingdom</option>
-                      <option value="US">United States</option>
-                      <option value="UY">Uruguay</option>
-                      <option value="UZ">Uzbekistan</option>
-                      <option value="VU">Vanuatu</option>
-                      <option value="VA">Vatican City</option>
-                      <option value="VE">Venezuela</option>
-                      <option value="VN">Vietnam</option>
-                      <option value="YE">Yemen</option>
-                      <option value="ZM">Zambia</option>
-                      <option value="ZW">Zimbabwe</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span>{countries.find(c => c.code === country)?.name || country}</span>
+                      <svg className={`w-4 h-4 text-gray-500 transition-transform ${showCountrySelector ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
-                    </div>
+                    </button>
+
+                    {showCountrySelector && (
+                      <div className="absolute bottom-full mb-2 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-xl z-50 animate-in fade-in zoom-in duration-200 overflow-hidden">
+                        <div className="p-3 border-b border-gray-100 flex items-center justify-between">
+                          <span className="text-[14px] font-bold text-gray-900">Select Country/Region</span>
+                          <button
+                            type="button"
+                            onClick={() => setShowCountrySelector(false)}
+                            title="Close"
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="p-2">
+                          <div className="relative">
+                            <input
+                              autoFocus
+                              type="text"
+                              placeholder="Search countries..."
+                              value={countrySearch}
+                              onChange={(e) => setCountrySearch(e.target.value)}
+                              className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-[13px] outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            />
+                            <svg className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="max-h-[250px] overflow-y-auto no-scrollbar py-1">
+                          {filteredCountries.length > 0 ? (
+                            filteredCountries.map((c) => (
+                              <button
+                                key={c.code}
+                                type="button"
+                                onClick={() => {
+                                  setCountry(c.code);
+                                  setShowCountrySelector(false);
+                                  setCountrySearch("");
+                                }}
+                                className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ${country === c.code ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'}`}
+                              >
+                                {c.name}
+                                {country === c.code && (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-4 py-3 text-sm text-gray-500 text-center">No countries found</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-[11px] text-gray-500 mt-2 leading-tight">
-                    For compliance reasons, we're required to collect country information to send you occasional updates and announcements.
+                  <p className="text-[11px] text-gray-500 mt-1 leading-tight">
+                    For compliance reasons, we're required to collect country information.
                   </p>
                 </div>
 
