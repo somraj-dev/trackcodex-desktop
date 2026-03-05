@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Users, Search, TrendingUp, UserPlus, Star, Terminal, Globe, Lock } from "lucide-react";
 import { api } from "../services/api";
+import { profileService } from "../services/profile";
 import { Workspace } from "../types";
 import "../styles/Explore.css";
 
@@ -94,7 +96,7 @@ export const Explore: React.FC = () => {
         <img
           src={
             user.avatarUrl ||
-            user.avatar ||
+            (user as any).avatar ||
             `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`
           }
           alt={user.name}

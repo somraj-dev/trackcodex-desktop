@@ -953,8 +953,10 @@ const ProtectedApp = ({ isFocusMode }: { isFocusMode: boolean }) => {
                 element={<Navigate to="/repositories" replace />}
               />
 
+
               <Route path="/notifications" element={<NotificationsView />} />
               <Route path="/messages" element={<MessagesView />} />
+              <Route path="/explore" element={<ExploreView />} />
 
               {/* Documentation & Blog */}
               <Route path="/docs" element={<DocsLayout />}>
