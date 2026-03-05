@@ -25,6 +25,10 @@ model User {
   accountLocked    Boolean   @default(false)
   tokenVersion     Int       @default(1)
   isPrivate        Boolean   @default(false)
+  otpCode          String?
+  otpExpiresAt     DateTime?
+  emailPreferences Boolean   @default(true)
+  country          String?
 
   deletedAt          DateTime?
   deleteScheduledFor DateTime?
@@ -32,22 +36,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Profile & Metadata (GitHub Parity)
-  bio      String? @db.Text
-  company  String?
-  location String?
-  website  String?
-  twitter  String?
-  linkedin String?
-  github   String?
-
-  // Profile README & Resume
-  profileReadme    String?   @db.Text
-  resumeUrl        String?
-  resumeFilename   String?
-  resumeUploadedAt DateTime?
-  showResume       Boolean   @default(false)
-  showReadme       Boolean   @default(true)
 
   // Portfolio & Repository Display
   showPortfolio     Boolean  @default(true)
@@ -74,7 +62,8 @@ model User {
   workspaceInvitesSent    WorkspaceMember[] @relation("InvitedBy")
   workspaceInvitesCreated WorkspaceInvite[]
 
-  customProfile       Profile?
+  profile             Profile?           @relation("UserProfile")
+
   sshKeys             SSHKey[]
   gpgKeys             GPGKey[]
   repositories        Repository[]         @relation("RepoOwner")
@@ -95,7 +84,7 @@ model User {
   // Messaging
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]                 @relation("MessageSender")
-  Issue                    Issue[]
+  readReceipts             MessageReadReceipt[]
 
   // Portfolio
   portfolioItems PortfolioItem[]
@@ -113,23 +102,83 @@ model User {
   skillMetrics SkillRawMetrics?
 
   // Additional Relations from Backend
-  activities             Activity[]
   followRequestsSent     FollowRequest[]       @relation("FollowRequestsSent")
   followRequestsReceived FollowRequest[]       @relation("FollowRequestsReceived")
   environmentReviewers   EnvironmentReviewer[]
   deploymentApprovals    DeploymentApproval[]
   userExtensions         UserExtension[]
+
+  // Normalized relations (Phase 1: Additive)
+  settings               UserSettings?
+  verification           UserVerification?
+  countryRef              Country?          @relation(fields: [countryCode], references: [code])
+  countryCode            String?            @db.Char(2) // ISO 3166-1 alpha-2
+
+  @@index([email, accountLocked])
+}
+
+// --- Normalized User Settings (extracted from User) ---
+model UserSettings {
+  userId            String   @id
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emailPreferences  Boolean  @default(true)
+  isPrivate         Boolean  @default(false)
+  profileCompleted  Boolean  @default(false)
+  showPortfolio     Boolean  @default(true)
+  showRepositories  Boolean  @default(true)
+  showContributions Boolean  @default(true)
+  pinnedItems       String[]
+  theme             String   @default("system")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// --- Normalized User Verification (ephemeral auth data) ---
+model UserVerification {
+  userId           String    @id
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emailVerified    Boolean   @default(false)
+  emailVerifiedAt  DateTime?
+  twoFactorEnabled Boolean   @default(false)
+  otpCode          String?
+  otpExpiresAt     DateTime?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// --- ISO 3166-1 Country Reference Table ---
+model Country {
+  code String @id @db.Char(2) // e.g. "US", "IN", "GB"
+  name String @unique          // e.g. "United States", "India"
+
+  users User[]
 }
 
 model Profile {
   id     String @id @default(uuid())
   userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation("UserProfile", fields: [userId], references: [id])
 
   bio            String? @db.Text
   location       String?
   website        String?
   company        String?
+  twitter        String?
+  linkedin       String?
+  github         String?
+  
+  // Profile README & Resume
+  profileReadme    String?   @db.Text
+  resumeUrl        String?
+  resumeFilename   String?
+  resumeUploadedAt DateTime?
+  showResume       Boolean   @default(false)
+  showReadme       Boolean   @default(true)
+
   followersCount Int     @default(0)
   followingCount Int     @default(0)
 
@@ -170,6 +219,8 @@ model Follow {
   createdAt   DateTime @default(now())
 
   @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model OAuthAccount {
@@ -212,6 +263,9 @@ model Session {
   revokedAt      DateTime?
   lastActivityAt DateTime  @default(now())
   createdAt      DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model LoginAttempt {
@@ -269,7 +323,7 @@ model Organization {
   auditLogs        AuditLog[]
   encryptedSecrets EncryptedSecret[]
   webhooks         Webhook[]
-  activities       Activity[]
+  activityLogs     ActivityLog[]
 }
 
 model OrgMember {
@@ -349,14 +403,18 @@ model Repository {
   discussions      Discussion[]
   // CI/CD (Integravity Phase 5)
   workflowRuns     WorkflowRun[]
-  activityLogs     ActivityLog[]
   auditLogs        AuditLog[]
   workflows        Workflow[]
   encryptedSecrets EncryptedSecret[]
   webhooks         Webhook[]
-  activities       Activity[]
   environments     Environment[]
+  activityLogs     ActivityLog[]
   codeSymbols      CodeSymbol[]
+
+  @@index([ownerId])
+  @@index([orgId])
+  @@index([visibility, createdAt])
+  @@index([language])
 }
 
 model Issue {
@@ -388,10 +446,10 @@ model Issue {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   boardCards BoardCard[]
-  user       User?       @relation(fields: [userId], references: [id])
-  userId     String?
 
   @@unique([repoId, number])
+  @@index([repoId, status])
+  @@index([authorId])
 }
 
 model IssueAssignee {
@@ -474,6 +532,8 @@ model PullRequest {
   boardCards BoardCard[]
 
   @@unique([repoId, number])
+  @@index([repoId, status])
+  @@index([authorId])
 }
 
 model PRReview {
@@ -502,6 +562,9 @@ model Comment {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([issueId])
+  @@index([pullRequestId])
 }
 
 model Label {
@@ -820,6 +883,8 @@ model Transaction {
   description String?
   referenceId String? // ID of job or external ref
   createdAt   DateTime @default(now())
+
+  @@index([walletId, createdAt])
 }
 
 model EscrowContract {
@@ -835,8 +900,8 @@ model EscrowContract {
 model ActivityLog {
   id      String  @id @default(uuid())
   userId  String?
-  action  String
-  details Json?
+  action  String  // Maps to 'type' in old models
+  details Json?   // Maps to 'metadata' or 'details' in old models
 
   workspaceId String?
   workspace   Workspace? @relation(fields: [workspaceId], references: [id])
@@ -844,9 +909,18 @@ model ActivityLog {
   repoId String?
   repo   Repository? @relation(fields: [repoId], references: [id])
 
+  orgId  String?
+  org    Organization? @relation(fields: [orgId], references: [id])
+
   createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([repoId])
+  @@index([workspaceId])
+  @@index([orgId])
+  @@index([action])
 }
 
 // --- ENTERPRISE FEATURES ---
@@ -927,6 +1001,9 @@ model CommunityPost {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([communityId, createdAt])
 }
 
 model Community {
@@ -1032,6 +1109,21 @@ model Message {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([conversationId, createdAt])
+  readReceipts   MessageReadReceipt[]
+}
+
+model MessageReadReceipt {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt    DateTime @default(now())
+
+  @@unique([messageId, userId])
+  @@index([userId, messageId])
 }
 
 model Policy {
@@ -1353,6 +1445,8 @@ model Notification {
   link      String?
   metadata  Json?
   createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
 }
 
 // --- Skill Radar Engine ---
@@ -1426,20 +1520,7 @@ model SkillRawMetrics {
   updatedAt DateTime @updatedAt
 }
 
-model ActivityEvent {
-  id        String   @id @default(uuid())
-  userId    String
-  type      String // e.g., 'COMMIT_PUSH', 'PR_MERGE', 'BUG_FIX'
-  metadata  Json?
-  timestamp DateTime @default(now())
 
-  // Optional relations for context
-  repoId      String?
-  workspaceId String?
-
-  @@index([userId, type])
-  @@index([timestamp])
-}
 
 model RadarSnapshot {
   id        String         @id @default(uuid())
@@ -1484,18 +1565,7 @@ model WebhookDelivery {
   createdAt DateTime @default(now())
 }
 
-model Activity {
-  id      String @id @default(uuid())
-  type    String
-  actorId String
-  actor   User   @relation(fields: [actorId], references: [id])
-  orgId  String?
-  org    Organization? @relation(fields: [orgId], references: [id])
-  repoId String?
-  repo   Repository?   @relation(fields: [repoId], references: [id])
-  details Json?
-  createdAt DateTime @default(now())
-}
+
 
 model Environment {
   id     String     @id @default(uuid())
@@ -1622,35 +1692,17 @@ model Vulnerability {
   @@index([vulnerabilityType])
 }
 
-model RepositoryDomainScore {
-  id                  String   @id @default(uuid())
-  userId              String   @unique
-  secureCodingScore   Float    @default(0)
-  fixSpeedScore       Float    @default(0)
-  riskManagementScore Float    @default(0)
-  consistencyScore    Float    @default(0)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-}
+// Consolidated Domain Scores model
+model DomainScore {
+  id        String   @id @default(uuid())
+  userId    String
+  domain    String   // REPOSITORY, MARKETPLACE, OSS
+  axis      String   // secureCoding, fixSpeed, riskManagement, etc.
+  score     Float    @default(0)
+  updatedAt DateTime @updatedAt
 
-model MarketplaceDomainScore {
-  id                           String   @id @default(uuid())
-  userId                       String   @unique
-  professionalReliabilityScore Float    @default(0)
-  deliveryDisciplineScore      Float    @default(0)
-  appliedSecurityScore         Float    @default(0)
-  createdAt                    DateTime @default(now())
-  updatedAt                    DateTime @updatedAt
-}
-
-model OssDomainScore {
-  id                      String   @id @default(uuid())
-  userId                  String   @unique
-  engineeringDepthScore   Float    @default(0)
-  securityLeadershipScore Float    @default(0)
-  ossImpactScore          Float    @default(0)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  @@unique([userId, domain, axis])
+  @@index([userId])
 }
 
 model UserRadarState {
@@ -1734,4 +1786,5 @@ model ConversationParticipant {
   joinedAt   DateTime  @default(now())
   lastReadAt DateTime?
   @@unique([conversationId, userId])
+  @@index([userId])
 }

@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { emailService } from "../services/emailService";
 import { prisma } from "../services/prisma";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
@@ -45,14 +46,16 @@ export async function authRoutes(fastify: FastifyInstance) {
             password: { type: "string", minLength: 8, maxLength: 128 },
             name: { type: "string", maxLength: 100 },
             username: { type: "string", maxLength: 39, pattern: "^[a-zA-Z0-9_-]+$" },
+            country: { type: "string", maxLength: 100 },
+            emailPreferences: { type: "boolean" },
           },
           additionalProperties: false,
         },
       },
     },
     async (request, reply) => {
-      const { email, password, name, username } = request.body as {
-        email: string; password: string; name: string; username: string;
+      const { email, password, name, username, country, emailPreferences } = request.body as {
+        email: string; password: string; name: string; username: string; country?: string; emailPreferences?: boolean;
       };
 
       try {
@@ -87,33 +90,64 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         const firebaseUid = firebaseUser.uid;
 
-        // 3. Create user in our database
+        // 3. Create user in our database (with Saga Pattern)
         const hashedPassword = await bcrypt.hash(password, 12);
+        let newUser;
 
-        const [newUser] = await prisma.$transaction([
-          prisma.user.create({
-            data: {
-              id: firebaseUid,
-              email,
-              username,
-              name: name || username,
-              password: hashedPassword,
-              role: "user",
-            },
-          }),
-          prisma.outboxEvent.create({
-            data: {
-              topic: "user",
-              payload: {
+        try {
+          const result = await prisma.$transaction([
+            prisma.user.create({
+              data: {
                 id: firebaseUid,
                 email,
                 username,
                 name: name || username,
-                role: "user"
+                password: hashedPassword,
+                role: "user",
+                country: country || null,
+                countryRef: (country && country.length === 2) ? {
+                  connectOrCreate: {
+                    where: { code: country },
+                    create: { code: country, name: country }
+                  }
+                } : undefined,
+                emailPreferences: emailPreferences !== undefined ? emailPreferences : true,
+                settings: {
+                  create: {
+                    emailPreferences: emailPreferences !== undefined ? emailPreferences : true,
+                  }
+                },
+                verification: {
+                  create: {} // Setup default verification state
+                }
+              },
+            }),
+            prisma.outboxEvent.create({
+              data: {
+                topic: "user",
+                payload: {
+                  id: firebaseUid,
+                  email,
+                  username,
+                  name: name || username,
+                  role: "user",
+                  country: country || null,
+                  emailPreferences: emailPreferences !== undefined ? emailPreferences : true,
+                }
               }
-            }
-          })
-        ]);
+            })
+          ]);
+          newUser = result[0];
+        } catch (dbError: any) {
+          // Compensating Transaction (Saga): Rollback Firebase user if DB insert fails
+          console.error("Database registration failed, rolling back Firebase user:", dbError);
+          await firebaseAdmin.auth().deleteUser(firebaseUid).catch(console.error);
+          throw BadRequest(dbError.message || "Failed to create user in database. Registration cancelled.");
+        }
+
+        // 3.5 Send verification email via Resend
+        const verificationLink = await firebaseAdmin.auth().generateEmailVerificationLink(email);
+        await emailService.sendVerificationEmail(email, verificationLink);
 
         // 4. Create Session
         const sessionId = crypto.randomUUID();
@@ -689,9 +723,10 @@ export async function authRoutes(fastify: FastifyInstance) {
         // Generate email verification link via Firebase Admin
         const verificationLink = await firebaseAdmin.auth().generateEmailVerificationLink(user.email);
 
-        // In production, you'd send this link via your email service (e.g., Resend)
-        // For now, Firebase will send the email automatically if configured
-        request.log.info(`Verification link generated for ${user.email}: ${verificationLink}`);
+        // Send verification email via Resend
+        await emailService.sendVerificationEmail(user.email, verificationLink);
+
+        request.log.info(`Verification email sent to ${user.email} via Resend`);
 
         return { message: "Verification email sent" };
       } catch (error: any) {
@@ -748,8 +783,10 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       try {
         // Use Firebase Admin to generate password reset link
-        // Firebase's own email service will send the email
-        await firebaseAdmin.auth().generatePasswordResetLink(email);
+        const resetLink = await firebaseAdmin.auth().generatePasswordResetLink(email);
+
+        // Send password reset email via Resend
+        await emailService.sendPasswordResetEmail(email, resetLink);
 
         // Always return success to prevent email enumeration
         return { message: "If an account exists, a password reset email has been sent" };

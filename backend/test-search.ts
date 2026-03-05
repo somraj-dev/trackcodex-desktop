@@ -12,7 +12,7 @@ async function main() {
                     { name: { contains: q, mode: "insensitive" } },
                 ],
             },
-            include: { customProfile: true },
+            include: { profile: true },
             take: 20,
         });
         console.log("Success:", users);

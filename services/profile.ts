@@ -489,19 +489,4 @@ export const profileService = {
     }
   },
 
-  /**
-   * Follow a user
-   */
-  async followUser(userId: string): Promise<any> {
-    const response = await apiInstance.post(`/users/${userId}/follow`);
-    return response.data;
-  },
-
-  /**
-   * Unfollow a user
-   */
-  async unfollowUser(userId: string): Promise<any> {
-    const response = await apiInstance.delete(`/users/${userId}/follow`);
-    return response.data;
-  },
 };

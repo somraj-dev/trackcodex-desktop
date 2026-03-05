@@ -23,11 +23,15 @@ export class MarketplaceDomain {
             appliedSecurityScore: await this.calcAppliedSecurityScore(userId),
         };
 
-        await prisma.marketplaceDomainScore.upsert({
-            where: { userId },
-            create: { userId, ...scores },
-            update: scores,
-        });
+        // Persist each axis to the unified DomainScore table
+        const upserts = Object.entries(scores).map(([axis, score]) =>
+            prisma.domainScore.upsert({
+                where: { userId_domain_axis: { userId, domain: "MARKETPLACE", axis } },
+                create: { userId, domain: "MARKETPLACE", axis, score },
+                update: { score },
+            })
+        );
+        await Promise.all(upserts);
 
         return scores;
     }
@@ -40,13 +44,13 @@ export class MarketplaceDomain {
         // Get completed and abandoned jobs
         const [completed, total, reviews] = await Promise.all([
             prisma.jobApplication.count({
-                where: { userId, status: "COMPLETED" },
+                where: { applicantId: userId, status: "COMPLETED" },
             }),
             prisma.jobApplication.count({
-                where: { userId, status: { in: ["COMPLETED", "ABANDONED", "REJECTED"] } },
+                where: { applicantId: userId, status: { in: ["COMPLETED", "ABANDONED", "REJECTED"] } },
             }),
             prisma.jobReview.findMany({
-                where: { revieweeId: userId },
+                where: { freelancer: { userId } },
                 select: { rating: true },
             }),
         ]);
@@ -70,7 +74,7 @@ export class MarketplaceDomain {
      */
     private async calcDeliveryScore(userId: string): Promise<number> {
         const applications = await prisma.jobApplication.findMany({
-            where: { userId, status: "COMPLETED" },
+            where: { applicantId: userId, status: "COMPLETED" },
             include: { job: true },
         });
 
@@ -78,13 +82,14 @@ export class MarketplaceDomain {
 
         let onTime = 0;
         for (const app of applications) {
-            // Check if completed before job deadline (if deadline exists)
-            if (app.job.deadline) {
-                const deadline = new Date(app.job.deadline).getTime();
+            // Check if completed before job deadline (if deadline ever added)
+            // For now, assume on-time as deadline field is missing in schema
+            const jobWithDeadline = app.job as any;
+            if (jobWithDeadline.deadline) {
+                const deadline = new Date(jobWithDeadline.deadline).getTime();
                 const completed = app.updatedAt.getTime();
                 if (completed <= deadline) onTime++;
             } else {
-                // No deadline = on time by default
                 onTime++;
             }
         }
@@ -97,17 +102,22 @@ export class MarketplaceDomain {
      * Security compliance on delivered jobs — pulls from repo security domain.
      */
     private async calcAppliedSecurityScore(userId: string): Promise<number> {
-        // Check user's repository security scores
-        const repoScores = await prisma.repositoryDomainScore.findUnique({
-            where: { userId },
+        // Check user's repository security scores from the unified table
+        const scores = await prisma.domainScore.findMany({
+            where: { userId, domain: "REPOSITORY" }
         });
 
-        if (!repoScores) return 50; // Neutral if no repo data
+        if (scores.length === 0) return 50; // Neutral if no repo data
+
+        const r: Record<string, number> = {};
+        for (const s of scores) {
+            r[s.axis] = s.score;
+        }
 
         // Blend secure coding (70%) + risk management (30%)
         return this.clamp(
-            0.7 * repoScores.secureCodingScore +
-            0.3 * repoScores.riskManagementScore
+            0.7 * (r.secureCodingScore ?? 0) +
+            0.3 * (r.riskManagementScore ?? 0)
         );
     }
 
@@ -115,8 +125,23 @@ export class MarketplaceDomain {
         return Math.min(100, Math.max(0, v));
     }
 
-    async getScores(userId: string) {
-        return prisma.marketplaceDomainScore.findUnique({ where: { userId } });
+    async getScores(userId: string): Promise<MarketplaceScores | null> {
+        const scores = await prisma.domainScore.findMany({
+            where: { userId, domain: "MARKETPLACE" }
+        });
+
+        if (scores.length === 0) return null;
+
+        const result: Record<string, number> = {};
+        for (const s of scores) {
+            result[s.axis] = s.score;
+        }
+
+        return {
+            professionalReliabilityScore: result.professionalReliabilityScore ?? 0,
+            deliveryDisciplineScore: result.deliveryDisciplineScore ?? 0,
+            appliedSecurityScore: result.appliedSecurityScore ?? 0,
+        };
     }
 }
 

@@ -18,11 +18,11 @@ export class ActivityService {
     details?: any;
   }) {
     return await prisma.$transaction(async (tx) => {
-      // 1. Create the actual Activity record
-      const activity = await tx.activity.create({
+      // 1. Create the actual ActivityLog record
+      const activity = await tx.activityLog.create({
         data: {
-          type: data.type,
-          actorId: data.actorId,
+          action: data.type,
+          userId: data.actorId,
           orgId: data.orgId,
           repoId: data.repoId,
           details: data.details,
@@ -45,9 +45,9 @@ export class ActivityService {
    * Fetch activity for a specific repository.
    */
   static async getRepoActivity(repoId: string, limit = 20) {
-    return await prisma.activity.findMany({
+    return await prisma.activityLog.findMany({
       where: { repoId },
-      include: { actor: true },
+      include: { user: true },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
@@ -57,9 +57,9 @@ export class ActivityService {
    * Fetch activity for an entire organization.
    */
   static async getOrgActivity(orgId: string, limit = 50) {
-    return await prisma.activity.findMany({
+    return await prisma.activityLog.findMany({
       where: { orgId },
-      include: { actor: true, repo: true },
+      include: { user: true, repo: true },
       orderBy: { createdAt: "desc" },
       take: limit,
     });

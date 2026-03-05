@@ -53,54 +53,63 @@ export class RadarService {
      *  5. Emit event for governance evaluation
      */
     async recalculate(userId: string): Promise<RadarState> {
-        // 1. Pull domain scores (Layer 1 outputs)
-        const [repo, marketplace, oss] = await Promise.all([
-            prisma.repositoryDomainScore.findUnique({ where: { userId } }),
-            prisma.marketplaceDomainScore.findUnique({ where: { userId } }),
-            prisma.ossDomainScore.findUnique({ where: { userId } }),
-        ]);
+        // 1. Pull domain scores (Layer 1 outputs) from the unified table
+        const scores = await prisma.domainScore.findMany({
+            where: { userId }
+        });
 
-        // Default all missing scores to 0
-        const r = {
-            secureCodingScore: repo?.secureCodingScore ?? 0,
-            fixSpeedScore: repo?.fixSpeedScore ?? 0,
-            riskManagementScore: repo?.riskManagementScore ?? 0,
-            consistencyScore: repo?.consistencyScore ?? 0,
+        // Map unified scores back to domain-specific structures for calculation
+        const r: Record<string, number> = {};
+        const m: Record<string, number> = {};
+        const o: Record<string, number> = {};
+
+        for (const s of scores) {
+            if (s.domain === "REPOSITORY") r[s.axis] = s.score;
+            if (s.domain === "MARKETPLACE") m[s.axis] = s.score;
+            if (s.domain === "OSS") o[s.axis] = s.score;
+        }
+
+        // Default missing scores to 0
+        const repo = {
+            secureCodingScore: r.secureCodingScore ?? 0,
+            fixSpeedScore: r.fixSpeedScore ?? 0,
+            riskManagementScore: r.riskManagementScore ?? 0,
+            consistencyScore: r.consistencyScore ?? 0,
         };
-        const m = {
-            professionalReliabilityScore: marketplace?.professionalReliabilityScore ?? 0,
-            deliveryDisciplineScore: marketplace?.deliveryDisciplineScore ?? 0,
-            appliedSecurityScore: marketplace?.appliedSecurityScore ?? 0,
+        const marketplace = {
+            professionalReliabilityScore: m.professionalReliabilityScore ?? 0,
+            deliveryDisciplineScore: m.deliveryDisciplineScore ?? 0,
+            appliedSecurityScore: m.appliedSecurityScore ?? 0,
         };
-        const o = {
-            engineeringDepthScore: oss?.engineeringDepthScore ?? 0,
-            securityLeadershipScore: oss?.securityLeadershipScore ?? 0,
-            ossImpactScore: oss?.ossImpactScore ?? 0,
+        const oss = {
+            engineeringDepthScore: o.engineeringDepthScore ?? 0,
+            securityLeadershipScore: o.securityLeadershipScore ?? 0,
+            ossImpactScore: o.ossImpactScore ?? 0,
         };
 
         // 2. Weighted aggregation formulas
         const axes: Record<RadarAxis, number> = {
             SECURE_ENGINEERING: this.clamp(
-                0.7 * r.secureCodingScore +
-                0.2 * r.consistencyScore +
-                0.1 * o.securityLeadershipScore
+                0.7 * repo.secureCodingScore +
+                0.2 * repo.consistencyScore +
+                0.1 * oss.securityLeadershipScore
             ),
             APPLIED_SECURITY: this.clamp(
-                0.6 * m.appliedSecurityScore +
-                0.4 * r.secureCodingScore
+                0.6 * marketplace.appliedSecurityScore +
+                0.4 * repo.secureCodingScore
             ),
             PROFESSIONAL_RELIABILITY: this.clamp(
-                0.7 * m.professionalReliabilityScore +
-                0.3 * m.deliveryDisciplineScore
+                0.7 * marketplace.professionalReliabilityScore +
+                0.3 * marketplace.deliveryDisciplineScore
             ),
             ENGINEERING_DEPTH: this.clamp(
-                0.6 * o.engineeringDepthScore +
-                0.4 * o.ossImpactScore
+                0.6 * oss.engineeringDepthScore +
+                0.4 * oss.ossImpactScore
             ),
             SECURITY_LEADERSHIP: this.clamp(
-                0.5 * o.securityLeadershipScore +
-                0.3 * m.appliedSecurityScore +
-                0.2 * r.riskManagementScore
+                0.5 * oss.securityLeadershipScore +
+                0.3 * marketplace.appliedSecurityScore +
+                0.2 * repo.riskManagementScore
             ),
         };
 
@@ -192,12 +201,21 @@ export class RadarService {
      * Get all domain scores (raw Layer 1 data).
      */
     async getDomainScores(userId: string) {
-        const [repository, marketplace, oss] = await Promise.all([
-            prisma.repositoryDomainScore.findUnique({ where: { userId } }),
-            prisma.marketplaceDomainScore.findUnique({ where: { userId } }),
-            prisma.ossDomainScore.findUnique({ where: { userId } }),
-        ]);
-        return { repository, marketplace, oss };
+        const scores = await prisma.domainScore.findMany({
+            where: { userId }
+        });
+
+        const r: Record<string, number> = {};
+        const m: Record<string, number> = {};
+        const o: Record<string, number> = {};
+
+        for (const s of scores) {
+            if (s.domain === "REPOSITORY") r[s.axis] = s.score;
+            if (s.domain === "MARKETPLACE") m[s.axis] = s.score;
+            if (s.domain === "OSS") o[s.axis] = s.score;
+        }
+
+        return { repository: r, marketplace: m, oss: o };
     }
 
     private clamp(v: number): number {

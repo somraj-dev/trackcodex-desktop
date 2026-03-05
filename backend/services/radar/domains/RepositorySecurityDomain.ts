@@ -23,12 +23,15 @@ export class RepositorySecurityDomain {
             consistencyScore: await this.calcConsistencyScore(userId),
         };
 
-        // Persist
-        await prisma.repositoryDomainScore.upsert({
-            where: { userId },
-            create: { userId, ...scores },
-            update: scores,
-        });
+        // Persist each axis to the unified DomainScore table
+        const upserts = Object.entries(scores).map(([axis, score]) =>
+            prisma.domainScore.upsert({
+                where: { userId_domain_axis: { userId, domain: "REPOSITORY", axis } },
+                create: { userId, domain: "REPOSITORY", axis, score },
+                update: { score },
+            })
+        );
+        await Promise.all(upserts);
 
         return scores;
     }
@@ -154,8 +157,24 @@ export class RepositorySecurityDomain {
     }
 
     /** Get stored scores for a user */
-    async getScores(userId: string) {
-        return prisma.repositoryDomainScore.findUnique({ where: { userId } });
+    async getScores(userId: string): Promise<RepositoryScores | null> {
+        const scores = await prisma.domainScore.findMany({
+            where: { userId, domain: "REPOSITORY" }
+        });
+
+        if (scores.length === 0) return null;
+
+        const result: Record<string, number> = {};
+        for (const s of scores) {
+            result[s.axis] = s.score;
+        }
+
+        return {
+            secureCodingScore: result.secureCodingScore ?? 0,
+            fixSpeedScore: result.fixSpeedScore ?? 0,
+            riskManagementScore: result.riskManagementScore ?? 0,
+            consistencyScore: result.consistencyScore ?? 0,
+        };
     }
 }
 

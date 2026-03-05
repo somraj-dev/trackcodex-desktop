@@ -202,13 +202,24 @@ export async function profileRoutes(server: FastifyInstance) {
       }
 
       try {
+        const isPrivateUpdate = (req.body as any).isPrivate;
         const result = await prisma.user.update({
           where: { id: userId },
           data: {
+            // Note: showResume/showReadme are technically on Profile, but we maintain existing logic for now
+            // @ts-ignore
             showResume: showResume !== undefined ? showResume : undefined,
+            // @ts-ignore
             showReadme: showReadme !== undefined ? showReadme : undefined,
-            isPrivate: (req.body as any).isPrivate !== undefined ? (req.body as any).isPrivate : undefined,
+            isPrivate: isPrivateUpdate !== undefined ? isPrivateUpdate : undefined,
+            settings: isPrivateUpdate !== undefined ? {
+              upsert: {
+                create: { isPrivate: isPrivateUpdate },
+                update: { isPrivate: isPrivateUpdate }
+              }
+            } : undefined
           },
+          include: { settings: true }
         });
 
         return reply.send({
@@ -248,18 +259,23 @@ export async function profileRoutes(server: FastifyInstance) {
             username: true,
             name: true,
             avatar: true,
-            bio: true,
-            company: true,
-            location: true,
-            website: true,
-            github: true,
-            twitter: true,
-            linkedin: true,
-            profileReadme: true,
-            showReadme: true,
-            showResume: true,
-            resumeUrl: true,
             isPrivate: true,
+            settings: true,
+            profile: {
+              select: {
+                bio: true,
+                company: true,
+                location: true,
+                website: true,
+                github: true,
+                twitter: true,
+                linkedin: true,
+                profileReadme: true,
+                showReadme: true,
+                showResume: true,
+                resumeUrl: true,
+              }
+            }
           },
         });
 
@@ -273,16 +289,16 @@ export async function profileRoutes(server: FastifyInstance) {
             username: user.username,
             name: user.name,
             avatar: user.avatar,
-            bio: user.bio,
-            company: user.company,
-            location: user.location,
-            website: user.website,
-            github: user.github,
-            twitter: user.twitter,
-            linkedin: user.linkedin,
-            readme: user.showReadme ? user.profileReadme : null,
-            hasResume: user.showResume && !!user.resumeUrl,
-            isPrivate: user.isPrivate,
+            bio: user.profile?.bio ?? null,
+            company: user.profile?.company ?? null,
+            location: user.profile?.location ?? null,
+            website: user.profile?.website ?? null,
+            github: user.profile?.github ?? null,
+            twitter: user.profile?.twitter ?? null,
+            linkedin: user.profile?.linkedin ?? null,
+            readme: user.profile?.showReadme ? user.profile?.profileReadme ?? null : null,
+            hasResume: Boolean(user.profile?.showResume && user.profile?.resumeUrl),
+            isPrivate: user.settings?.isPrivate ?? user.isPrivate,
           },
           profileUrl: `${process.env.FRONTEND_URL || "http://localhost:3001"}/profile/${userId}`,
         });

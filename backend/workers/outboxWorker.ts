@@ -35,44 +35,54 @@ async function processOutboxEvents() {
     for (const event of events) {
         try {
             // 1. Send to Elasticsearch directly
-            // Extract the table name from the topic (e.g. server1.public.users)
-            const indexName = event.topic;
+            if (event.topic !== "UPDATE_USER_COUNTERS") {
+                const indexName = event.topic;
+                const payload = event.payload as any;
+                const esHeaders = {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Bypass-Tunnel-Reminder': 'true',
+                    'User-Agent': 'trackcodex-backend'
+                };
 
-            // Format ID for ES if needed, assuming payload has an id
-            const payload = event.payload as any;
-            const esHeaders = {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Bypass-Tunnel-Reminder': 'true',
-                'User-Agent': 'trackcodex-backend'
-            };
+                let esRes;
+                if (payload && payload.id) {
+                    esRes = await fetch(`${ELASTICSEARCH_URL}/${indexName}/_doc/${payload.id.toString()}`, {
+                        method: 'PUT',
+                        headers: esHeaders,
+                        body: JSON.stringify({
+                            payload: payload,
+                            eventType: event.topic,
+                            timestamp: event.createdAt
+                        })
+                    });
+                } else {
+                    esRes = await fetch(`${ELASTICSEARCH_URL}/${indexName}/_doc`, {
+                        method: 'POST',
+                        headers: esHeaders,
+                        body: JSON.stringify({
+                            payload: payload,
+                            eventType: event.topic,
+                            timestamp: event.createdAt
+                        })
+                    });
+                }
 
-            let esRes;
-            if (payload && payload.id) {
-                esRes = await fetch(`${ELASTICSEARCH_URL}/${indexName}/_doc/${payload.id.toString()}`, {
-                    method: 'PUT',
-                    headers: esHeaders,
-                    body: JSON.stringify({
-                        payload: payload,
-                        eventType: event.topic,
-                        timestamp: event.createdAt
-                    })
-                });
+                if (!esRes.ok) {
+                    const text = await esRes.text();
+                    throw new Error(`Elasticsearch error ${esRes.status}: ${text}`);
+                }
             } else {
-                esRes = await fetch(`${ELASTICSEARCH_URL}/${indexName}/_doc`, {
-                    method: 'POST',
-                    headers: esHeaders,
-                    body: JSON.stringify({
-                        payload: payload,
-                        eventType: event.topic,
-                        timestamp: event.createdAt
-                    })
+                // 1b. Handle User Counter Updates
+                const { userId, followersChange, followingChange } = event.payload as any;
+                await prisma.profile.update({
+                    where: { userId },
+                    data: {
+                        followersCount: followersChange ? { increment: followersChange } : undefined,
+                        followingCount: followingChange ? { increment: followingChange } : undefined,
+                    }
                 });
-            }
-
-            if (!esRes.ok) {
-                const text = await esRes.text();
-                throw new Error(`Elasticsearch error ${esRes.status}: ${text}`);
+                console.log(`[Outbox Worker] Updated counters for user ${userId}: followers+=(${followersChange}), following+=(${followingChange})`);
             }
 
             // 2. Mark as processed in the database

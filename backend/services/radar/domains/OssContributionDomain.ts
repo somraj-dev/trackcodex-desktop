@@ -22,11 +22,15 @@ export class OssContributionDomain {
             ossImpactScore: await this.calcOssImpact(userId),
         };
 
-        await prisma.ossDomainScore.upsert({
-            where: { userId },
-            create: { userId, ...scores },
-            update: scores,
-        });
+        // Persist each axis to the unified DomainScore table
+        const upserts = Object.entries(scores).map(([axis, score]) =>
+            prisma.domainScore.upsert({
+                where: { userId_domain_axis: { userId, domain: "OSS", axis } },
+                create: { userId, domain: "OSS", axis, score },
+                update: { score },
+            })
+        );
+        await Promise.all(upserts);
 
         return scores;
     }
@@ -42,7 +46,7 @@ export class OssContributionDomain {
             prisma.pullRequest.count({
                 where: {
                     authorId: userId,
-                    state: "MERGED",
+                    status: "MERGED",
                     mergedAt: { gte: ninetyDaysAgo },
                 },
             }),
@@ -72,7 +76,7 @@ export class OssContributionDomain {
         const securityPRs = await prisma.pullRequest.count({
             where: {
                 authorId: userId,
-                state: "MERGED",
+                status: "MERGED",
                 mergedAt: { gte: ninetyDaysAgo },
                 OR: [
                     { title: { contains: "security", mode: "insensitive" } },
@@ -105,13 +109,13 @@ export class OssContributionDomain {
     private async calcOssImpact(userId: string): Promise<number> {
         const repos = await prisma.repository.findMany({
             where: { ownerId: userId, visibility: "PUBLIC" },
-            select: { stars: true, forks: true },
+            select: { stars: true, forksCount: true },
         });
 
         if (repos.length === 0) return 10; // Baseline for no public repos
 
         const totalStars = repos.reduce((sum, r) => sum + (r.stars || 0), 0);
-        const totalForks = repos.reduce((sum, r) => sum + (r.forks || 0), 0);
+        const totalForks = repos.reduce((sum, r) => sum + (r.forksCount || 0), 0);
 
         // Benchmark: 100 stars + 30 forks = 100
         const starScore = Math.min((totalStars / 100) * 60, 60);
@@ -123,8 +127,23 @@ export class OssContributionDomain {
         return Math.min(100, Math.max(0, v));
     }
 
-    async getScores(userId: string) {
-        return prisma.ossDomainScore.findUnique({ where: { userId } });
+    async getScores(userId: string): Promise<OssScores | null> {
+        const scores = await prisma.domainScore.findMany({
+            where: { userId, domain: "OSS" }
+        });
+
+        if (scores.length === 0) return null;
+
+        const result: Record<string, number> = {};
+        for (const s of scores) {
+            result[s.axis] = s.score;
+        }
+
+        return {
+            engineeringDepthScore: result.engineeringDepthScore ?? 0,
+            securityLeadershipScore: result.securityLeadershipScore ?? 0,
+            ossImpactScore: result.ossImpactScore ?? 0,
+        };
     }
 }
 

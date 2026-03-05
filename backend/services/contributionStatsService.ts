@@ -20,8 +20,8 @@ export const contributionStatsService = {
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31);
 
-    // Get all activities for the year (using Activity model)
-    const activities = await prisma.activity.groupBy({
+    // Get all activities for the year (using ActivityLog model)
+    const activities = await prisma.activityLog.groupBy({
       by: ["createdAt"],
       where: {
         userId: userId,
@@ -29,7 +29,7 @@ export const contributionStatsService = {
           gte: startDate,
           lte: endDate,
         },
-        type: {
+        action: {
           in: ["commit", "push", "pull_request", "merge"],
         },
       },
@@ -79,10 +79,10 @@ export const contributionStatsService = {
     userId: string,
   ): Promise<{ current: number; longest: number }> {
     // Get all activities ordered by date
-    const activities = await prisma.activity.findMany({
+    const activities = await prisma.activityLog.findMany({
       where: {
         userId: userId,
-        type: {
+        action: {
           in: ["commit", "push", "pull_request", "merge"],
         },
       },
@@ -162,10 +162,10 @@ export const contributionStatsService = {
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31);
 
-    const count = await prisma.activity.count({
+    const count = await prisma.activityLog.count({
       where: {
         userId: userId,
-        type: {
+        action: {
           in: ["commit", "push", "pull_request", "merge"],
         },
         createdAt: {

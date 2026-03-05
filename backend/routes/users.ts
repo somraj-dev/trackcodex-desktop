@@ -16,11 +16,11 @@ export async function userRoutes(fastify: FastifyInstance) {
         const userData = await prisma.user.findUnique({
           where: { id: currentUser.userId },
           include: {
-            customProfile: true,
-            posts: true,
-            comments: true,
+            profile: true,
+            communityPosts: true,
+            communityComments: true,
             repositories: true,
-            organizations: true,
+            orgMemberships: true,
             followings: true,
             followers: true,
           },
@@ -35,8 +35,8 @@ export async function userRoutes(fastify: FastifyInstance) {
           "Content-Disposition",
           `attachment; filename="trackcodex-export-${currentUser.username}.json"`,
         );
-        const { customProfile, ...rest } = userData as any;
-        return { ...rest, profile: customProfile };
+        const { profile, ...rest } = userData as any;
+        return { ...rest, profile };
       } catch (error) {
         request.log.error(error);
         return reply.code(500).send({ message: "Export failed" });
@@ -58,7 +58,7 @@ export async function userRoutes(fastify: FastifyInstance) {
         });
 
         // Clear session cookie
-        reply.clearCookie("session_id", { path: "/" });
+        reply.setCookie("session_id", "", { path: "/", expires: new Date(0) });
 
         return { success: true, message: "Account deleted successfully" };
       } catch (error) {
@@ -90,7 +90,7 @@ export async function userRoutes(fastify: FastifyInstance) {
           avatar: true,
           role: true,
           createdAt: true,
-          customProfile: {
+          profile: {
             select: {
               bio: true,
               location: true,
@@ -123,12 +123,12 @@ export async function userRoutes(fastify: FastifyInstance) {
 
       return {
         ...user,
-        followers: (user as any).customProfile?.followersCount || 0,
-        following: (user as any).customProfile?.followingCount || 0,
-        bio: (user as any).customProfile?.bio || "",
-        location: (user as any).customProfile?.location || "",
-        website: (user as any).customProfile?.website || "",
-        company: (user as any).customProfile?.company || "",
+        followers: (user as any).profile?.followersCount || 0,
+        following: (user as any).profile?.followingCount || 0,
+        bio: (user as any).profile?.bio || "",
+        location: (user as any).profile?.location || "",
+        website: (user as any).profile?.website || "",
+        company: (user as any).profile?.company || "",
         isFollowing,
       };
     } catch (error) {
@@ -215,33 +215,37 @@ export async function userRoutes(fastify: FastifyInstance) {
       }
 
       // 3. Public Account - Direct Follow
-      await prisma.follow.create({
-        data: {
-          followerId: currentUser.userId,
-          followingId: targetUserId,
-        },
-      });
+      await prisma.$transaction([
+        prisma.follow.create({
+          data: {
+            followerId: currentUser.userId,
+            followingId: targetUserId,
+          },
+        }),
+        // Emit events for async counter updates
+        prisma.outboxEvent.create({
+          data: {
+            topic: "UPDATE_USER_COUNTERS",
+            payload: { userId: targetUserId, followersChange: 1 },
+          },
+        }),
+        prisma.outboxEvent.create({
+          data: {
+            topic: "UPDATE_USER_COUNTERS",
+            payload: { userId: currentUser.userId, followingChange: 1 },
+          },
+        }),
+      ]);
 
-      // Update counts
-      await prisma.profile.update({
-        where: { userId: targetUserId },
-        data: { followersCount: { increment: 1 } },
-      });
-
-      await prisma.profile.update({
-        where: { userId: currentUser.userId },
-        data: { followingCount: { increment: 1 } },
-      });
-
-      // Notify target user
-      await NotificationService.create(
+      // Notify target user (outside transaction for non-critical path)
+      NotificationService.create(
         targetUserId,
         "FOLLOW",
         "New Follower",
         `@${currentUser.username} is now following you.`,
         `/users/${currentUser.id}`,
         { followerId: currentUser.userId }
-      );
+      ).catch(e => console.error("Follow notification failed:", e));
 
       return { success: true, message: "Successfully followed user" };
     } catch (error) {
@@ -274,26 +278,29 @@ export async function userRoutes(fastify: FastifyInstance) {
         return reply.code(404).send({ message: "Not following this user" });
       }
 
-      // Delete the follow
-      await prisma.follow.delete({
-        where: {
-          followerId_followingId: {
-            followerId: currentUser.userId,
-            followingId: targetUserId,
+      // Delete the follow and emit counter update events in a transaction
+      await prisma.$transaction([
+        prisma.follow.delete({
+          where: {
+            followerId_followingId: {
+              followerId: currentUser.userId,
+              followingId: targetUserId,
+            },
           },
-        },
-      });
-
-      // Update counters in Profile
-      await prisma.profile.update({
-        where: { userId: targetUserId },
-        data: { followersCount: { decrement: 1 } },
-      }).catch(e => console.error("Could not decrement followersCount for target user", e));
-
-      await prisma.profile.update({
-        where: { userId: currentUser.userId },
-        data: { followingCount: { decrement: 1 } },
-      }).catch(e => console.error("Could not decrement followingCount for current user", e));
+        }),
+        prisma.outboxEvent.create({
+          data: {
+            topic: "UPDATE_USER_COUNTERS",
+            payload: { userId: targetUserId, followersChange: -1 },
+          },
+        }),
+        prisma.outboxEvent.create({
+          data: {
+            topic: "UPDATE_USER_COUNTERS",
+            payload: { userId: currentUser.userId, followingChange: -1 },
+          },
+        }),
+      ]);
 
       return { success: true, message: "Successfully unfollowed user" };
     } catch (error) {
@@ -315,7 +322,7 @@ export async function userRoutes(fastify: FastifyInstance) {
               username: true,
               name: true,
               avatar: true,
-              customProfile: {
+              profile: {
                 select: {
                   followersCount: true,
                   followingCount: true,
@@ -329,10 +336,10 @@ export async function userRoutes(fastify: FastifyInstance) {
         const u = f.follower;
         const mapped = {
           ...u,
-          followersCount: (u as any).customProfile?.followersCount || 0,
-          followingCount: (u as any).customProfile?.followingCount || 0,
+          followersCount: (u as any).profile?.followersCount || 0,
+          followingCount: (u as any).profile?.followingCount || 0,
         };
-        delete (mapped as any).customProfile;
+        delete (mapped as any).profile;
         return mapped;
       });
     } catch (error) {
@@ -354,7 +361,7 @@ export async function userRoutes(fastify: FastifyInstance) {
               username: true,
               name: true,
               avatar: true,
-              customProfile: {
+              profile: {
                 select: {
                   followersCount: true,
                   followingCount: true,
@@ -368,10 +375,10 @@ export async function userRoutes(fastify: FastifyInstance) {
         const u = f.following;
         const mapped = {
           ...u,
-          followersCount: (u as any).customProfile?.followersCount || 0,
-          followingCount: (u as any).customProfile?.followingCount || 0,
+          followersCount: (u as any).profile?.followersCount || 0,
+          followingCount: (u as any).profile?.followingCount || 0,
         };
-        delete (mapped as any).customProfile;
+        delete (mapped as any).profile;
         return mapped;
       });
     } catch (error) {
@@ -484,14 +491,13 @@ export async function userRoutes(fastify: FastifyInstance) {
             { name: { contains: q, mode: "insensitive" } },
           ],
         },
-        include: { customProfile: true },
+        include: { profile: true },
         take: 20,
       });
 
       return users.map((u: any) => ({
         ...u,
-        profile: u.customProfile,
-        customProfile: undefined
+        profile: u.profile,
       }));
     } catch (error) {
       console.error("Search error:", error);
@@ -503,9 +509,9 @@ export async function userRoutes(fastify: FastifyInstance) {
   fastify.get("/users/trending", async (request, reply) => {
     try {
       const users = await prisma.user.findMany({
-        include: { customProfile: true },
+        include: { profile: true },
         orderBy: {
-          customProfile: {
+          profile: {
             followersCount: "desc",
           },
         },
@@ -514,8 +520,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
       return users.map((u: any) => ({
         ...u,
-        profile: u.customProfile,
-        customProfile: undefined
+        profile: u.profile,
       }));
     } catch (error) {
       console.error("Trending users error:", error);
@@ -546,10 +551,10 @@ export async function userRoutes(fastify: FastifyInstance) {
             notIn: currentUser ? [...followingIds, currentUser.userId] : [],
           },
         },
-        include: { customProfile: true },
+        include: { profile: true },
         take: 5,
         orderBy: {
-          customProfile: {
+          profile: {
             followersCount: "desc",
           },
         },
@@ -557,8 +562,7 @@ export async function userRoutes(fastify: FastifyInstance) {
 
       return users.map((u: any) => ({
         ...u,
-        profile: u.customProfile,
-        customProfile: undefined
+        profile: u.profile,
       }));
     } catch (error) {
       console.error("Suggested users error:", error);

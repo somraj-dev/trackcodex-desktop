@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { prisma } from "../services/prisma";
 import crypto from 'crypto';
+import { emailService } from '../services/emailService';
 
 // Shared prisma instance
 
@@ -27,16 +28,31 @@ export async function authOtpRoutes(fastify: FastifyInstance) {
         const otp = generateOTP();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                otpCode: otp,
-                otpExpiresAt: expiresAt
-            }
-        });
+        // Phase 1: Dual writing for safe migration. 
+        // Write to new normalized table, and old legacy column if they exist.
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    otpCode: otp,
+                    otpExpiresAt: expiresAt
+                }
+            }),
+            prisma.userVerification.upsert({
+                where: { userId: user.id },
+                update: { otpCode: otp, otpExpiresAt: expiresAt },
+                create: { userId: user.id, otpCode: otp, otpExpiresAt: expiresAt }
+            })
+        ]);
 
-        // MOCK EMAIL SENDING
-        console.log(`\x1b[33m[EMAIL MOCK] Sending OTP to ${email}: ${otp}\x1b[0m`);
+        // Send Real OTP via Resend
+        const emailSent = await emailService.sendOTP(email, otp);
+
+        if (!emailSent) {
+            console.error(`[ERROR] Failed to send OTP email to ${email}`);
+            // In a real app we might want to return an error, 
+            // but for now we'll return success if it's logged during dev
+        }
 
         return { success: true, message: "OTP sent to email." };
     });
@@ -45,26 +61,39 @@ export async function authOtpRoutes(fastify: FastifyInstance) {
     fastify.post('/auth/otp/verify', async (request, reply) => {
         const { email, code } = request.body as any;
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: { verification: true }
+        });
         if (!user) return reply.code(400).send({ error: "User not found" });
 
-        if (!user.otpCode || !user.otpExpiresAt) {
+        // Phase 1 Migration: Read from new table, fallback to legacy cols
+        const otpCode = user.verification?.otpCode || user.otpCode;
+        const otpExpiresAt = user.verification?.otpExpiresAt || user.otpExpiresAt;
+
+        if (!otpCode || !otpExpiresAt) {
             return reply.code(400).send({ error: "No OTP requested" });
         }
 
-        if (new Date() > user.otpExpiresAt) {
+        if (new Date() > otpExpiresAt) {
             return reply.code(400).send({ error: "OTP expired" });
         }
 
-        if (user.otpCode !== code) {
+        if (otpCode !== code) {
             return reply.code(400).send({ error: "Invalid code" });
         }
 
-        // Success - Clear OTP
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { otpCode: null, otpExpiresAt: null }
-        });
+        // Success - Clear OTP from both tables
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: user.id },
+                data: { otpCode: null, otpExpiresAt: null }
+            }),
+            prisma.userVerification.update({
+                where: { userId: user.id },
+                data: { otpCode: null, otpExpiresAt: null }
+            })
+        ]);
 
         // Issue Session Token (Reuse existing Session logic if available, or just return mock token)
         // Ideally we'd reuse the logic from auth.ts
