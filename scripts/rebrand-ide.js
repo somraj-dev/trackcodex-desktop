@@ -52,7 +52,7 @@ async function rebrandIDE() {
                         json.applicationName = "trackcodex";
                         json.dataFolderName = ".trackcodex";
                         json.extensionsGallery = {
-                            serviceUrl: "http://localhost:3001/api/gallery", // Corrected port to 3001
+                            serviceUrl: "https://open-vsx.org/vscode/gallery",
                             itemUrl: "https://open-vsx.org/vscode/item",
                             controlUrl: "",
                             recommendationsUrl: ""
@@ -111,7 +111,7 @@ async function rebrandIDE() {
                         settings.productConfiguration.nameLong = "TrackCodex";
                         settings.productConfiguration.applicationName = "trackcodex";
                         settings.productConfiguration.extensionsGallery = {
-                            serviceUrl: window.location.protocol + '//' + window.location.hostname + ':3001/api/gallery',
+                            serviceUrl: "https://open-vsx.org/vscode/gallery",
                             itemUrl: "https://open-vsx.org/vscode/item",
                             controlUrl: "",
                             recommendationsUrl: ""
