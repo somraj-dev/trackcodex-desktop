@@ -1188,11 +1188,43 @@ const AppContent = () => {
       (window as any).electron.onAuthToken(async (token: string) => {
         try {
           const { auth } = await import("./lib/firebase");
-          const { signInWithCustomToken } = await import("firebase/auth");
-          await signInWithCustomToken(auth, token);
-          console.log("Successfully logged in via Desktop Handshake!");
+          // Try signInWithCustomToken first (if backend generated a custom token)
+          try {
+            const { signInWithCustomToken } = await import("firebase/auth");
+            await signInWithCustomToken(auth, token);
+            console.log("Successfully logged in via Desktop Handshake (Custom Token)!");
+            return;
+          } catch {
+            // Not a custom token — it's an ID token from the web bridge
+            console.log("Custom token failed, using ID token flow...");
+          }
+
+          // ID Token flow: Call the backend /auth/sync with the token as Bearer auth
+          // to establish the backend session, then the Firebase auth state
+          // will already be active since the web app was authenticated
+          const { API_BASE } = await import("./services/api");
+          const syncResponse = await fetch(`${API_BASE}/auth/sync`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+            credentials: "include",
+          });
+
+          if (syncResponse.ok) {
+            const data = await syncResponse.json();
+            if (data.csrfToken) {
+              localStorage.setItem("trackcodex_csrf_token", data.csrfToken);
+            }
+            console.log("Successfully synced via ID token Desktop Handshake!");
+            // Force a reload to pick up the new auth state
+            window.location.reload();
+          } else {
+            console.error("Desktop sync failed:", await syncResponse.text());
+          }
         } catch (error) {
-          console.error("Failed to sign in with custom token:", error);
+          console.error("Failed to sign in via Desktop Handshake:", error);
         }
       });
     }
