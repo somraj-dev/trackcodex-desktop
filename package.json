@@ -147,6 +147,12 @@
   "build": {
     "appId": "com.quantaforze.trackcodex",
     "productName": "TrackCodex",
+    "protocols": {
+      "name": "trackcodex",
+      "schemes": [
+        "trackcodex"
+      ]
+    },
     "files": [
       "dist/**/*",
       "dist-backend/**/*",

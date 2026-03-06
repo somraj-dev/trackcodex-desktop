@@ -1182,6 +1182,22 @@ const AppContent = () => {
   const location = useLocation();
   const [isAppLoading] = useState(false);
 
+  // Handle Desktop App (Electron) Deep Link Handshake
+  useEffect(() => {
+    if (typeof (window as any).electron?.onAuthToken === "function") {
+      (window as any).electron.onAuthToken(async (token: string) => {
+        try {
+          const { auth } = await import("./lib/firebase");
+          const { signInWithCustomToken } = await import("firebase/auth");
+          await signInWithCustomToken(auth, token);
+          console.log("Successfully logged in via Desktop Handshake!");
+        } catch (error) {
+          console.error("Failed to sign in with custom token:", error);
+        }
+      });
+    }
+  }, []);
+
   if (isLoading || isAppLoading) {
     return <SplashScreen />;
   }

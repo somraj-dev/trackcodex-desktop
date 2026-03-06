@@ -14,6 +14,49 @@ const isDev = !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 let backendProcess: ChildProcess | null = null;
 
+// Ensure trackcodex:// protocol is handled
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient("trackcodex", process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient("trackcodex");
+}
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+
+      // Deep link handling for Windows/Linux
+      const url = commandLine.pop();
+      if (url && url.startsWith("trackcodex://")) {
+        handleDeepLink(url);
+      }
+    }
+  });
+
+  // Deep link handling for macOS
+  app.on("open-url", (event, url) => {
+    event.preventDefault();
+    handleDeepLink(url);
+  });
+}
+
+function handleDeepLink(url: string) {
+  const parsedUrl = new URL(url);
+  const token = parsedUrl.searchParams.get("token");
+  if (token && mainWindow) {
+    mainWindow.webContents.send("auth-token", token);
+  }
+}
+
 // Function to find a free port
 const getFreePort = (startPort: number): Promise<number> => {
   return new Promise((resolve, reject) => {

@@ -105,11 +105,21 @@ const LandingPage = () => {
             {/* Editor Footer Actions */}
             <div className="border-t border-[#222] p-4 flex items-center justify-between">
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => {
+                  const isElectron = window.navigator.userAgent.toLowerCase().includes('electron') || window.location.protocol === 'file:';
+                  if (isElectron) {
+                    // Force open in system browser to allow the handshake bridge to work
+                    window.open("https://trackcodex.com/auth/desktop-login", "_blank");
+                  } else {
+                    navigate("/login");
+                  }
+                }}
+
                 className="px-6 py-2 rounded-full bg-[#1b2b22] text-[#4ade80] text-sm font-medium hover:bg-[#253b2e] border border-[#2d4d38] transition-colors"
               >
                 Login
               </button>
+
               <button
                 onClick={() => navigate("/signup")}
                 className="px-6 py-2 rounded-full bg-white text-black text-sm font-bold hover:bg-gray-100 transition-colors"
