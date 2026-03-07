@@ -4,8 +4,10 @@ import { execSync } from "child_process";
 import { AutoSyncService } from "./autoSyncService";
 
 // OpenVSCode Server URL
-const OPENVSCODE_URL = process.env.OPENVSCODE_URL || "https://ide.trackcodex.com";
+const OPENVSCODE_URL = (process.env.OPENVSCODE_URL || "https://ide.trackcodex.com").replace(/\/$/, ""); // Remove trailing slash
 const OPENVSCODE_TOKEN = process.env.OPENVSCODE_TOKEN || "trackcodex";
+
+console.warn(`[WorkspaceManager] Using IDE Host: ${OPENVSCODE_URL}`);
 
 // Local workspaces directory — bind-mounted into the Docker container at /home/workspace
 const WORKSPACES_ROOT = path.join(process.cwd(), "workspaces");

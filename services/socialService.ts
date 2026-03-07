@@ -21,6 +21,12 @@ export interface Post {
   title?: string;
   content: string;
   mediaUrl?: string;
+  mediaUrls?: string[]; // For carousels
+  isPromoted?: boolean;
+  isPopular?: boolean;
+  isJoined?: boolean;
+  ctaText?: string; // e.g., "Shop Now"
+  awards?: number;
   codeSnippet?: {
     code: string;
     language: string;

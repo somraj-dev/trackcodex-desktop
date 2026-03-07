@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 interface VSCodeWebBridgeProps {
   workspaceId?: string;
@@ -21,6 +21,24 @@ const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Helper to send messages to VS Code Web
+  const sendMessageToVSCode = useCallback((message: { type: string; payload?: any }) => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentWindow) {
+      console.warn("⚠️ Cannot send message: VS Code iframe not ready");
+      return;
+    }
+
+    let targetOrigin = "http://localhost:8080";
+    try {
+      if (src) targetOrigin = new URL(src).origin;
+    } catch (e) {
+      // Fallback
+    }
+
+    iframe.contentWindow.postMessage(message, targetOrigin);
+  }, [src]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -47,7 +65,7 @@ const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
 
     // Handle iframe load
     const handleLoad = () => {
-      console.log("✅ VS Code Web loaded successfully");
+      console.warn("✅ VS Code Web loaded successfully");
       setIsLoading(false);
 
       // Send initial configuration to VS Code
@@ -82,13 +100,20 @@ const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
       iframe.removeEventListener("load", handleLoad);
       iframe.removeEventListener("error", handleError);
     };
-  }, [workspaceId, workspacePath, onReady, onError]);
+  }, [workspaceId, workspacePath, onReady, onError, src, sendMessageToVSCode]);
 
   // Listen for messages from VS Code Web
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Security: Only accept messages from VS Code Web server
-      if (event.origin !== "http://localhost:8080") {
+      // Security: Only accept messages from the intended IDE host
+      let allowedOrigin = "http://localhost:8080";
+      try {
+        if (src) allowedOrigin = new URL(src).origin;
+      } catch {
+        // Keep default
+      }
+
+      if (event.origin !== allowedOrigin) {
         return;
       }
 
@@ -96,19 +121,19 @@ const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
 
       switch (type) {
         case "vscode-ready":
-          console.log("🎉 VS Code Web is ready");
+          console.warn("🎉 VS Code Web is ready");
           break;
 
         case "workspace-changed":
-          console.log("📁 Workspace changed:", payload.workspacePath);
+          console.warn("📁 Workspace changed:", payload.workspacePath);
           break;
 
         case "file-opened":
-          console.log("📄 File opened:", payload.filePath);
+          console.warn("📄 File opened:", payload.filePath);
           break;
 
         case "extension-installed":
-          console.log("🧩 Extension installed:", payload.extensionId);
+          console.warn("🧩 Extension installed:", payload.extensionId);
           break;
 
         case "error":
@@ -123,7 +148,7 @@ const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
           break;
 
         default:
-          console.log("📨 VS Code message:", type, payload);
+          console.warn("📨 VS Code message:", type, payload);
       }
     };
 
@@ -132,18 +157,7 @@ const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, []);
-
-  // Helper to send messages to VS Code Web
-  const sendMessageToVSCode = (message: { type: string; payload?: any }) => {
-    const iframe = iframeRef.current;
-    if (!iframe || !iframe.contentWindow) {
-      console.warn("⚠️ Cannot send message: VS Code iframe not ready");
-      return;
-    }
-
-    iframe.contentWindow.postMessage(message, "http://localhost:8080");
-  };
+  }, [src, sendMessageToVSCode]);
 
   // Handle workspace switching and remote commands
   useEffect(() => {
@@ -161,14 +175,14 @@ const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
       const searchParams = new URLSearchParams(window.location.search);
       const command = searchParams.get("command");
       if (command) {
-        console.log(`🚀 Executing remote command: ${command}`);
+        console.warn(`🚀 Executing remote command: ${command}`);
         sendMessageToVSCode({
           type: "run-command",
           payload: { command }
         });
       }
     }
-  }, [workspaceId, workspacePath, isLoading]);
+  }, [workspaceId, workspacePath, isLoading, sendMessageToVSCode]);
 
   return (
     <div className="w-full h-full relative bg-[#1e1e1e]">

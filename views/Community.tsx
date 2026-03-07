@@ -20,7 +20,40 @@ const CommunityView = () => {
     setLoading(true);
     try {
       const data = await socialService.getFeed();
-      setPosts(data);
+
+      // Enhance with mock data to match user's screenshots for demonstration
+      const mockPosts: Post[] = [
+        {
+          id: "m1",
+          author: { id: "a1", name: "r/developersIndia", username: "developersIndia", avatar: "https://styles.redditmedia.com/t5_2sk9r/styles/communityIcon_v0b5j9z6z5z51.png" },
+          title: "2025 F CSE grad still unplaced — would appreciate resume feedback",
+          content: "I've been searching for roles for 6 months now...",
+          mediaUrls: [
+            "https://i.redd.it/2z9z9z9z9z9z.png", // Mock resume image
+            "https://i.redd.it/abcd1234.png"
+          ],
+          likes: 57,
+          comments: new Array(61),
+          awards: 2,
+          isPopular: true,
+          createdAt: new Date().toISOString(),
+          community: { id: "c1", name: "r/developersIndia", slug: "developersIndia" }
+        },
+        {
+          id: "m2",
+          author: { id: "a2", name: "u/HostingerCOM", username: "HostingerCOM", avatar: "https://www.hostinger.com/favicon.ico" },
+          title: "Hostinger's self-hosted n8n is on sale - deploy in one click and unlock unlimited workflows",
+          content: "Get your n8n instance today!",
+          mediaUrl: "https://i.redd.it/promote_h.png",
+          likes: 5,
+          comments: [],
+          isPromoted: true,
+          ctaText: "Shop Now",
+          createdAt: new Date().toISOString()
+        }
+      ];
+
+      setPosts([...mockPosts, ...data]);
     } catch (e) {
       console.error(e);
     } finally {
