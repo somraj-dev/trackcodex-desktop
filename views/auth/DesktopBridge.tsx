@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { API_BASE } from "../../services/api";
@@ -7,6 +7,10 @@ import TrackCodexLogo from "../../components/branding/TrackCodexLogo";
 const DesktopBridge = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // Derive status from state
+  const status = errorMsg ? "error" : isAuthenticated ? "handoff" : "checking";
 
   useEffect(() => {
     if (isLoading) return;
@@ -16,10 +20,15 @@ const DesktopBridge = () => {
       localStorage.setItem("redirect_after_login", "/auth/desktop-login");
       navigate("/login", { replace: true });
     } else {
-      // User IS logged in. Handoff to backend to generate token and deep link!
-      // Wait a tiny bit so the user can see the "Handing off..." UI
+      // User IS logged in. Handoff to backend to generate secure custom token and deep link!
+      // Wait a tiny bit so the user can see the "Connecting" UI
       const timer = setTimeout(() => {
-        window.location.href = `${API_BASE}/auth/desktop-redirect`;
+        try {
+          window.location.href = `${API_BASE}/auth/desktop-redirect`;
+        } catch (err: unknown) {
+          console.error("Desktop handoff failed:", err);
+          setErrorMsg("Failed to initiate secure handoff. Please try again.");
+        }
       }, 1500);
 
       return () => clearTimeout(timer);
@@ -31,6 +40,25 @@ const DesktopBridge = () => {
       <div className="min-h-screen bg-[#0d1117] flex flex-col justify-center items-center font-sans tracking-tight">
         <TrackCodexLogo size="lg" collapsed={false} clickable={false} />
         <p className="mt-8 text-[#8b949e]">Checking secure session...</p>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="min-h-screen bg-[#0d1117] flex flex-col justify-center items-center font-sans tracking-tight">
+        <TrackCodexLogo size="lg" collapsed={false} clickable={false} />
+        <div className="mt-12 flex flex-col items-center">
+          <span className="text-red-500 text-4xl mb-4">⚠</span>
+          <h2 className="text-[20px] font-medium text-[#e6edf3] mb-2">Handoff Failed</h2>
+          <p className="text-[14px] text-[#8b949e] max-w-sm text-center mb-6">{errorMsg}</p>
+          <button
+            onClick={() => navigate("/dashboard/home")}
+            className="text-[#2f81f7] hover:underline text-[13px]"
+          >
+            Go to dashboard instead
+          </button>
+        </div>
       </div>
     );
   }
