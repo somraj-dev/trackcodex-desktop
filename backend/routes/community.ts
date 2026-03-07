@@ -5,10 +5,47 @@ import { requireAuth } from "../middleware/auth";
 // Shared prisma instance
 
 export async function communityRoutes(fastify: FastifyInstance) {
+  // List communities for discovery
+  fastify.get('/', async (request, reply) => {
+    try {
+      const communities = await prisma.community.findMany({
+        where: { isSearchable: true },
+        include: {
+          _count: {
+            select: { members: true, posts: true }
+          }
+        },
+        take: 10
+      });
+
+      return communities.map(c => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        avatar: c.avatar || `https://ui-avatars.com/api/?name=${c.slug}&background=random`,
+        memberCount: c._count.members,
+        isMember: false // Simplified for now
+      }));
+    } catch (err) {
+      console.error(err);
+      return reply.status(500).send({ error: 'Failed to fetch communities' });
+    }
+  });
+
+  // Trending Repositories (Mocked for now based on community activity or just a fixed list)
+  fastify.get('/trending-repos', async (request, reply) => {
+    return [
+      { id: '1', name: 'facebook/react', description: 'A JavaScript library for building user interfaces', stars: 213000, language: 'JavaScript', avatar: 'https://ui-avatars.com/api/?name=R&background=61DAFB' },
+      { id: '2', name: 'rust-lang/rust', description: 'Empowering everyone to build reliable and efficient software.', stars: 95000, language: 'Rust', avatar: 'https://ui-avatars.com/api/?name=R&background=dea584' },
+      { id: '3', name: 'shadcn/ui', description: 'Beautifully designed components built with Radix UI and Tailwind CSS.', stars: 52000, language: 'TypeScript', avatar: 'https://ui-avatars.com/api/?name=S&background=000000' }
+    ];
+  });
+
   // List Posts
   fastify.get<{
     Querystring: { type?: string; limit?: string; communityId?: string; authorId?: string };
-  }>("/community/posts", async (request, reply) => {
+  }>("/posts", async (request, reply) => {
     const { type, limit, communityId, authorId } = request.query;
     const take = limit ? parseInt(limit) : 20;
 

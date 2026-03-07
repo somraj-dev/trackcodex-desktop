@@ -1,14 +1,5 @@
 import { apiInstance } from "./api";
 
-export interface SocialUser {
-  id: string;
-  name: string;
-  username: string;
-  avatar: string;
-  role: string;
-  company?: string;
-}
-
 export interface Comment {
   id: string;
   authorId: string;
@@ -17,69 +8,51 @@ export interface Comment {
   createdAt: string;
 }
 
-export type PostType =
-  | "discussion"
-  | "repo_update"
-  | "job_alert"
-  | "showcase"
-  | "question";
-
 export interface Post {
   id: string;
+  author: {
+    id: string;
+    name: string;
+    username: string;
+    avatar: string;
+    isVerified?: boolean;
+    karma?: number;
+  };
   title?: string;
   content: string;
-  type: PostType;
-  author: { id: string; name: string; username: string; avatar: string; role?: string; karma: number };
-  createdAt: string;
-  comments: Comment[];
-  likes: number;
   mediaUrl?: string;
   codeSnippet?: {
-    language: string;
     code: string;
-  };
-  repoLink?: {
-    name: string;
-    description: string;
-    stars: number;
     language: string;
   };
-  jobDetails?: {
-    company: string;
-    role: string;
-    salary: string;
-    location: string;
-  };
-  shares?: number;
-  isLiked?: boolean;
+  likes: number;
+  comments: any[];
+  createdAt: string;
   community?: {
     id: string;
     name: string;
     slug: string;
     avatar?: string;
   };
-  workspace?: {
-    id: string;
-    name: string;
-    description?: string;
-  };
-  researchPaperUrl?: string;
 }
 
 export interface Community {
   id: string;
-  slug: string;
   name: string;
-  description?: string;
-  avatar?: string;
-  coverImage?: string;
-  isSearchable: boolean;
-  creatorId: string;
-  createdAt: string;
-  _count?: {
-    members: number;
-    posts: number;
-  };
+  slug: string;
+  description: string;
+  avatar: string;
+  memberCount: number;
+  isMember: boolean;
+}
+
+export interface TrendingRepo {
+  id: string;
+  name: string;
+  description: string;
+  stars: number;
+  language: string;
+  avatar: string;
 }
 
 export const socialService = {
