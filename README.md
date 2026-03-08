@@ -1,98 +1,69 @@
-<div align="center">
+# 🚀 TrackCodex (Beta)
 
-  <h1>TrackCodex</h1>
-  <h3>The Next-Generation AI-Powered Developer Workspace</h3>
-  <p><b>Developed by Quantaforze LLC</b></p>
-</div>
+**The AI-Powered Developer Platform for High-Performance Teams.**
 
-<br />
+TrackCodex is an enterprise-grade platform designed to streamline software development through AI-driven insights, modular architecture, and a unified workspace experience. Built with a focus on scalability, security, and developer joy.
 
-![License](https://img.shields.io/badge/license-Proprietary-blue.svg)
-![Version](https://img.shields.io/badge/version-0.1.10-green.svg)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
+![TrackCodex Banner](frontend/public/official-logo.png)
 
-## 🚀 Overview
+## 🏗️ New Domain-Driven Architecture
 
-**TrackCodex** is an advanced developer productivity platform designed to bridge the gap between project management, code collaboration, and AI-assisted development. Built as a native desktop application, it integrates deeply with your local environment while connecting you to the cloud.
+The codebase has undergone a comprehensive architectural overhaul, transitioning to a professional, hyper-modular structure:
 
-Powered by **ForgeAI**, TrackCodex offers context-aware coding assistance, automated refactoring, and intelligent project insights.
+```bash
+trackcodexBeta/
+├── 💻 frontend/        # React + Vite UI, Modular Components, Domain Services
+├── ⚙️ backend/         # Fastify API, Domain Logic, Security Middleware
+├── 🗄️ database/        # Prisma Schema, Migrations, Seed Data
+├── 🚀 infrastructure/  # Docker, Terraform, CI/CD Workflows
+└── 📜 scripts/         # Automation and Build Utilities
+```
 
 ## ✨ Key Features
 
-- **🤖 ForgeAI Assistant**: Integrated AI that understands your entire repository context, not just single files.
-- **📂 Desktop Workspace**: Native file system integration for seamless local development.
-- **🔐 Secure Authentication**: Enterprise-grade login via Google and GitHub (OAuth 2.0).
-- **👥 Team Collaboration**: Manage organizations, teams, and permissions with ease.
-- **📊 Integrated Dashboard**: Track issues, pull requests, and project health in one view.
-- **🎨 Amazing UI/UX**: A modern, dark-themed interface built for focus and aesthetics.
+- **ForgeAI Engine**: Advanced AI-powered code analysis and security auditing.
+- **Unified Workspace**: Seamlessly start and access cloud workspaces with zero configuration.
+- **Rich Activity Tracking**: Gamified social graph for developer contributions and team performance.
+- **Enterprise Security**: Role-Based Access Control (RBAC) with granular repository permissions.
+- **Desktop & Web**: Optimized for both high-performance desktop (Electron) and responsive web.
 
-## 🛠️ Technology Stack
+## 🛠️ Tech Stack
 
-- **Frontend**: React 18, Vite, TailwindCSS
-- **Backend**: Node.js, Fastify, Prisma (PostgreSQL)
-- **Desktop**: Electron
-- **Language**: TypeScript
+- **Frontend**: [React 19](https://react.dev/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [Monaco Editor](https://microsoft.github.io/monaco-editor/).
+- **Backend**: [Fastify](https://www.fastify.io/), [Prisma](https://www.prisma.io/), [PostgreSQL](https://www.postgresql.org/).
+- **AI**: [Google Gemini Pro](https://ai.google.dev/).
+- **Deployment**: [AWS EC2/RDS](https://aws.amazon.com/), [Vercel](https://vercel.com/), [GitHub Actions](https://github.com/features/actions).
 
-## 🏁 Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js (v18 or higher)
-- PostgreSQL Database
-- Git
+- Node.js 18+
+- Docker (for local workspace orchestration)
+- PostgreSQL (AWS RDS recommended)
 
 ### Installation
-
-1.  **Clone the repository**
-
-    ```bash
-    git clone https://github.com/Quantaforze-trackcodex/meeting_1.git
-    cd meeting_1
-    ```
-
-2.  **Install Dependencies**
-
-    ```bash
-    npm install
-    ```
-
-3.  **Configure Environment**
-    Create a `.env` file in the root directory:
-
-    ```env
-    DATABASE_URL="postgresql://user:password@localhost:5432/trackcodex"
-    GOOGLE_CLIENT_ID="..."
-    GOOGLE_CLIENT_SECRET="..."
-    GITHUB_CLIENT_ID="..."
-    GITHUB_CLIENT_SECRET="..."
-    ```
-
-4.  **Run Development Server**
-    ```bash
-    npm run start:all
-    ```
-
-### 📦 Building for Production
-
-To create a native installer for your OS:
-
 ```bash
-# Windows
-npm run dist:win
+# Install dependencies
+npm install
 
-# macOS
-npm run dist:mac
+# Setup environment
+cp .env.example .env
 
-# Linux
-npm run dist:linux
+# Generate database client
+npx prisma generate --schema=backend/schema.prisma
+
+# Start development environment
+npm run start:all
 ```
-
-The installer will be generated in the `release/` directory.
 
 ## 🤝 Contributing
 
-This is a proprietary product of **Quantaforze LLC**. External contributions are currently closed.
+We welcome contributions from the community! Please refer to our [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on the new modular architecture, coding standards, and pull request processes.
 
 ## 📄 License
 
-Copyright &copy; 2026-present **Quantaforze LLC**. All rights reserved.
+This project is licensed under the [LICENSE](LICENSE) provided in this repository.
+
+---
+
+**Built with ❤️ by [somraj-dev](https://github.com/somraj-dev) and the TrackCodex Team.**
