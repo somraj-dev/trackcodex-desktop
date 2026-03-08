@@ -221,9 +221,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // 2. Apply base class for Tailwind 'dark:' support
     if (resolvedTheme.type === "dark") {
+      root.classList.remove("light");
       root.classList.add("dark");
     } else {
+      root.classList.remove("dark");
       root.classList.add("light");
+    }
+
+    // Apply high contrast
+    if (isHighContrast) {
+      root.classList.add("high-contrast");
+    } else {
+      root.classList.remove("high-contrast");
     }
 
     // 3. Apply CSS Variables directly to :root

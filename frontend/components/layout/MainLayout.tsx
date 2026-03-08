@@ -120,8 +120,8 @@ const MainLayout: React.FC = () => {
           <div className="fixed inset-0 bg-black/50 z-[70] animate-in fade-in duration-200" onClick={() => setIsSidebarOpen(false)} />
           <div className="fixed top-0 left-0 h-full w-[320px] bg-[#11141A] border-r border-[#1E232E] z-[80] animate-in slide-in-from-left duration-300 flex flex-col overflow-y-auto">
             <div className="flex items-center justify-between px-4 h-14 shrink-0">
-              <button onClick={() => { setIsSidebarOpen(false); navigate("/dashboard/home"); }} className="text-white">
-                <TrackCodexLogo size="sm" collapsed clickable={false} />
+              <button onClick={() => { setIsSidebarOpen(false); navigate("/dashboard/home"); }} className="text-gh-text">
+                <TrackCodexLogo size="sm" collapsed={true} clickable={false} />
               </button>
               <button onClick={() => setIsSidebarOpen(false)} className="text-gh-text-secondary h-8 w-8 flex items-center justify-center">
                 <span className="material-symbols-outlined !text-[20px]">close</span>
@@ -138,7 +138,7 @@ const MainLayout: React.FC = () => {
                 { icon: "bolt", label: "ForgeAI", to: "/forge-ai" },
                 { icon: "account_circle", label: "Profile", to: "/profile" },
               ].map((item) => (
-                <button key={item.label} onClick={() => { setIsSidebarOpen(false); navigate(item.to); }} className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-[14px] font-medium ${location.pathname.startsWith(item.to) ? "text-white bg-[#1f6feb]/15" : "text-gh-text hover:bg-[#11141A] hover:text-white"}`}>
+                <button key={item.label} onClick={() => { setIsSidebarOpen(false); navigate(item.to); }} className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-[14px] font-medium ${location.pathname.startsWith(item.to) ? "text-gh-text bg-primary/15" : "text-gh-text hover:bg-gh-bg-secondary hover:text-gh-text"}`}>
                   <span className="material-symbols-outlined !text-[18px]">{item.icon}</span>
                   {item.label}
                 </button>
@@ -156,7 +156,7 @@ const MainLayout: React.FC = () => {
                 <button onClick={() => setIsSidebarOpen(true)} className="text-gh-text hover:text-white h-8 w-8 flex items-center justify-center rounded-md hover:bg-[#11141A]">
                   <span className="material-symbols-outlined !text-[20px]">menu</span>
                 </button>
-                <button onClick={() => navigate("/dashboard/home")}><TrackCodexLogo size="sm" collapsed clickable={false} /></button>
+                <button onClick={() => navigate("/dashboard/home")} aria-label="Home"><TrackCodexLogo size="sm" collapsed={true} clickable={false} /></button>
               </div>
               <div className="flex-1 flex justify-center max-w-[720px] mx-auto">
                 <div onClick={() => setIsCommandPaletteOpen(true)} className="flex items-center gap-2 px-3 py-1 bg-[#0A0D14] border border-[#1E232E] rounded-md w-full max-w-[272px] cursor-pointer hover:border-[#58a6ff]/50 transition-colors group">
