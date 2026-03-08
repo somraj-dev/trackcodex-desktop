@@ -14,7 +14,6 @@ import TrackCodexLogo from "../branding/TrackCodexLogo";
 import { useAuth } from "../../context/AuthContext";
 import { useNotifications } from "../../context/NotificationContext";
 import { useMessaging } from "../../context/MessagingContext";
-import NotificationsModal from "../notifications/NotificationsModal";
 import { profileService, UserProfile } from "../../services/activity/profile";
 
 interface NotificationItem {
@@ -34,7 +33,7 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { notifications } = useNotifications();
+  const { notifications, unreadCount } = useNotifications();
   const { totalUnreadCount, setIsPanelOpen } = useMessaging();
 
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -189,10 +188,19 @@ const MainLayout: React.FC = () => {
 
                 {/* Notifications Bell */}
                 <div className="relative notifications-container">
-                  <button onClick={() => setIsNotificationsOpen(true)} className="h-8 w-8 flex items-center justify-center rounded-md text-gh-text hover:bg-[#11141A] hover:text-white relative">
+                  <button
+                    onClick={() => {
+                      setIsAddMenuOpen(false);
+                      setIsProfileDropdownOpen(false);
+                      navigate("/notifications");
+                    }}
+                    className="h-8 w-8 flex items-center justify-center rounded-md text-gh-text hover:bg-[#11141A] hover:text-white relative"
+                  >
                     <span className="material-symbols-outlined !text-[20px]">notifications</span>
-                    {notifications.filter(n => !n.read).length > 0 && (
-                      <span className="absolute top-1.5 right-1.5 size-2 bg-blue-500 rounded-full border-2 border-[#0A0D14]" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 px-1 min-w-[16px] h-[16px] flex items-center justify-center bg-blue-500 text-white text-[10px] font-bold rounded-full border-2 border-[#0A0D14] shadow-sm">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
                     )}
                   </button>
                 </div>
@@ -220,12 +228,6 @@ const MainLayout: React.FC = () => {
             </div>
           )}
 
-          <NotificationsModal
-            isOpen={isNotificationsOpen}
-            onClose={() => setIsNotificationsOpen(false)}
-            notifications={displayNotifications as any}
-            onMarkAllRead={() => {/* Handled by context natively in some implementations, but required by prop */ }}
-          />
 
           <Outlet />
 

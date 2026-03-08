@@ -38,7 +38,7 @@ const NotificationsView = () => {
   return (
     <div className="flex h-full bg-gh-bg text-gh-text font-sans">
       {/* Sidebar Filter */}
-      <div className="w-[296px] border-r border-gh-border p-0 flex flex-col hidden md:flex shrink-0 h-full">
+      <div className="w-[296px] border-r border-gh-border p-0 hidden md:flex flex-col shrink-0 h-full">
         <div className="flex flex-col gap-0.5 py-2">
           {["Inbox", "Saved", "Done"].map((f) => (
             <div key={f} className="px-2">
@@ -251,8 +251,12 @@ const NotificationsView = () => {
 
           {/* Notification List */}
           {filteredNotifications.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center">
-              <EmptyState />
+            <div className="flex-1 flex items-center justify-center min-h-[400px]">
+              <EmptyState
+                title="All caught up!"
+                message="Take a break, write some code, do what you do best."
+                imageSrc="/notifications-empty.png"
+              />
             </div>
           ) : (
             <div className="bg-gh-bg-secondary border border-gh-border rounded-md overflow-hidden shadow-sm">
