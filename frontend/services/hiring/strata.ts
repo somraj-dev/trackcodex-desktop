@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api } from '../infra/api';
 
 export interface StrataNetwork {
   id: string;
@@ -61,3 +61,5 @@ export const strataApi = {
     }));
   },
 };
+
+

@@ -49,3 +49,5 @@ const StrataSettings = ({ strata }: { strata: Strata }) => {
 };
 
 export default StrataSettings;
+
+

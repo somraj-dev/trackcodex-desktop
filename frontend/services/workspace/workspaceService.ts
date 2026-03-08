@@ -1,4 +1,4 @@
-import { apiInstance } from "./api";
+import { apiInstance } from '../infra/api';
 
 /**
  * Workspace Service
@@ -201,3 +201,5 @@ class WorkspaceService {
 }
 
 export const workspaceService = new WorkspaceService();
+
+

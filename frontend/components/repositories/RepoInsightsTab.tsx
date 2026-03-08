@@ -118,3 +118,6 @@ const RepoInsightsTab: React.FC<RepoInsightsTabProps> = ({ repo }) => {
 };
 
 export default RepoInsightsTab;
+
+
+

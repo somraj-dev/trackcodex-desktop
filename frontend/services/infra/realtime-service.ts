@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { API_URL } from "./api";
+import { API_URL } from '../infra/api';
 
 export type RealtimeEvent = {
   type: string;
@@ -100,3 +100,5 @@ class RealtimeService {
 }
 
 export const realtimeService = new RealtimeService();
+
+

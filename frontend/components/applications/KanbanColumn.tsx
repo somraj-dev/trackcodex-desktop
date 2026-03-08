@@ -28,3 +28,5 @@ export const KanbanColumn = ({ id, title, applications }: { id: string; title: s
         </div>
     );
 };
+
+

@@ -10,3 +10,5 @@ const TrialSubmittedView = () => {
 };
 
 export default TrialSubmittedView;
+
+

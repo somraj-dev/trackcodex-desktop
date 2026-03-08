@@ -89,3 +89,5 @@ export const AIUsageChart: React.FC<AIUsageChartProps> = ({ logs, totalTokens })
         </div>
     );
 };
+
+

@@ -106,3 +106,5 @@ const PortfolioDisplay: React.FC<PortfolioDisplayProps> = ({
 };
 
 export default PortfolioDisplay;
+
+

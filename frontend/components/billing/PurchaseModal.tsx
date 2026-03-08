@@ -86,3 +86,5 @@ const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, onConfir
 };
 
 export default PurchaseModal;
+
+

@@ -423,3 +423,5 @@ const ExtensionsPanel: React.FC = () => {
 };
 
 export default ExtensionsPanel;
+
+

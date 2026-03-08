@@ -49,3 +49,5 @@ const SkillBreakdown: React.FC<SkillBreakdownProps> = ({ data }) => {
 };
 
 export default SkillBreakdown;
+
+

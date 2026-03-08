@@ -21,3 +21,5 @@ const CreateStrata: React.FC = () => {
 };
 
 export default CreateStrata;
+
+

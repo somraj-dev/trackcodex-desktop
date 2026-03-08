@@ -82,3 +82,5 @@ export const FreelancerCard: React.FC<FreelancerCardProps> = ({ profile }) => {
         </div>
     );
 };
+
+

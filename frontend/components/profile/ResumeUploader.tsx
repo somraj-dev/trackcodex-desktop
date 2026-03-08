@@ -245,3 +245,5 @@ export const ResumeUploader: React.FC<ResumeUploaderProps> = ({
 };
 
 export default ResumeUploader;
+
+

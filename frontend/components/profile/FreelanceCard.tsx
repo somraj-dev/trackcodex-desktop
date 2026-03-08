@@ -69,3 +69,5 @@ const FreelanceCard = () => {
 };
 
 export default FreelanceCard;
+
+

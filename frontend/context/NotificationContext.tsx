@@ -9,7 +9,7 @@ import { Notification } from "../types";
 import { profileService, UserProfile } from "../services/activity/profile";
 import { MOCK_JOBS } from "../constants";
 import { api } from "../services/infra/api";
-import { useAuth } from "./components/authContext";
+import { useAuth } from "./AuthContext";
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -214,3 +214,4 @@ export const useNotifications = () => {
   }
   return context;
 };
+

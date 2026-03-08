@@ -25,3 +25,5 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({ title, isExpanded, chil
 };
 
 export default SidebarSection;
+
+

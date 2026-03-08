@@ -133,3 +133,5 @@ const CandidateDiscoveryView = () => {
 };
 
 export default CandidateDiscoveryView;
+
+

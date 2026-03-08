@@ -213,3 +213,4 @@ const PillButton = ({ icon, label }: { icon: string; label: string }) => (
 );
 
 export default ForgeAIView;
+

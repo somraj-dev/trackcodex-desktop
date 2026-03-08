@@ -273,3 +273,5 @@ const JobAcceptanceModal: React.FC<JobAcceptanceModalProps> = ({
 };
 
 export default JobAcceptanceModal;
+
+

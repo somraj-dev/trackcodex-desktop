@@ -10,3 +10,5 @@ const BlogIndex: React.FC = () => {
 };
 
 export default BlogIndex;
+
+

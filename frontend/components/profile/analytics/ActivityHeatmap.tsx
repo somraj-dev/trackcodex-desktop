@@ -119,3 +119,5 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ contributions 
         </div>
     );
 };
+
+

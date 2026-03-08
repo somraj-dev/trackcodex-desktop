@@ -35,3 +35,4 @@ export const useGlobalSearch = () => {
     toggle: () => setIsOpen(prev => !prev),
   };
 };
+

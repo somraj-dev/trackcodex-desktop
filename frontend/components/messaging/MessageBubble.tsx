@@ -50,3 +50,5 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isMe, showAvatar
 };
 
 export default MessageBubble;
+
+

@@ -181,3 +181,5 @@ export const CookieConsent: React.FC<CookieConsentProps> = ({
     </div>
   );
 };
+
+

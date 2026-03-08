@@ -157,3 +157,5 @@ const NotificationsModal: React.FC<NotificationsModalProps> = ({
 };
 
 export default NotificationsModal;
+
+

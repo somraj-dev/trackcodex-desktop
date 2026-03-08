@@ -64,3 +64,5 @@ const JobRatingModal = ({ isOpen, onClose, onSubmit }: { isOpen: boolean, onClos
 };
 
 export default JobRatingModal;
+
+

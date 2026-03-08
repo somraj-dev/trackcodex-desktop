@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import PipelineVisualizer from "../repo/PipelineVisualizer";
+import PipelineVisualizer from "./PipelineVisualizer";
 
 // Types matching API response
 interface WorkflowRun {
@@ -300,3 +300,6 @@ const RepoActionsTab = () => {
 };
 
 export default RepoActionsTab;
+
+
+

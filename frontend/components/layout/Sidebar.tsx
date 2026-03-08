@@ -3,7 +3,7 @@ import { useSidebarState } from "../../hooks/useSidebarState";
 import { profileService, UserProfile } from "../../services/activity/profile";
 import { useAuth } from "../../context/AuthContext";
 import SidebarItem from "./SidebarItem";
-import { isAdmin as checkIsAdmin } from "../../auth/AccessMatrix";
+import { isAdmin as checkIsAdmin } from "../components/auth/AccessMatrix";
 
 const OrgSwitcher = ({
   isExpanded,
@@ -260,3 +260,5 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+

@@ -30,3 +30,5 @@ const KarmaBadge = ({ karma }: { karma: number }) => {
 };
 
 export default KarmaBadge;
+
+

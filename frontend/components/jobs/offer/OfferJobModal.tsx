@@ -373,3 +373,5 @@ const OfferJobModal: React.FC<OfferJobModalProps> = ({
 };
 
 export default OfferJobModal;
+
+

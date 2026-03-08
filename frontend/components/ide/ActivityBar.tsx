@@ -32,3 +32,5 @@ const ActivityBar: React.FC<ActivityBarProps> = ({ activeView, setActiveView }) 
 };
 
 export default ActivityBar;
+
+

@@ -126,3 +126,5 @@ const JobCard: React.FC<JobCardProps> = ({ job, onClick }) => {
 };
 
 export default JobCard;
+
+

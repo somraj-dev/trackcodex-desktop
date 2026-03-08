@@ -1,4 +1,4 @@
-import { apiInstance } from "./api";
+import { apiInstance } from '../infra/api';
 
 export type AccessRole = "owner" | "admin" | "write" | "read";
 
@@ -164,3 +164,5 @@ class RepoService {
 }
 
 export const repoService = new RepoService();
+
+

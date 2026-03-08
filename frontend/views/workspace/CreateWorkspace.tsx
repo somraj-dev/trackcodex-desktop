@@ -99,7 +99,7 @@ const CreateWorkspaceView = () => {
     setIsCreating(true);
     try {
       // Import API dynamically to avoid circular dependencies if any, or just use global
-      const { api } = await import("../services/infra/api");
+      const { api } = await import("../../services/infra/api");
 
       // Get current user ID
       let ownerId: string | undefined;
@@ -602,3 +602,6 @@ const CreateWorkspaceView = () => {
 };
 
 export default CreateWorkspaceView;
+
+
+

@@ -15,3 +15,4 @@ export function formatDistanceToNow(date: Date | string | number | null | undefi
 
     return primitiveFormatDistanceToNow(dateObj, options);
 }
+

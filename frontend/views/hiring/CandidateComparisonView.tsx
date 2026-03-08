@@ -10,3 +10,5 @@ const CandidateComparisonView = () => {
 };
 
 export default CandidateComparisonView;
+
+

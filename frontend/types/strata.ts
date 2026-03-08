@@ -30,3 +30,4 @@ export interface Strata {
   teams: Team[];
   repositories: Repository[];
 }
+

@@ -42,3 +42,5 @@ const StrataTeams = () => {
 };
 
 export default StrataTeams;
+
+

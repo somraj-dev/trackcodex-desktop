@@ -5,3 +5,5 @@ const JobDetailView = () => {
 };
 
 export default JobDetailView;
+
+

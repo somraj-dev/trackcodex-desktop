@@ -45,3 +45,5 @@ const GlobalSearchProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export default GlobalSearchProvider;
+
+

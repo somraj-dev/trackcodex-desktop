@@ -10,3 +10,5 @@ const CandidateScorecardView = () => {
 };
 
 export default CandidateScorecardView;
+
+

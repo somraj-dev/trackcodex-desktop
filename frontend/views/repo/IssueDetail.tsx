@@ -340,3 +340,6 @@ const IssueDetail: React.FC = () => {
 };
 
 export default IssueDetail;
+
+
+

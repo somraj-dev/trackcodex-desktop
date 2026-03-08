@@ -19,7 +19,7 @@ const WorkspaceSettings: React.FC = () => {
   // I will assume workspace has a shape or just leave it if I can't import Workspace type easily.
   // But wait, removing <any> and letting it infer or using unknown?
   // I'll try to use a partial shape or just suppress for now as I don't have the type handy.
-  // Actually I should find the type. It's likely in services/api or workspaceCollaborationService.
+  // Actually I should find the type. It's likely in services/infra/api or workspaceCollaborationService.
   // Checking imports: import { WorkspaceMember } from ...
   // I'll use `Record<string, any>` which is better than `any`, or `unknown`.
   const [workspace, setWorkspace] = useState<Record<string, any> | null>(null);
@@ -441,3 +441,6 @@ const WorkspaceSettings: React.FC = () => {
 };
 
 export default WorkspaceSettings;
+
+
+

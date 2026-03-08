@@ -20,3 +20,5 @@ const AuthLogo = ({ size = 64 }: { size?: number }) => (
 );
 
 export default AuthLogo;
+
+

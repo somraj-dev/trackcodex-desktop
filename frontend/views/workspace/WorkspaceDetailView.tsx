@@ -37,3 +37,6 @@ const WorkspaceDetailView = () => {
 };
 
 export default WorkspaceDetailView;
+
+
+

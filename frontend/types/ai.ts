@@ -14,3 +14,4 @@ export interface SecurityAlert {
   repository: string;
   status: "Open" | "In-Review" | "Fixed";
 }
+

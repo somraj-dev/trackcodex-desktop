@@ -115,3 +115,5 @@ const DataManagementView: React.FC = () => {
 };
 
 export default DataManagementView;
+
+

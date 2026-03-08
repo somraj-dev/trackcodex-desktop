@@ -1,4 +1,4 @@
-import { api } from "../context/AuthContext";
+import { api } from "../../context/AuthContext";
 
 export interface WorkspaceMember {
   id: string;
@@ -217,3 +217,5 @@ class WorkspaceCollaborationService {
 
 export const workspaceCollaborationService =
   new WorkspaceCollaborationService();
+
+

@@ -1,5 +1,5 @@
-// services/activityLogger.ts
-import { apiInstance } from "./api";
+// services/activity/activityLogger.ts
+import { apiInstance } from '../infra/api';
 
 export const logActivity = async (action: string, metadata: any = {}) => {
     try {
@@ -20,3 +20,5 @@ export const logActivity = async (action: string, metadata: any = {}) => {
         console.error("Failed to log activity", err);
     }
 };
+
+

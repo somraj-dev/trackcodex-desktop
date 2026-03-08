@@ -1,6 +1,6 @@
-import { SystemRole } from "../types";
-import { systemBus } from "./systemBus";
-import { apiInstance } from "./api";
+import { SystemRole } from "../../types";
+import { systemBus } from '../infra/systemBus';
+import { apiInstance } from '../infra/api';
 import { API_BASE_URL } from "../config/api";
 
 export interface Review {
@@ -490,3 +490,5 @@ export const profileService = {
   },
 
 };
+
+

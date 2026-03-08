@@ -100,3 +100,5 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({ data, platformAverage
 };
 
 export default SkillRadarChart;
+
+

@@ -126,3 +126,5 @@ const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({
 };
 
 export default DeleteAccountModal;
+
+

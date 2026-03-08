@@ -1,4 +1,4 @@
-import { apiInstance } from "./api";
+import { apiInstance } from '../infra/api';
 
 export interface Activity {
   id: string;
@@ -137,3 +137,5 @@ export const activityService = {
     return date.toLocaleDateString();
   },
 };
+
+

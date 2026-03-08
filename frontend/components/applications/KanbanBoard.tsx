@@ -88,3 +88,5 @@ const KanbanBoard = ({ jobId }: { jobId: string }) => {
 };
 
 export default KanbanBoard;
+
+

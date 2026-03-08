@@ -75,3 +75,5 @@ const StrataIndexView = () => {
 };
 
 export default StrataIndexView;
+
+

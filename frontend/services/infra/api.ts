@@ -1,6 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { auth } from "../lib/firebase";
-import { Repository, Workspace, Job, ProfileData, SSHKey, Notification, PullRequest } from "../types";
+import { auth } from "../../lib/firebase";
+import { Repository, Workspace, Job, ProfileData, SSHKey, Notification, PullRequest } from "../../types";
 import { UserProfile } from "./components/profile";
 
 // Extended Window interface for Electron Bridge
@@ -179,3 +179,5 @@ export const api = {
   patch: <T>(url: string, data?: any) => request<T>({ url, method: "PATCH", data }),
   delete: <T>(url: string) => request<T>({ url, method: "DELETE" }),
 };
+
+

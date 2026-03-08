@@ -79,3 +79,5 @@ const MyApplicationsView = () => {
 };
 
 export default MyApplicationsView;
+
+

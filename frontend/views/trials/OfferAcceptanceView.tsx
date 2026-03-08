@@ -188,3 +188,5 @@ const OfferAcceptanceView = () => {
 };
 
 export default OfferAcceptanceView;
+
+

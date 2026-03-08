@@ -39,3 +39,5 @@ const HiringAnalyticsView = () => {
 };
 
 export default HiringAnalyticsView;
+
+

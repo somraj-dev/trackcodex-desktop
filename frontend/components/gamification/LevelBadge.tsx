@@ -34,3 +34,5 @@ export const LevelBadge: React.FC<LevelBadgeProps> = ({
         </div>
     );
 };
+
+

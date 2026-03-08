@@ -1,4 +1,4 @@
-import { apiInstance } from "./api";
+import { apiInstance } from '../infra/api';
 
 export interface Comment {
   id: string;
@@ -140,3 +140,5 @@ export const socialService = {
     }
   },
 };
+
+

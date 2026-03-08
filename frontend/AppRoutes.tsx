@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import PublicLayout from "./components/layout/PublicLayout";
 import RedirectToLogin from "./components/auth/RedirectToLogin";
+import SettingsLayout from "./components/settings/SettingsLayout";
 
 // Lazy imports (extracted from App.tsx)
 // Auth
@@ -100,7 +101,7 @@ const MyApplicationsView = React.lazy(() => import("./views/marketplace/MyApplic
 const TrialRepositoriesView = React.lazy(() => import("./views/marketplace/TrialRepositoriesView"));
 const HiringLayout = React.lazy(() => import("./views/hiring/HiringLayout"));
 const CandidateDiscoveryView = React.lazy(() => import("./views/hiring/CandidateDiscoveryView"));
-const hiringJobsView = React.lazy(() => import("./views/hiring/HiringJobsView"));
+const HiringJobsView = React.lazy(() => import("./views/hiring/HiringJobsView"));
 const HiringAnalyticsView = React.lazy(() => import("./views/hiring/HiringAnalyticsView"));
 const CandidateScorecardView = React.lazy(() => import("./views/hiring/CandidateScorecardView"));
 const CandidateComparisonView = React.lazy(() => import("./views/hiring/CandidateComparisonView"));
@@ -121,7 +122,7 @@ const DeveloperProfileView = React.lazy(() => import("./views/growth/DeveloperPr
 
 // Finance & Admin
 const WalletDashboard = React.lazy(() => import("./views/finance/WalletDashboard"));
-const AdminDashboard = React.lazy(() => import("./views/AdminDashboard"));
+const AdminDashboard = React.lazy(() => import("./views/admin/AdminDashboard"));
 const AdminOverview = React.lazy(() => import("./components/admin/AdminOverview"));
 const UserManager = React.lazy(() => import("./components/admin/UserManager"));
 const TeamManager = React.lazy(() => import("./components/admin/TeamManager"));
@@ -141,7 +142,7 @@ const BlogLayout = React.lazy(() => import("./components/blog/BlogLayout"));
 const BlogIndex = React.lazy(() => import("./views/blog/BlogIndex"));
 const BlogPost = React.lazy(() => import("./views/blog/BlogPost"));
 
-import RoleGuard from "./components/auth/RoleGuard";
+import { RoleGuard } from "./components/auth";
 
 const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
   return (
@@ -156,7 +157,7 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/cookies" element={<CookiePolicy />} />
         <Route path="/auth/callback/:provider" element={<OAuthCallback />} />
-        
+
         {!isAuthenticated && (
           <>
             <Route path="/login" element={<Login />} />
@@ -204,7 +205,7 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
             <Route path="leaderboard" element={<Leaderboard />} />
             <Route path="notifications" element={<NotificationsView />} />
             <Route path="messages" element={<MessagesView />} />
-            
+
             {/* Strata */}
             <Route path="strata" element={<StrataIndexView />} />
             <Route path="strata/new" element={<CreateStrataView />} />
@@ -232,16 +233,16 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
               <Route path="applications" element={<MyApplicationsView />} />
               <Route path="trials" element={<TrialRepositoriesView />} />
               <Route path="hiring" element={<HiringLayout />}>
-                 <Route index element={<Navigate to="discovery" replace />} />
-                 <Route path="discovery" element={<CandidateDiscoveryView />} />
-                 <Route path="candidate/:id" element={<CandidateScorecardView />} />
-                 <Route path="compare" element={<CandidateComparisonView />} />
-                 <Route path="offer/:id" element={<OfferEditorView />} />
-                 <Route path="schedule/:id" element={<SessionSchedulerView />} />
-                 <Route path="feedback/:id" element={<InterviewerFeedbackView />} />
-                 <Route path="jobs" element={<hiringJobsView />} />
-                 <Route path="analytics" element={<HiringAnalyticsView />} />
-                 <Route path="assessments" element={<AssessmentsView />} />
+                <Route index element={<Navigate to="discovery" replace />} />
+                <Route path="discovery" element={<CandidateDiscoveryView />} />
+                <Route path="candidate/:id" element={<CandidateScorecardView />} />
+                <Route path="compare" element={<CandidateComparisonView />} />
+                <Route path="offer/:id" element={<OfferEditorView />} />
+                <Route path="schedule/:id" element={<SessionSchedulerView />} />
+                <Route path="feedback/:id" element={<InterviewerFeedbackView />} />
+                <Route path="jobs" element={<HiringJobsView />} />
+                <Route path="analytics" element={<HiringAnalyticsView />} />
+                <Route path="assessments" element={<AssessmentsView />} />
               </Route>
               <Route path="growth" element={<GrowthLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
@@ -280,7 +281,7 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
 
             <Route path="forge-ai" element={<ForgeAIView />} />
             <Route path="finance" element={<WalletDashboard />} />
-            
+
             {/* Admin */}
             <Route path="admin" element={<RoleGuard><AdminRoomView /></RoleGuard>}>
               <Route index element={<AdminOverview />} />
@@ -306,3 +307,4 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
 };
 
 export default AppRoutes;
+

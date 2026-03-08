@@ -22,3 +22,5 @@ export const directMessageBus = {
     this.publish({ type: 'DM_OPEN', data: user });
   }
 };
+
+

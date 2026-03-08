@@ -66,3 +66,5 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
         </div>
     );
 };
+
+

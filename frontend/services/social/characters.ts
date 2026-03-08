@@ -57,3 +57,5 @@ export function getCharacterColor(characterKey: string): string {
 export function getCharacterAvatar(characterKey: string): string {
     return `/assets/characters/${characterKey}.png`;
 }
+
+

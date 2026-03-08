@@ -60,3 +60,5 @@ const SecurityImpact = () => {
 };
 
 export default SecurityImpact;
+
+

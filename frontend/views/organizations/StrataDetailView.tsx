@@ -115,3 +115,5 @@ const StrataDetailView = () => {
 };
 
 export default StrataDetailView;
+
+

@@ -51,3 +51,4 @@ export interface CommunityPost {
   moderation?: "SAFE" | "WARNING" | "FLAGGED";
   moderationReason?: string;
 }
+

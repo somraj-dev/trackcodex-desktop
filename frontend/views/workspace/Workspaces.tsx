@@ -3,8 +3,8 @@ import { useWorkspaces } from "../../hooks/useWorkspaces";
 import { useNavigate } from "react-router-dom";
 import { Workspace } from "../../types";
 import Spinner from "../../components/ui/Spinner";
-import { ShareWorkspaceModal } from "../../components/workspace/ShareWorkspaceModal";
-import { WorkspaceMembersModal } from "../../components/workspace/WorkspaceMembersModal";
+import { ShareWorkspaceModal } from '../../components/workspace';
+import { WorkspaceMembersModal } from '../../components/workspace';
 import EmptyState from "../../components/common/EmptyState";
 
 const WorkspaceCard: React.FC<{ workspace: Workspace }> = ({ workspace }) => {
@@ -189,3 +189,6 @@ const Workspaces = () => {
 };
 
 export default Workspaces;
+
+
+

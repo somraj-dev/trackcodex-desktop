@@ -44,3 +44,4 @@ export const useSidebarState = () => {
 
   return { isExpanded, toggleSidebar, setIsExpanded };
 };
+

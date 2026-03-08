@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { repoService, FullRepoSettings } from "../../services/git/repoService";
-import ManageAccess from "../repo/ManageAccess";
+import ManageAccess from "./ManageAccess";
 import RepoWebhookSettings from "./RepoWebhookSettings";
-import EnvironmentSettings from "../repo/EnvironmentSettings";
+import EnvironmentSettings from "./EnvironmentSettings";
 
 interface RepoSettingsTabProps {
   repo: any;
@@ -721,3 +721,6 @@ const RepoSettingsTab: React.FC<RepoSettingsTabProps> = ({ repo }) => {
 };
 
 export default RepoSettingsTab;
+
+
+

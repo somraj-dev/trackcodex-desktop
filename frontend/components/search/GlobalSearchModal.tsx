@@ -361,3 +361,5 @@ const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 };
 
 export default GlobalSearchModal;
+
+

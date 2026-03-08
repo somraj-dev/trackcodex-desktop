@@ -73,3 +73,5 @@ const HiringLayout = () => {
 };
 
 export default HiringLayout;
+
+

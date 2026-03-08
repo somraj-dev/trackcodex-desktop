@@ -264,3 +264,5 @@ const AccessibilitySettings = () => {
 };
 
 export default AccessibilitySettings;
+
+

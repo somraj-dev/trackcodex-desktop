@@ -1,5 +1,5 @@
-import { Job } from "../types";
-import { profileService } from "./components/profile";
+import { Job } from "../../types";
+import { profileService } from "../activity/profile";
 
 const JOB_STORAGE_KEY = "trackcodex_offered_jobs";
 
@@ -51,3 +51,5 @@ export const jobOfferService = {
     return saved ? JSON.parse(saved) : [];
   },
 };
+
+

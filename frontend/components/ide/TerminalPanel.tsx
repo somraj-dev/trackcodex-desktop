@@ -111,3 +111,5 @@ const TerminalPanel = ({ workspaceId = 'default', onClose, onMaximize, logs = []
 };
 
 export default TerminalPanel;
+
+

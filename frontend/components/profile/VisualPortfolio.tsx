@@ -90,3 +90,5 @@ const VisualPortfolio: React.FC<VisualPortfolioProps> = ({ repos, loading }) => 
 };
 
 export default VisualPortfolio;
+
+

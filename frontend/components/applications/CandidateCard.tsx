@@ -35,3 +35,5 @@ export const CandidateCard = ({ application, onClick }: { application: any; onCl
         </div>
     );
 };
+
+

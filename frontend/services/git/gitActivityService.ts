@@ -1,4 +1,4 @@
-// services/gitActivityService.ts
+// services/git/gitActivityService.ts
 
 export interface Activity {
   date: string;
@@ -146,3 +146,5 @@ class GitActivityService {
 }
 
 export const gitActivityService = new GitActivityService();
+
+

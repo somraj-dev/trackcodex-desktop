@@ -21,3 +21,5 @@ const Spinner: React.FC<SpinnerProps> = ({ size = 'md', className = "" }) => {
 };
 
 export default Spinner;
+
+

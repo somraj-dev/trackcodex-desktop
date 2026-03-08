@@ -1,4 +1,4 @@
-import { API_BASE as GLOBAL_API_BASE } from "./api";
+import { API_BASE as GLOBAL_API_BASE } from '../infra/api';
 
 const FORGE_API_BASE = `${GLOBAL_API_BASE}/forge`;
 
@@ -40,3 +40,5 @@ export const fileService = {
         return data;
     }
 };
+
+

@@ -62,3 +62,5 @@ const ScrollControls: React.FC<ScrollControlsProps> = ({ containerRef }) => {
 };
 
 export default ScrollControls;
+
+

@@ -101,3 +101,4 @@ const AcceptInvite: React.FC = () => {
 };
 
 export default AcceptInvite;
+

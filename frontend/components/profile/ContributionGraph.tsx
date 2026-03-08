@@ -197,3 +197,5 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({
 };
 
 export default ContributionGraph;
+
+

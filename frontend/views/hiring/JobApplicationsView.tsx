@@ -38,3 +38,5 @@ const JobApplicationsView = () => {
 };
 
 export default JobApplicationsView;
+
+

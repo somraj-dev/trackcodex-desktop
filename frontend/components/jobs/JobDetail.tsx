@@ -213,3 +213,5 @@ const JobDetail = ({ job, onBack }: { job: Job, onBack: () => void }) => {
 };
 
 export default JobDetail;
+
+

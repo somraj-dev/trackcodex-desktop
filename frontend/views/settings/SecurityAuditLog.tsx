@@ -133,3 +133,5 @@ function formatUserAgent(ua: string): string {
 }
 
 export default SecurityAuditLog;
+
+

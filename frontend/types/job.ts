@@ -40,3 +40,4 @@ export interface OnboardingTask {
   dueDate?: string;
   type: "required" | "priority" | "social" | "goal";
 }
+

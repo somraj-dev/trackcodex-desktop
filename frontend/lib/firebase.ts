@@ -30,3 +30,4 @@ githubProvider.addScope("read:user");
 githubProvider.addScope("read:org");
 
 export { auth, googleProvider, githubProvider };
+

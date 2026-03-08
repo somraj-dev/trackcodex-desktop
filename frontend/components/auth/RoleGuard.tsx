@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { profileService, UserProfile } from '../services/profile';
+import { profileService, UserProfile } from '../../services/activity/profile';
 import { isAdmin } from './AccessMatrix';
 
 interface RoleGuardProps {
@@ -23,3 +23,5 @@ const RoleGuard: React.FC<RoleGuardProps> = ({ children }) => {
 };
 
 export default RoleGuard;
+
+

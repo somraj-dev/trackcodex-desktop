@@ -46,3 +46,5 @@ const StrataPeople = () => {
 };
 
 export default StrataPeople;
+
+

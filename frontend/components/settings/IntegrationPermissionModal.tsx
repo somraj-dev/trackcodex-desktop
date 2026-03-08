@@ -112,3 +112,5 @@ const IntegrationPermissionModal: React.FC<IntegrationPermissionModalProps> = ({
 };
 
 export default IntegrationPermissionModal;
+
+

@@ -381,3 +381,5 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
 };
 
 export default ProfileCard;
+
+

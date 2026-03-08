@@ -1,5 +1,5 @@
 // Search Service
-import { api } from "./api";
+import { api } from '../infra/api';
 
 export interface SearchResult {
   id: string;
@@ -46,3 +46,5 @@ class SearchService {
 }
 
 export const searchService = new SearchService();
+
+
