@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
   return {
-    root: "frontend",
+    envDir: "./",
     base: "/",
     server: {
       port: 3001,
@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
       // Serve the OAuth bridge page for callback paths
       // Google/GitHub redirect to /auth/callback/google (no #), this rewrites
       // to serve public/auth/callback/index.html which then redirects to /#/auth/callback/...
-      historyApiFallback: false,
+      historyApiFallback: true,
       headers: {
         "Cache-Control": "no-store",
       },

@@ -3,7 +3,7 @@ import { useSidebarState } from "../../hooks/useSidebarState";
 import { profileService, UserProfile } from "../../services/activity/profile";
 import { useAuth } from "../../context/AuthContext";
 import SidebarItem from "./SidebarItem";
-import { isAdmin as checkIsAdmin } from "../components/auth/AccessMatrix";
+import { isAdmin as checkIsAdmin } from "../auth/AccessMatrix";
 
 const OrgSwitcher = ({
   isExpanded,
@@ -199,6 +199,12 @@ const Sidebar = () => {
           to="/profile"
           icon="account_circle"
           label="Profile"
+          isExpanded={isExpanded}
+        />
+        <SidebarItem
+          to="/taskvault"
+          icon="inventory_2"
+          label="TaskVault"
           isExpanded={isExpanded}
         />
       </div>
