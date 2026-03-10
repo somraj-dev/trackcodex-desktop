@@ -354,11 +354,11 @@ const Repositories = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredRepos.length === 0 ? (
-              <div className="col-span-full h-[500px] flex items-center justify-center bg-gh-bg-secondary/20 rounded-3xl border border-gh-border/50">
+              <div className="col-span-full flex items-center justify-center pt-8 pb-12">
                 <EmptyState
                   title="No Repositories Found"
                   message="Establish your digital legacy. Create your first native repository or import from GitHub."
-                  imageSrc="/dashboard-empty.png"
+                  imageSrc="/inbox-zero-dark.svg"
                   action={{
                     label: "Create Repository",
                     onClick: () => navigate("/repositories/new"),
