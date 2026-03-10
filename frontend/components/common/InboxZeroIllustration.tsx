@@ -1,204 +1,199 @@
 import React from "react";
 
 /**
- * Inline SVG illustration for the "All caught up!" empty state.
- * Hardcoded SVG (no external image dependency) — similar to GitHub's inbox-zero style.
- * Features a ninja cat character in a dark forest scene drawn with glowing blue outlines.
+ * Inline SVG "inbox zero" illustration — ninja octocat with broom in a dark forest.
+ * Background is transparent so it blends seamlessly with the page.
  */
 const InboxZeroIllustration: React.FC<{ className?: string }> = ({ className }) => {
   return (
     <svg
-      viewBox="0 0 500 300"
+      viewBox="0 0 500 280"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       role="img"
       aria-label="All caught up illustration"
+      style={{ background: "transparent" }}
     >
       <defs>
-        {/* Glow filter for the character */}
-        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="2" result="blur" />
+        {/* Blue glow for the character */}
+        <filter id="neon" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="1.5" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-
-        {/* Subtle gradient for the sky */}
-        <linearGradient id="skyGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0d1117" />
-          <stop offset="100%" stopColor="#161b22" />
-        </linearGradient>
-
-        {/* Ground gradient */}
-        <linearGradient id="groundGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#161b22" />
-          <stop offset="100%" stopColor="#0d1117" />
-        </linearGradient>
+        {/* Fade-out edges so scene blends with page */}
+        <radialGradient id="fadeEdge" cx="50%" cy="50%" r="50%">
+          <stop offset="60%" stopColor="white" stopOpacity="1" />
+          <stop offset="100%" stopColor="white" stopOpacity="0" />
+        </radialGradient>
+        <mask id="fadeMask">
+          <rect width="500" height="280" fill="url(#fadeEdge)" />
+        </mask>
       </defs>
 
-      {/* Background */}
-      <rect width="500" height="300" fill="url(#skyGradient)" />
+      {/* All scene content masked so edges fade to transparent */}
+      <g mask="url(#fadeMask)">
 
-      {/* Stars */}
-      <circle cx="60" cy="30" r="1" fill="#8b949e" opacity="0.5" />
-      <circle cx="120" cy="55" r="0.8" fill="#8b949e" opacity="0.4" />
-      <circle cx="200" cy="20" r="1.2" fill="#8b949e" opacity="0.6" />
-      <circle cx="320" cy="40" r="0.7" fill="#8b949e" opacity="0.3" />
-      <circle cx="400" cy="25" r="1" fill="#8b949e" opacity="0.5" />
-      <circle cx="450" cy="60" r="0.9" fill="#8b949e" opacity="0.4" />
-      <circle cx="80" cy="80" r="0.6" fill="#8b949e" opacity="0.3" />
-      <circle cx="380" cy="70" r="1.1" fill="#8b949e" opacity="0.5" />
+        {/* Far background trees — very subtle, dark */}
+        <g fill="#1a2030" opacity="0.6">
+          <polygon points="20,200 35,100 50,200" />
+          <polygon points="45,200 65,80 85,200" />
+          <polygon points="80,200 95,110 110,200" />
+          <polygon points="105,200 125,70 145,200" />
+          <polygon points="350,200 370,85 390,200" />
+          <polygon points="385,200 400,100 415,200" />
+          <polygon points="410,200 430,75 450,200" />
+          <polygon points="445,200 460,95 475,200" />
+        </g>
 
-      {/* Moon */}
-      <circle cx="390" cy="50" r="14" fill="#21262d" />
-      <circle cx="393" cy="47" r="12" fill="#30363d" />
+        {/* Mid trees — slightly brighter */}
+        <g fill="#222d3d" opacity="0.8">
+          <polygon points="0,210 25,120 50,210" />
+          <polygon points="55,210 80,90 105,210" />
+          <polygon points="120,210 145,105 170,210" />
+          <polygon points="155,210 175,130 195,210" />
+          <polygon points="305,210 330,100 355,210" />
+          <polygon points="350,210 380,90 410,210" />
+          <polygon points="420,210 445,110 470,210" />
+          <polygon points="460,210 480,125 500,210" />
+        </g>
 
-      {/* Background trees (far) */}
-      <g fill="#161b22">
-        <polygon points="30,230 45,120 60,230" />
-        <polygon points="55,230 75,100 95,230" />
-        <polygon points="90,230 105,130 120,230" />
-        <polygon points="370,230 390,110 410,230" />
-        <polygon points="400,230 415,125 430,230" />
-        <polygon points="430,230 450,105 470,230" />
-      </g>
+        {/* Foreground trees — most visible */}
+        <g fill="#2a3545">
+          <polygon points="-10,220 15,140 40,220" />
+          <polygon points="140,220 165,145 190,220" />
+          <polygon points="310,220 340,135 370,220" />
+          <polygon points="455,220 478,150 500,220" />
+        </g>
 
-      {/* Mid-ground trees */}
-      <g fill="#21262d">
-        <polygon points="10,240 30,140 50,240" />
-        <polygon points="40,240 65,110 90,240" />
-        <polygon points="110,240 130,150 150,240" />
-        <polygon points="350,240 375,130 400,240" />
-        <polygon points="410,240 435,115 460,240" />
-        <polygon points="455,240 475,145 495,240" />
-      </g>
+        {/* Ground plane */}
+        <ellipse cx="250" cy="225" rx="220" ry="18" fill="#2a3545" opacity="0.5" />
+        <rect x="30" y="220" width="440" height="60" fill="#1e2a38" opacity="0.4" rx="4" />
 
-      {/* Foreground trees */}
-      <g fill="#30363d">
-        <polygon points="0,250 20,160 40,250" />
-        <polygon points="130,250 150,165 170,250" />
-        <polygon points="330,250 355,155 380,250" />
-        <polygon points="460,250 480,170 500,250" />
-      </g>
+        {/* Moon */}
+        <circle cx="380" cy="55" r="12" fill="#2a3545" />
+        <circle cx="382" cy="53" r="10" fill="#3d4f63" opacity="0.7" />
 
-      {/* Ground */}
-      <rect x="0" y="240" width="500" height="60" fill="#21262d" />
-      <ellipse cx="250" cy="240" rx="250" ry="15" fill="#30363d" opacity="0.5" />
+        {/* Stars */}
+        <circle cx="70" cy="40" r="1" fill="#6e7681" opacity="0.6" />
+        <circle cx="130" cy="25" r="0.8" fill="#6e7681" opacity="0.4" />
+        <circle cx="220" cy="35" r="1.2" fill="#6e7681" opacity="0.5" />
+        <circle cx="310" cy="20" r="0.7" fill="#6e7681" opacity="0.3" />
+        <circle cx="420" cy="30" r="1" fill="#6e7681" opacity="0.5" />
+        <circle cx="460" cy="65" r="0.6" fill="#6e7681" opacity="0.3" />
 
-      {/* Small rocks */}
-      <g fill="#30363d">
-        <ellipse cx="100" cy="248" rx="12" ry="6" />
-        <ellipse cx="400" cy="252" rx="10" ry="5" />
-        <ellipse cx="180" cy="255" rx="8" ry="4" />
-      </g>
-      <g fill="#3d444d">
-        <ellipse cx="100" cy="246" rx="10" ry="5" />
-        <ellipse cx="400" cy="250" rx="8" ry="4" />
-      </g>
+        {/* Rocks */}
+        <g>
+          <ellipse cx="345" cy="222" rx="18" ry="9" fill="#3d4f63" />
+          <ellipse cx="345" cy="219" rx="15" ry="8" fill="#4a5d72" />
+          <ellipse cx="345" cy="217" rx="12" ry="6" fill="#566a80" />
+        </g>
+        <g>
+          <ellipse cx="150" cy="224" rx="10" ry="5" fill="#3d4f63" />
+          <ellipse cx="150" cy="222" rx="8" ry="4" fill="#4a5d72" />
+        </g>
 
-      {/* Small mushrooms */}
-      <g>
-        <rect x="155" y="240" width="2" height="8" fill="#3d444d" />
-        <ellipse cx="156" cy="240" rx="5" ry="3" fill="#30363d" />
-        <rect x="420" y="242" width="2" height="6" fill="#3d444d" />
-        <ellipse cx="421" cy="242" rx="4" ry="2.5" fill="#30363d" />
-      </g>
+        {/* === NINJA OCTOCAT CHARACTER === */}
+        <g filter="url(#neon)" transform="translate(250, 170)">
+          {/* Staff / Broom — long diagonal line */}
+          <line x1="-55" y1="-70" x2="55" y2="40" stroke="#58a6ff" strokeWidth="2.5" strokeLinecap="round" />
+          {/* Broom bristles at bottom */}
+          <g transform="translate(48, 34)">
+            <line x1="0" y1="0" x2="8" y2="10" stroke="#58a6ff" strokeWidth="1.5" />
+            <line x1="0" y1="0" x2="12" y2="6" stroke="#58a6ff" strokeWidth="1.5" />
+            <line x1="0" y1="0" x2="14" y2="2" stroke="#58a6ff" strokeWidth="1.5" />
+            <line x1="0" y1="0" x2="10" y2="-3" stroke="#58a6ff" strokeWidth="1.2" />
+          </g>
 
-      {/* === NINJA CAT CHARACTER (blue outline style) === */}
-      <g filter="url(#glow)" transform="translate(250, 195)">
-        {/* Body */}
-        <ellipse cx="0" cy="20" rx="28" ry="32" fill="none" stroke="#58a6ff" strokeWidth="1.8" />
+          {/* Body — round torso */}
+          <ellipse cx="0" cy="15" rx="25" ry="28" fill="none" stroke="#58a6ff" strokeWidth="2" />
 
-        {/* Head */}
-        <circle cx="0" cy="-25" r="22" fill="none" stroke="#58a6ff" strokeWidth="1.8" />
+          {/* Head — round */}
+          <circle cx="0" cy="-25" r="20" fill="none" stroke="#58a6ff" strokeWidth="2" />
 
-        {/* Ears */}
-        <polygon points="-18,-42 -12,-60 -5,-42" fill="none" stroke="#58a6ff" strokeWidth="1.8" />
-        <polygon points="18,-42 12,-60 5,-42" fill="none" stroke="#58a6ff" strokeWidth="1.8" />
+          {/* Ears — pointed cat ears */}
+          <path d="M -15,-42 L -10,-58 L -3,-42" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M 15,-42 L 10,-58 L 3,-42" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinejoin="round" />
 
-        {/* Inner ears */}
-        <line x1="-14" y1="-45" x2="-10" y2="-53" stroke="#58a6ff" strokeWidth="0.8" opacity="0.5" />
-        <line x1="14" y1="-45" x2="10" y2="-53" stroke="#58a6ff" strokeWidth="0.8" opacity="0.5" />
+          {/* Headband / ninja mask */}
+          <path d="M -22,-30 L 22,-30" stroke="#58a6ff" strokeWidth="3" strokeLinecap="round" />
+          {/* Headband tails flowing right */}
+          <path d="M 20,-30 Q 30,-28 38,-35" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" />
+          <path d="M 20,-30 Q 32,-25 36,-27" fill="none" stroke="#58a6ff" strokeWidth="1.5" strokeLinecap="round" />
 
-        {/* Ninja mask / headband */}
-        <line x1="-24" y1="-30" x2="24" y2="-30" stroke="#58a6ff" strokeWidth="2.5" />
-        <line x1="22" y1="-30" x2="35" y2="-36" stroke="#58a6ff" strokeWidth="1.5" />
-        <line x1="22" y1="-30" x2="33" y2="-28" stroke="#58a6ff" strokeWidth="1.5" />
+          {/* Eyes — round with pupils */}
+          <circle cx="-8" cy="-25" r="4.5" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
+          <circle cx="8" cy="-25" r="4.5" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
+          <circle cx="-8" cy="-25" r="2" fill="#58a6ff" />
+          <circle cx="8" cy="-25" r="2" fill="#58a6ff" />
+          {/* Eye glints */}
+          <circle cx="-6" cy="-27" r="1" fill="#c9d1d9" />
+          <circle cx="10" cy="-27" r="1" fill="#c9d1d9" />
 
-        {/* Eyes */}
-        <ellipse cx="-9" cy="-26" rx="5" ry="4" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
-        <ellipse cx="9" cy="-26" rx="5" ry="4" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
-        <circle cx="-9" cy="-26" r="2" fill="#58a6ff" />
-        <circle cx="9" cy="-26" r="2" fill="#58a6ff" />
+          {/* Nose — small triangle */}
+          <path d="M -1.5,-17 L 0,-15 L 1.5,-17 Z" fill="#58a6ff" opacity="0.8" />
 
-        {/* Eye shine */}
-        <circle cx="-7" cy="-28" r="0.8" fill="#c9d1d9" />
-        <circle cx="11" cy="-28" r="0.8" fill="#c9d1d9" />
+          {/* Mouth — small smile */}
+          <path d="M -3,-13 Q 0,-10 3,-13" fill="none" stroke="#58a6ff" strokeWidth="1.2" />
 
-        {/* Nose */}
-        <ellipse cx="0" cy="-18" rx="2" ry="1.5" fill="#58a6ff" opacity="0.7" />
+          {/* Whiskers */}
+          <line x1="-22" y1="-18" x2="-10" y2="-17" stroke="#58a6ff" strokeWidth="0.8" opacity="0.5" />
+          <line x1="-20" y1="-14" x2="-9" y2="-15" stroke="#58a6ff" strokeWidth="0.8" opacity="0.5" />
+          <line x1="22" y1="-18" x2="10" y2="-17" stroke="#58a6ff" strokeWidth="0.8" opacity="0.5" />
+          <line x1="20" y1="-14" x2="9" y2="-15" stroke="#58a6ff" strokeWidth="0.8" opacity="0.5" />
 
-        {/* Whiskers */}
-        <line x1="-20" y1="-18" x2="-8" y2="-17" stroke="#58a6ff" strokeWidth="0.8" opacity="0.6" />
-        <line x1="-18" y1="-14" x2="-7" y2="-15" stroke="#58a6ff" strokeWidth="0.8" opacity="0.6" />
-        <line x1="20" y1="-18" x2="8" y2="-17" stroke="#58a6ff" strokeWidth="0.8" opacity="0.6" />
-        <line x1="18" y1="-14" x2="7" y2="-15" stroke="#58a6ff" strokeWidth="0.8" opacity="0.6" />
+          {/* Belt / sash */}
+          <line x1="-25" y1="6" x2="25" y2="6" stroke="#58a6ff" strokeWidth="2.5" strokeLinecap="round" />
+          <rect x="-4" y="2" width="8" height="8" rx="1.5" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
 
-        {/* Mouth / smile */}
-        <path d="M -4,-13 Q 0,-10 4,-13" fill="none" stroke="#58a6ff" strokeWidth="1" />
+          {/* Left arm — reaching up to grip staff */}
+          <path d="M -23,0 Q -35,-15 -30,-30" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="-30" cy="-30" r="4" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
 
-        {/* Ninja belt / sash */}
-        <line x1="-28" y1="8" x2="28" y2="8" stroke="#58a6ff" strokeWidth="2" />
-        <rect x="-5" y="4" width="10" height="8" rx="1" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
+          {/* Right arm — reaching forward to staff */}
+          <path d="M 23,2 Q 32,-5 30,-18" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="30" cy="-18" r="4" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
 
-        {/* Arms */}
-        {/* Left arm holding staff */}
-        <path d="M -26,5 Q -40,-5 -38,-20" fill="none" stroke="#58a6ff" strokeWidth="1.8" />
-        {/* Left hand */}
-        <circle cx="-38" cy="-20" r="4" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
+          {/* Legs */}
+          <path d="M -10,40 Q -14,50 -18,52" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" />
+          <path d="M 10,40 Q 14,50 18,52" fill="none" stroke="#58a6ff" strokeWidth="2" strokeLinecap="round" />
+          {/* Feet */}
+          <ellipse cx="-20" cy="53" rx="6" ry="3" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
+          <ellipse cx="20" cy="53" rx="6" ry="3" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
 
-        {/* Right arm */}
-        <path d="M 26,5 Q 38,0 40,-15" fill="none" stroke="#58a6ff" strokeWidth="1.8" />
-        {/* Right hand */}
-        <circle cx="40" cy="-15" r="4" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
+          {/* Tail — curving up and right */}
+          <path d="M 14,35 Q 42,25 45,8 Q 47,0 42,-3" fill="none" stroke="#58a6ff" strokeWidth="1.8" strokeLinecap="round" />
+        </g>
 
-        {/* Staff / Bo weapon */}
-        <line x1="-42" y1="-55" x2="44" y2="30" stroke="#58a6ff" strokeWidth="2" opacity="0.9" />
+        {/* Small critter left — little armadillo/mouse */}
+        <g transform="translate(135, 218)">
+          <ellipse cx="0" cy="0" rx="10" ry="6" fill="none" stroke="#8b949e" strokeWidth="1.2" />
+          <circle cx="-8" cy="-3" r="4" fill="none" stroke="#8b949e" strokeWidth="1.2" />
+          <circle cx="-10" cy="-4" r="1.2" fill="#8b949e" />
+          {/* Ears */}
+          <ellipse cx="-6" cy="-7" rx="2" ry="3" fill="none" stroke="#8b949e" strokeWidth="0.8" />
+          <ellipse cx="-4" cy="-7" rx="2" ry="3" fill="none" stroke="#8b949e" strokeWidth="0.8" />
+          {/* Tail */}
+          <path d="M 10,0 Q 16,-6 20,-8" fill="none" stroke="#8b949e" strokeWidth="1" />
+          {/* Legs */}
+          <line x1="-4" y1="5" x2="-6" y2="8" stroke="#8b949e" strokeWidth="0.8" />
+          <line x1="4" y1="5" x2="6" y2="8" stroke="#8b949e" strokeWidth="0.8" />
+        </g>
 
-        {/* Legs */}
-        <path d="M -12,48 Q -15,55 -20,58" fill="none" stroke="#58a6ff" strokeWidth="1.8" />
-        <path d="M 12,48 Q 15,55 20,58" fill="none" stroke="#58a6ff" strokeWidth="1.8" />
-
-        {/* Feet */}
-        <ellipse cx="-22" cy="59" rx="7" ry="3" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
-        <ellipse cx="22" cy="59" rx="7" ry="3" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
-
-        {/* Tail */}
-        <path d="M 15,40 Q 45,35 50,15 Q 52,8 48,5" fill="none" stroke="#58a6ff" strokeWidth="1.5" />
-      </g>
-
-      {/* Small critter on the left (a mouse/rat) */}
-      <g transform="translate(145, 242)" fill="none" stroke="#8b949e" strokeWidth="1">
-        <ellipse cx="0" cy="0" rx="8" ry="5" />
-        <circle cx="-7" cy="-3" r="3" />
-        <circle cx="-9" cy="-4" r="1" fill="#8b949e" />
-        <line x1="-10" y1="-2" x2="-14" y2="-3" />
-        <line x1="-10" y1="-1" x2="-15" y2="0" />
-        <path d="M 8,0 Q 15,-5 18,-8" />
-        {/* Ears */}
-        <ellipse cx="-5" cy="-6" rx="2" ry="3" />
-        <ellipse cx="-3" cy="-6" rx="2" ry="3" />
-      </g>
-
-      {/* Small critter on the right (another creature) */}
-      <g transform="translate(360, 244)" fill="none" stroke="#8b949e" strokeWidth="1">
-        <ellipse cx="0" cy="0" rx="6" ry="4" />
-        <circle cx="5" cy="-2" r="2.5" />
-        <circle cx="6" cy="-3" r="0.8" fill="#8b949e" />
-        <path d="M -6,0 Q -10,-3 -12,-6" />
-        <ellipse cx="4" cy="-5" rx="1.5" ry="2.5" />
-        <ellipse cx="6" cy="-5" rx="1.5" ry="2.5" />
+        {/* Small critter right — tiny bug */}
+        <g transform="translate(370, 220)">
+          <ellipse cx="0" cy="0" rx="6" ry="4" fill="none" stroke="#8b949e" strokeWidth="1" />
+          <circle cx="6" cy="-2" r="3" fill="none" stroke="#8b949e" strokeWidth="1" />
+          <circle cx="7" cy="-3" r="1" fill="#8b949e" />
+          {/* Antennae */}
+          <path d="M 8,-5 Q 10,-10 12,-11" fill="none" stroke="#8b949e" strokeWidth="0.8" />
+          <path d="M 6,-5 Q 5,-9 3,-10" fill="none" stroke="#8b949e" strokeWidth="0.8" />
+          {/* Legs */}
+          <line x1="-3" y1="3" x2="-5" y2="6" stroke="#8b949e" strokeWidth="0.7" />
+          <line x1="3" y1="3" x2="5" y2="6" stroke="#8b949e" strokeWidth="0.7" />
+        </g>
       </g>
     </svg>
   );
