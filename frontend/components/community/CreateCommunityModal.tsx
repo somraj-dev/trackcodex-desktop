@@ -42,11 +42,10 @@ export const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ onCl
     const [isMature, setIsMature] = useState(false);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [avatar, setAvatar] = useState<File | null>(null);
-    const [banner, setBanner] = useState<File | null>(null);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const [bannerUrl, setBannerUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [createdCommunity, setCreatedCommunity] = useState<Community | null>(null);
 
     const avatarInputRef = React.useRef<HTMLInputElement>(null);
     const bannerInputRef = React.useRef<HTMLInputElement>(null);
@@ -54,16 +53,20 @@ export const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ onCl
     const nextStep = () => setStep(s => s + 1);
     const prevStep = () => setStep(s => s - 1);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'avatar' | 'banner') => {
         const file = e.target.files?.[0];
         if (file) {
             const url = URL.createObjectURL(file);
             if (type === 'avatar') {
-                setAvatar(file);
                 setAvatarUrl(url);
+                if (createdCommunity) {
+                    await socialService.updateCommunity(createdCommunity.slug, { avatar: url });
+                }
             } else {
-                setBanner(file);
                 setBannerUrl(url);
+                if (createdCommunity) {
+                    await socialService.updateCommunity(createdCommunity.slug, { coverImage: url });
+                }
             }
         }
     };
@@ -75,15 +78,10 @@ export const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ onCl
             const community = await socialService.createCommunity({
                 name,
                 description,
-                avatar: avatarUrl || undefined,
             });
-            // We could also upload 'avatar' and 'banner' files here if the backend supports multipart
-            if (avatar || banner) {
-                // Mock upload or additional processing
-            }
-            // In a real app, we'd also save the topic and visibility
+            setCreatedCommunity(community);
             onCommunityCreated(community);
-            setStep(6); // Move to configuration/success step
+            setStep(4); // Move to configuration/success step
         } catch (err) {
             console.error(err);
         } finally {
@@ -227,161 +225,121 @@ export const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ onCl
                 );
             case 4:
                 return (
-                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                        <h2 className="text-2xl font-bold text-white mb-2">Customize your community's look</h2>
-                        <p className="text-sm text-[#A1A1AA] mb-6">Upload an avatar that represents your community.</p>
-
-                        <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#1A1A1A] rounded-xl hover:border-[#333333] transition-colors group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
-                            <input
-                                type="file"
-                                ref={avatarInputRef}
-                                className="hidden"
-                                accept="image/*"
-                                aria-label="Upload Avatar"
-                                onChange={(e) => handleFileChange(e, 'avatar')}
-                            />
-                            {avatarUrl ? (
-                                <div className="relative size-32 rounded-full overflow-hidden mb-4 border-4 border-[#1A1A1B]">
-                                    <img src={avatarUrl} alt="Avatar Preview" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-white !text-3xl">add_a_photo</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="size-32 rounded-full bg-[#111111] border-4 border-[#1A1A1A] flex items-center justify-center mb-4 text-[#818384] group-hover:text-white transition-colors">
-                                    <span className="material-symbols-outlined !text-4xl">add_a_photo</span>
-                                </div>
-                            )}
-                            <h3 className="text-white font-bold mb-1">{avatarUrl ? 'Change Avatar' : 'Upload Avatar'}</h3>
-                            <p className="text-[#A1A1AA] text-xs">Recommended size: 256x256px</p>
-                        </div>
-                    </div>
-                );
-            case 5:
-                return (
-                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                        <h2 className="text-2xl font-bold text-white mb-2">Give it a banner</h2>
-                        <p className="text-sm text-[#A1A1AA] mb-6">A banner helps set the theme and mood of your community.</p>
-
-                        <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#1A1A1A] rounded-xl hover:border-[#333333] transition-colors group cursor-pointer" onClick={() => bannerInputRef.current?.click()}>
-                            <input
-                                type="file"
-                                ref={bannerInputRef}
-                                className="hidden"
-                                accept="image/*"
-                                aria-label="Upload Banner"
-                                onChange={(e) => handleFileChange(e, 'banner')}
-                            />
-                            {bannerUrl ? (
-                                <div className="relative w-full h-32 rounded-lg overflow-hidden mb-4 border border-[#1A1A1B]">
-                                    <img src={bannerUrl} alt="Banner Preview" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-white !text-3xl">add_a_photo</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="w-full h-32 rounded-lg bg-[#111111] border border-[#1A1A1A] flex items-center justify-center mb-4 text-[#818384] group-hover:text-white transition-colors">
-                                    <span className="material-symbols-outlined !text-4xl">add_a_photo</span>
-                                </div>
-                            )}
-                            <h3 className="text-white font-bold mb-1">{bannerUrl ? 'Change Banner' : 'Upload Banner'}</h3>
-                            <p className="text-[#A1A1AA] text-xs">Recommended size: 1920x384px</p>
-                        </div>
-                    </div>
-                );
-            case 6:
-                return (
-                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                        <div className="flex flex-col md:flex-row h-full min-h-[400px]">
-                            <div className="flex-1 p-6 flex flex-col justify-center">
-                                <h2 className="text-3xl font-bold text-white mb-6">You launched a new community!</h2>
-                                <div className="space-y-6">
-                                    <div>
-                                        <h3 className="text-[16px] font-bold text-white mb-2">Here's what you should know</h3>
-                                        <p className="text-[#A1A1AA] text-sm">We've applied some default settings. You can edit them anytime in your tools.</p>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1 p-3 rounded-md border border-[#1A1A1A] bg-[#0A0A0A] flex items-center gap-3">
-                                            <span className="material-symbols-outlined text-green-500">check_circle</span>
-                                            <span className="text-white text-sm font-medium">Rules</span>
+                    <div className="animate-in fade-in h-full flex flex-col pt-0">
+                        <div className="flex flex-col md:flex-row h-full min-h-[500px] w-full bg-[#0F0F0F] rounded-[18px] overflow-hidden">
+                            {/* Left Pane */}
+                            <div className="flex-1 p-8 md:p-12 flex flex-col justify-center relative">
+                                <h2 className="text-[32px] font-extrabold text-white leading-tight mb-8 font-sans">
+                                    You launched a new<br />community!
+                                </h2>
+                                <div className="space-y-4 max-w-[340px]">
+                                    <h3 className="text-[16px] font-bold text-white tracking-wide">Here's what you should know</h3>
+                                    <p className="text-[#D7DADC] text-[15px] leading-snug">
+                                        We've applied some settings to help you get started.
+                                        You can view and edit them anytime in your mod tools.
+                                    </p>
+                                    <div className="flex gap-4 pt-4">
+                                        <div className="flex-1 px-4 py-3 rounded-xl border border-[#333333] bg-[#1A1A1B] flex items-center gap-3">
+                                            <span className="material-symbols-outlined text-green-500 font-bold !text-[20px]">check</span>
+                                            <span className="text-white text-[14px] font-medium">Rules</span>
                                         </div>
-                                        <div className="flex-1 p-3 rounded-md border border-[#1A1A1A] bg-[#0A0A0A] flex items-center gap-3">
-                                            <span className="material-symbols-outlined text-green-500">check_circle</span>
-                                            <span className="text-white text-sm font-medium">Welcome Guide</span>
+                                        <div className="flex-1 px-4 py-3 rounded-xl border border-[#333333] bg-[#1A1A1B] flex items-center gap-3">
+                                            <span className="material-symbols-outlined text-green-500 font-bold !text-[20px]">check</span>
+                                            <span className="text-white text-[14px] font-medium">Welcome guide</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="w-full md:w-[350px] bg-gradient-to-br from-[#1e1e1e] to-black p-8 flex flex-col items-center justify-center relative">
-                                <div className="w-full max-w-[280px] bg-[#1A1A1B] border border-[#343536] rounded-xl overflow-hidden shadow-2xl relative">
-                                    {/* Banner */}
-                                    <div
-                                        className="h-24 bg-gray-800 relative group cursor-pointer"
-                                        aria-label="Edit banner"
-                                        onClick={() => bannerInputRef.current?.click()}
-                                    >
-                                        {bannerUrl ? (
-                                            <>
-                                                <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setBanner(null);
-                                                        setBannerUrl(null);
-                                                    }}
-                                                    className="absolute top-2 right-2 size-6 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black transition-colors z-10"
-                                                    title="Remove banner"
-                                                >
-                                                    <span className="material-symbols-outlined !text-[16px]">close</span>
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-800" />
+                            {/* Right Pane */}
+                            <div className="w-full md:w-[460px] bg-[#274276] p-8 md:p-10 flex flex-col items-center justify-center relative shadow-inner">
+                                <button onClick={onClose} aria-label="Close modal" className="absolute top-4 right-4 text-white hover:bg-black/20 bg-black/30 z-50 size-9 rounded-full flex items-center justify-center transition-colors">
+                                    <span className="material-symbols-outlined !text-[20px]">close</span>
+                                </button>
+
+                                <div className="w-full max-w-[360px] bg-[#1A1A1B] rounded-2xl overflow-hidden shadow-2xl relative border border-[#343536]">
+                                    {/* Banner Area */}
+                                    <div className="h-32 relative bg-[#EEEEEE] w-full overflow-hidden">
+                                        {/* Default repeating bubble pattern if no banner */}
+                                        {!bannerUrl && (
+                                            <div className="absolute inset-0 pointer-events-none flex flex-wrap gap-2 p-3 opacity-80">
+                                                {[...Array(12)].map((_, i) => (
+                                                    <div key={i} className={`h-8 rounded-xl rounded-bl-sm bg-[#D5D5D5] ${i % 3 === 0 ? 'w-16' : i % 2 === 0 ? 'w-24' : 'w-12'}`}></div>
+                                                ))}
+                                            </div>
                                         )}
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
-                                            <span className="material-symbols-outlined !text-[18px]">add_a_photo</span>
-                                            Edit
-                                        </div>
-                                    </div>
-                                    <div className="p-4 pt-0 -mt-10 flex flex-col items-center">
-                                        <div
-                                            className="size-20 rounded-full bg-[#1A1A1B] border-4 border-[#1A1A1B] overflow-hidden mb-3 relative group cursor-pointer"
-                                            aria-label="Edit avatar"
-                                            onClick={() => avatarInputRef.current?.click()}
+                                        {bannerUrl && (
+                                            <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+                                        )}
+                                        {/* Edit Banner Button overlaying the banner image bottom right */}
+                                        <button
+                                            className="absolute bottom-3 right-3 size-9 rounded-full bg-black/60 hover:bg-black/80 flex items-center justify-center text-white transition-colors cursor-pointer z-10"
+                                            onClick={() => bannerInputRef.current?.click()}
+                                            title="Edit banner"
                                         >
-                                            {avatarUrl ? (
-                                                <>
-                                                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setAvatar(null);
-                                                            setAvatarUrl(null);
-                                                        }}
-                                                        className="absolute top-1 right-1 size-5 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black transition-colors z-10"
-                                                        title="Remove avatar"
-                                                    >
-                                                        <span className="material-symbols-outlined !text-[14px]">close</span>
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <div className="size-full bg-blue-500 flex items-center justify-center text-3xl font-bold text-white">
-                                                    {name ? name[0].toUpperCase() : 'C'}
+                                            <span className="material-symbols-outlined !text-[18px]">edit</span>
+                                        </button>
+                                        <input
+                                            type="file"
+                                            ref={bannerInputRef}
+                                            className="hidden"
+                                            accept="image/*"
+                                            title="Upload banner"
+                                            aria-label="Upload banner"
+                                            onChange={(e) => handleFileChange(e, 'banner')}
+                                        />
+                                    </div>
+
+                                    {/* Card Content underneath banner */}
+                                    <div className="px-6 pb-6 relative">
+                                        <div className="flex items-end gap-3 -mt-8 mb-4 relative z-20">
+                                            {/* Avatar Area */}
+                                            <div className="relative group shrink-0">
+                                                <div className="size-20 rounded-full bg-[#1A1A1B] border-[4px] border-[#1A1A1B] overflow-hidden flex items-center justify-center text-3xl font-bold text-white shadow-sm relative z-10">
+                                                    {avatarUrl ? (
+                                                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="size-full bg-blue-400 flex items-center justify-center">
+                                                            {name ? name[0].toUpperCase() : 'C'}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                                                <span className="material-symbols-outlined !text-[20px]">add_a_photo</span>
+                                                <button
+                                                    className="absolute bottom-0 right-0 size-8 rounded-full bg-[#333333] hover:bg-[#444444] flex items-center justify-center text-white border-[3px] border-[#1A1A1B] transition-colors cursor-pointer z-20"
+                                                    onClick={() => avatarInputRef.current?.click()}
+                                                    title="Edit avatar"
+                                                >
+                                                    <span className="material-symbols-outlined !text-[14px]">edit</span>
+                                                </button>
+                                                <input
+                                                    type="file"
+                                                    ref={avatarInputRef}
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    title="Upload avatar"
+                                                    aria-label="Upload avatar"
+                                                    onChange={(e) => handleFileChange(e, 'avatar')}
+                                                />
+                                            </div>
+
+                                            {/* Title and stats */}
+                                            <div className="mb-2">
+                                                <h4 className="text-[20px] font-bold text-white leading-tight font-sans">r/{name || 'community'}</h4>
+                                                <div className="text-[13px] text-[#A1A1AA] font-normal truncate mt-0.5">
+                                                    1 weekly visitor • 1 weekly contributor
+                                                </div>
                                             </div>
                                         </div>
-                                        <h4 className="text-lg font-bold text-white mb-1">c/{name || 'communityname'}</h4>
-                                        <div className="text-[12px] text-[#A1A1AA] mb-4">1 member • 1 online</div>
-                                        <p className="text-[12px] text-center text-[#D7DADC] line-clamp-2 px-2 mb-6">{description}</p>
 
-                                        <button className="w-full py-2 rounded-full border border-blue-500 text-blue-500 text-sm font-bold flex items-center justify-center gap-2 hover:bg-blue-500/10 transition-colors">
-                                            <span className="material-symbols-outlined !text-[18px]">palette</span>
+                                        <p className="text-[14px] text-[#D7DADC] line-clamp-3 mb-6 font-normal">
+                                            {name || 'community'}
+                                        </p>
+
+                                        {/* Base Color Button */}
+                                        <button className="w-full py-3 rounded-full border border-[#333333] bg-transparent hover:bg-[#222222] text-white text-[14px] font-bold flex items-center justify-center gap-2 transition-colors">
+                                            <span className="material-symbols-outlined !text-[20px]">edit</span>
                                             Base Color
-                                            <div className="size-3 rounded-full bg-blue-500 ml-1"></div>
+                                            <div className="size-4 rounded-full bg-[#3B66ED] ml-1 border border-[#1A1A1B]"></div>
                                         </button>
                                     </div>
                                 </div>
@@ -395,13 +353,13 @@ export const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ onCl
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
-            <div className={`bg-[#0A0A0A] border border-[#1A1A1A] w-full ${step === 6 ? 'max-w-[900px]' : 'max-w-[650px]'} rounded-xl shadow-2xl flex flex-col transition-all duration-300`}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className={`bg-[#111111] overflow-hidden w-full ${step === 4 ? 'max-w-[850px]' : 'max-w-[650px] border border-[#1A1A1A]'} rounded-[18px] shadow-2xl flex flex-col transition-all duration-300`}>
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-[#1A1A1A]">
-                    {step < 6 ? (
+                <div className={`flex items-center justify-between p-5 ${step === 4 ? 'hidden' : 'border-b border-[#1A1A1A]'}`}>
+                    {step < 4 ? (
                         <div className="flex gap-2">
-                            {[1, 2, 3, 4, 5].map((s) => (
+                            {[1, 2, 3].map((s) => (
                                 <div
                                     key={s}
                                     className={`h-1.5 rounded-full transition-all duration-300 ${s === step ? 'w-8 bg-white' : s < step ? 'w-3 bg-white/40' : 'w-3 bg-[#1A1A1A]'
@@ -409,32 +367,30 @@ export const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ onCl
                                 />
                             ))}
                         </div>
-                    ) : (
-                        <div className="text-white font-bold">Community Created</div>
-                    )}
-                    <button onClick={onClose} aria-label="Close modal" className="text-[#818384] hover:text-white transition-colors">
-                        <span className="material-symbols-outlined">close</span>
+                    ) : null}
+                    <button onClick={onClose} aria-label="Close modal" className="text-[#818384] hover:text-white transition-colors bg-[#1A1A1B] size-8 rounded-full flex items-center justify-center">
+                        <span className="material-symbols-outlined !text-[18px]">close</span>
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className={`${step === 6 ? 'p-0' : 'p-8'} flex-1`}>
+                <div className={`${step === 4 ? 'p-0 relative bg-[#0F0F0F] rounded-t-[18px]' : 'p-8'} flex-1`}>
                     {renderStep()}
                 </div>
 
                 {/* Footer */}
-                <div className="p-5 border-t border-[#1A1A1A] flex justify-between bg-[#050505] rounded-b-xl">
-                    {step === 6 ? (
+                <div className={`p-5 px-6 flex items-center ${step === 4 ? 'bg-[#0F0F0F] rounded-b-[18px] border-t border-[#1A1A1A] justify-end' : 'border-t border-[#1A1A1A] bg-[#0A0A0A] justify-between'}`}>
+                    {step === 4 ? (
                         <div className="w-full flex justify-end gap-3">
                             <button
                                 onClick={onClose}
-                                className="px-6 py-2.5 rounded-full text-white text-[14px] font-bold hover:bg-[#111111] transition-colors"
+                                className="px-6 py-2.5 rounded-full text-white text-[14px] font-bold hover:bg-[#1A1A1B] transition-colors"
                             >
                                 Go To Community Page
                             </button>
                             <button
                                 onClick={onClose}
-                                className="px-6 py-2.5 rounded-full bg-white text-black text-[14px] font-bold hover:bg-[#E5E5E5] transition-colors"
+                                className="px-6 py-2.5 rounded-full bg-[#333333] hover:bg-[#444444] text-white text-[14px] font-bold transition-colors"
                             >
                                 View Next Steps
                             </button>
@@ -448,10 +404,10 @@ export const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ onCl
                                 {step === 1 ? 'Cancel' : 'Back'}
                             </button>
                             <div className="flex gap-3">
-                                {step < 5 ? (
+                                {step < 3 ? (
                                     <button
                                         onClick={nextStep}
-                                        disabled={step === 1 && !selectedTopic || step === 3 && (!name.trim() || !description.trim())}
+                                        disabled={step === 1 && !selectedTopic}
                                         className="px-8 py-2.5 rounded-full bg-white text-black text-[14px] font-bold hover:bg-[#E5E5E5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Next
@@ -459,7 +415,7 @@ export const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ onCl
                                 ) : (
                                     <button
                                         onClick={handleCreate}
-                                        disabled={loading}
+                                        disabled={loading || !name.trim() || !description.trim()}
                                         className="px-8 py-2.5 rounded-full bg-white text-black text-[14px] font-bold hover:bg-[#E5E5E5] transition-colors disabled:opacity-50 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                                     >
                                         {loading ? 'Creating...' : 'Create Community'}

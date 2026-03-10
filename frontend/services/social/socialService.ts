@@ -116,12 +116,26 @@ export const socialService = {
     name: string;
     description?: string;
     avatar?: string;
+    coverImage?: string;
   }) => {
     try {
       const response = await apiInstance.post("/community", data);
       return response.data;
     } catch (err) {
       console.error("❌ Failed to create community:", err);
+      throw err;
+    }
+  },
+
+  updateCommunity: async (
+    slug: string,
+    data: { avatar?: string; coverImage?: string; description?: string }
+  ) => {
+    try {
+      const response = await apiInstance.patch(`/community/${slug}`, data);
+      return response.data;
+    } catch (err) {
+      console.error("❌ Failed to update community:", err);
       throw err;
     }
   },

@@ -53,6 +53,7 @@ const CommunityView = React.lazy(() => import("./views/community/Community"));
 const DiscussionDetail = React.lazy(() => import("./views/community/DiscussionDetail"));
 const CreateRepoView = React.lazy(() => import("./views/repo/CreateRepo"));
 const ImportRepoView = React.lazy(() => import("./views/repo/ImportRepo"));
+const TrackCoinView = React.lazy(() => import("./views/TrackCoin"));
 
 // Strata
 const StrataIndexView = React.lazy(() => import("./views/organizations/StrataIndexView"));
@@ -193,6 +194,8 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
             <Route path="overview" element={<Overview />} />
             <Route path="workspaces" element={<WorkspacesView />} />
             <Route path="community" element={<CommunityView />} />
+            <Route path="community/*" element={<CommunityView />} />
+            <Route path="trackcoin" element={<TrackCoinView />} />
             <Route path="workspace/new" element={<CreateWorkspaceView />} />
             <Route path="workspace/:id" element={<VSCodeWorkspaceView />} />
             <Route path="workspace/:id/ide" element={<VSCodeWorkspaceView />} />

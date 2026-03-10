@@ -138,9 +138,9 @@ const UserProfileDropdown = ({
           onClick={() => handleNavigate("/strata")}
         />
         <MenuItem
-          icon="favorite"
+          icon="token"
           label="TrackCoin"
-          onClick={() => handleNavigate("/community")}
+          onClick={() => handleNavigate("/trackcoin")}
         />
         <MenuItem
           icon="inventory_2"
