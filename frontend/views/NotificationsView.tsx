@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EmptyState from "../components/common/EmptyState";
-import InboxZeroIllustration from "../components/common/InboxZeroIllustration";
 import { useNotifications } from "../context/NotificationContext";
 import { formatDistanceToNow } from "../utils/dateUtils";
 
@@ -256,7 +255,7 @@ const NotificationsView = () => {
               <EmptyState
                 title="All caught up!"
                 message="Take a break, write some code, do what you do best."
-                illustration={<InboxZeroIllustration className="w-full h-auto" />}
+                imageSrc="/inbox-zero-dark.svg"
               />
             </div>
           ) : (
