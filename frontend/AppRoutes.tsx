@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import PublicLayout from "./components/layout/PublicLayout";
 import RedirectToLogin from "./components/auth/RedirectToLogin";
+import RedirectAfterAuth from "./components/auth/RedirectAfterAuth";
 import SettingsLayout from "./components/settings/SettingsLayout";
 
 // Lazy imports (extracted from App.tsx)
@@ -176,6 +177,10 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
         <>
           <Route path="/logout" element={<SignOut />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/login" element={<RedirectAfterAuth />} />
+          <Route path="/signup" element={<RedirectAfterAuth />} />
+          <Route path="/forgot-password" element={<RedirectAfterAuth />} />
+          <Route path="/reset-password" element={<RedirectAfterAuth />} />
           <Route path="/*" element={<MainLayout />}>
             <Route path="taskvault" element={<TaskVault />} />
             <Route path="" element={<HomeView />} />
