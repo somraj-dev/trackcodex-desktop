@@ -1,0 +1,17 @@
+{
+  "name": "shannon-adapter",
+  "version": "1.0.0",
+  "description": "Shannon Exploit Validator — Isolated microservice for TrackCodex CSS",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "npx tsc --outDir dist --esModuleInterop --module commonjs --target es2020 --moduleResolution node --skipLibCheck src/server.ts"
+  },
+  "dependencies": {
+    "fastify": "^4.28.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}

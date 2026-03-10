@@ -1,0 +1,58 @@
+node_modules
+.env 
+trackcodex_changes/.env 
+env
+dist/
+dist-backend/
+dist-electron/
+.vscode/
+*.log
+
+# Databases & Backups
+pg_bin/
+pgsql/
+*.zip
+*.dump
+*.exe
+*.dll
+*.lib
+d i s t /  
+ 
+# Repositories & Data
+data/repos/
+
+# User Workspaces (contain embedded git repos, must never be tracked)
+workspaces/
+# Test Scripts & Logs
+test-features.ts
+test_output.txt
+backend_register_error.log
+
+# AWS Production Secrets (NEVER COMMIT)
+aws/.env.prod
+.env.prod
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+_override.tf
+_override.tf.json
+.terraformrc
+terraform.rc
+tfplan*
+*debug.txt
+*error.txt
+*result.txt
+*status.json
+recovery_points.json
+snapshots.txt
+endpoint.txt
+status.txt
+manual_snapshots.json
+snapshots_complete.json

@@ -1,0 +1,67 @@
+
+services:
+  backend:
+    build:
+      context: . # Use root context to find package.json
+      dockerfile: backend/Dockerfile
+    ports:
+      - "4000:4000" # Maps container 4000 to host 4000 (VITE_API_URL)
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/trackcodex
+      - NODE_ENV=production
+      - ENCRYPTION_KEY=e0f54592-d6c4-4b47-8178-5e5898394236
+      - COOKIE_SECRET=cookie-secret-change-this-min-32-chars
+      - FRONTEND_URL=https://trackcodex.com
+      - OPENVSCODE_URL=https://ide.trackcodex.com
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: "0:0"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_DB=trackcodex
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+
+  postgrest:
+    image: postgrest/postgrest
+    ports:
+      - "3100:3000" # Moved from 3000 to 3100 (Gitea uses 3000)
+    environment:
+      PGRST_DB_URI: postgres://postgres:password@db:5432/trackcodex
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: web_anon
+      PGRST_OPENAPI_SERVER_PROXY_URI: http://127.0.0.1:3100
+    depends_on:
+      - db
+
+  # ── OpenVSCode Server: Self-Hosted IDE ──
+  openvscode:
+    build:
+      context: .
+      dockerfile: docker/ide.Dockerfile
+    ports:
+      - "8080:8080"   # OpenVSCode Web UI (TrackCodex Custom)
+    volumes:
+      - ./workspaces:/home/workspace   # Bind mount so backend + container share files
+    environment:
+      - CONNECTION_TOKEN=trackcodex   # Simple shared token for auth
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400
+

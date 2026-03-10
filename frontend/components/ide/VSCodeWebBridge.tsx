@@ -1,0 +1,258 @@
+import React, { useEffect, useRef, useState, useCallback } from "react";
+
+interface VSCodeWebBridgeProps {
+  workspaceId?: string;
+  workspacePath?: string;
+  src?: string; // Allow direct URL override
+  onReady?: () => void;
+  onError?: (error: Error) => void;
+}
+
+/**
+ * VSCodeWebBridge - Embeds VS Code Web into TrackCodex
+ */
+const VSCodeWebBridge: React.FC<VSCodeWebBridgeProps> = ({
+  workspaceId,
+  workspacePath = "/workspace",
+  src,
+  onReady,
+  onError,
+}) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Helper to send messages to VS Code Web
+  const sendMessageToVSCode = useCallback((message: { type: string; payload?: any }) => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentWindow) {
+      console.warn("⚠️ Cannot send message: VS Code iframe not ready");
+      return;
+    }
+
+    let targetOrigin = "http://localhost:8080";
+    try {
+      if (src) targetOrigin = new URL(src).origin;
+    } catch (e) {
+      // Fallback
+    }
+
+    iframe.contentWindow.postMessage(message, targetOrigin);
+  }, [src]);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    let targetUrl = src;
+
+    if (!targetUrl) {
+      // Fallback: Construct URL manually if no src provided
+      const vscodeUrl = new URL("http://localhost:8080");
+
+      // Pass workspace configuration via URL parameters
+      if (workspaceId) {
+        vscodeUrl.searchParams.set("workspaceId", workspaceId);
+      }
+      if (workspacePath) {
+        vscodeUrl.searchParams.set("folder", workspacePath);
+      }
+      targetUrl = vscodeUrl.toString();
+    }
+
+    // Set iframe source
+    iframe.src = targetUrl;
+
+    // Handle iframe load
+    const handleLoad = () => {
+      console.warn("✅ VS Code Web loaded successfully");
+      setIsLoading(false);
+
+      // Send initial configuration to VS Code
+      sendMessageToVSCode({
+        type: "init",
+        payload: {
+          workspaceId,
+          workspacePath,
+          theme: "vs-dark",
+          // Pass TrackCodex auth token for API calls
+          authToken: localStorage.getItem("trackcodex_token"),
+        },
+      });
+
+      onReady?.();
+    };
+
+    const handleError = () => {
+      const error = new Error(
+        "Failed to load VS Code Web. Is the server running on http://localhost:8080?",
+      );
+      console.error("❌", error.message);
+      setLoadError(error.message);
+      setIsLoading(false);
+      onError?.(error);
+    };
+
+    iframe.addEventListener("load", handleLoad);
+    iframe.addEventListener("error", handleError);
+
+    return () => {
+      iframe.removeEventListener("load", handleLoad);
+      iframe.removeEventListener("error", handleError);
+    };
+  }, [workspaceId, workspacePath, onReady, onError, src, sendMessageToVSCode]);
+
+  // Listen for messages from VS Code Web
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Security: Only accept messages from the intended IDE host
+      let allowedOrigin = "http://localhost:8080";
+      try {
+        if (src) allowedOrigin = new URL(src).origin;
+      } catch {
+        // Keep default
+      }
+
+      if (event.origin !== allowedOrigin) {
+        return;
+      }
+
+      const { type, payload } = event.data;
+
+      switch (type) {
+        case "vscode-ready":
+          console.warn("🎉 VS Code Web is ready");
+          break;
+
+        case "workspace-changed":
+          console.warn("📁 Workspace changed:", payload.workspacePath);
+          break;
+
+        case "file-opened":
+          console.warn("📄 File opened:", payload.filePath);
+          break;
+
+        case "extension-installed":
+          console.warn("🧩 Extension installed:", payload.extensionId);
+          break;
+
+        case "error":
+          console.error("❌ VS Code error:", payload.message);
+          break;
+
+        case "run-command":
+          sendMessageToVSCode({
+            type: "run-command",
+            payload: payload
+          });
+          break;
+
+        default:
+          console.warn("📨 VS Code message:", type, payload);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [src, sendMessageToVSCode]);
+
+  // Handle workspace switching and remote commands
+  useEffect(() => {
+    if (!isLoading && workspaceId) {
+      // 1. Switch Workspace
+      sendMessageToVSCode({
+        type: "switch-workspace",
+        payload: {
+          workspaceId,
+          workspacePath,
+        },
+      });
+
+      // 2. Handle pending commands from URL
+      const searchParams = new URLSearchParams(window.location.search);
+      const command = searchParams.get("command");
+      if (command) {
+        console.warn(`🚀 Executing remote command: ${command}`);
+        sendMessageToVSCode({
+          type: "run-command",
+          payload: { command }
+        });
+      }
+    }
+  }, [workspaceId, workspacePath, isLoading, sendMessageToVSCode]);
+
+  return (
+    <div className="w-full h-full relative bg-[#1e1e1e]">
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#1e1e1e] z-10">
+          <div className="text-center">
+            <div className="mb-4">
+              <div className="w-12 h-12 border-4 border-[#007fd4] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
+            <p className="text-[#cccccc] text-sm">Loading TrackCodex IDE...</p>
+            <p className="text-[#858585] text-xs mt-2">
+              Powered by VS Code OSS
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {loadError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#1e1e1e] z-10">
+          <div className="text-center max-w-md px-6">
+            <div className="mb-4">
+              <span className="material-symbols-outlined text-[#f48771] text-[64px]">
+                error
+              </span>
+            </div>
+            <h3 className="text-white text-lg font-semibold mb-2">
+              Failed to Load IDE
+            </h3>
+            <p className="text-[#cccccc] text-sm mb-4">{loadError}</p>
+            <div className="text-left bg-[#2d2d2d] border border-[#3c3c3c] rounded-md p-4 text-xs">
+              <p className="text-[#858585] mb-2">To fix this issue:</p>
+              <ol className="list-decimal list-inside text-[#cccccc] space-y-1">
+                <li>
+                  Ensure VS Code Web is built:{" "}
+                  <code className="bg-[#1e1e1e] px-1">
+                    npm run build:vscode
+                  </code>
+                </li>
+                <li>
+                  Start VS Code Web server:{" "}
+                  <code className="bg-[#1e1e1e] px-1">
+                    npm run serve:vscode
+                  </code>
+                </li>
+                <li>
+                  Verify it's running on{" "}
+                  <code className="bg-[#1e1e1e] px-1">
+                    http://localhost:8080
+                  </code>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VS Code Web Iframe */}
+      <iframe
+        ref={iframeRef}
+        className="w-full h-full border-[#1A1A1A]"
+        title="TrackCodex IDE (VS Code OSS)"
+        allow="cross-origin-isolated; clipboard-read; clipboard-write"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"
+      />
+    </div>
+  );
+};
+
+export default VSCodeWebBridge;
+
+
