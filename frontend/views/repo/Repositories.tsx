@@ -321,7 +321,7 @@ const Repositories = () => {
 
       {/* Content Area */}
       <div className="flex-1">
-        <div className="p-8 pt-0 max-w-[1400px] mx-auto">
+        <div className="p-8 pt-6 max-w-[1400px] mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2 bg-gh-bg-secondary border border-gh-border p-1 rounded-xl">
               {["All Repos", "Public", "Private", "Sources", "Forks"].map(
@@ -354,11 +354,11 @@ const Repositories = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredRepos.length === 0 ? (
-              <div className="col-span-full h-[500px] flex items-center justify-center bg-gh-bg-secondary/20 rounded-3xl border border-gh-border/50">
+              <div className="col-span-full flex items-center justify-center pt-8 pb-12">
                 <EmptyState
                   title="No Repositories Found"
                   message="Establish your digital legacy. Create your first native repository or import from GitHub."
-                  imageSrc="/dashboard-empty.png"
+                  imageSrc="/inbox-zero-dark.svg"
                   action={{
                     label: "Create Repository",
                     onClick: () => navigate("/repositories/new"),
