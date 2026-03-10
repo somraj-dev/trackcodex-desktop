@@ -30,6 +30,7 @@ const RepoDetailView = () => {
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isForking, setIsForking] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLaunchingWorkspace, setIsLaunchingWorkspace] = useState(false);
   const [ciStatus, setCiStatus] = useState<{ status: string; conclusion: string } | null>(null);
 
   // Deep linking for Code Viewer
@@ -60,6 +61,16 @@ const RepoDetailView = () => {
     } finally {
       setIsForking(false);
     }
+  };
+
+  const handleLaunchWorkspace = async () => {
+    if (isLaunchingWorkspace || !repo) return;
+    setIsLaunchingWorkspace(true);
+
+    // We navigate directly to the workspace view.
+    // VSCodeWorkspaceView.tsx handles checking if a workspace exists
+    // and starting the actual docker container automatically!
+    navigate(`/workspace/${repo.id}?repoId=${repo.id}`);
   };
 
   const handleUseTemplate = async () => {
@@ -288,6 +299,19 @@ const RepoDetailView = () => {
                     {isGenerating ? "Generating..." : "Use this template"}
                   </button>
                 )}
+                {/* Added Launch Workspace action right beside other primary actions */}
+                <button
+                  onClick={handleLaunchWorkspace}
+                  disabled={isLaunchingWorkspace}
+                  className="px-3 py-1 bg-gh-bg-secondary text-gh-text font-bold border-r border-gh-border hover:bg-gh-bg-tertiary flex items-center gap-2 transition-all disabled:opacity-50 group"
+                >
+                  <span
+                    className={`material-symbols-outlined !text-[16px] group-hover:text-primary transition-colors ${isLaunchingWorkspace ? "animate-spin" : ""}`}
+                  >
+                    {isLaunchingWorkspace ? "sync" : "terminal"}
+                  </span>
+                  {isLaunchingWorkspace ? "Launching..." : "Launch in Workspace"}
+                </button>
                 <button className="px-3 py-1 text-gh-text font-medium border-r border-gh-border hover:bg-gh-bg-tertiary flex items-center gap-2 transition-colors">
                   <span className="material-symbols-outlined !text-[16px]">
                     notifications
