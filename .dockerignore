@@ -1,61 +1,35 @@
-**/node_modules
-**/dist
-**/dist-backend
-**/dist-electron
-**/release
-**/*.log
-**/.git
-**/.env
-**/.env.local
-**/.env.prod
-**/*.pem
-**/*.key
-**/*.zip
-**/*.dump
-**/*.tar.gz
-**/*.tar
+# Environment files (CRITICAL: never include local dev .env in production images)
+.env
+.env.*
+!.env.example
 
-# Massive folders
-TrackcodexBeta-main/
-pg_bin/
-pgsql/
-trackcodex_changes/
-storage/
-terraform/
-aws/
-.vscode_engine/
-.vscode-test-web/
+# Development files
+node_modules
+.git
+.gitignore
+.vscode
+*.md
+LICENSE
 
-# Data and artifacts
-data/repos/
-data/artifacts/
-data/wikis/
-debug_*.ts
-fix_*.ts
-reproduce_*.ts
-verify_*.ts
-lint_results*.json
-error_log.txt
+# Diagnostic / debug scripts
+diagnose.js
+run.js
+start_backend.js
+capture_error.js
+backend_output.log
+env_error.log
 
-# Documentation
-docs/
-*.txt
+# Frontend (not needed for backend Docker image)
+# frontend/   # Commented out because ide.Dockerfile needs frontend/public/official-logo.png
 
-# Frontend specific (Backend build doesn't need these)
-public/
-src/
-components/
-views/
-styles/
-hooks/
-context/
-contexts/
-types.ts
-constants.tsx
-App.tsx
-index.html
-index.tsx
-vite.config.ts
-tailwind.config.js
-postcss.config.js
-eslint.config.js
+# Infrastructure configs (not needed inside containers)
+infrastructure/
+.github/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Workspaces
+workspaces/
+data/
