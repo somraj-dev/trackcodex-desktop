@@ -7,8 +7,8 @@
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
-    "dev": "vite frontend",
-    "server": "npx tsx watch -r dotenv/config backend/server.ts",
+    "dev": "vite frontend --config vite.config.ts",
+    "server": "npx tsx watch backend/server.ts",
     "start:all": "concurrently \"npm run server\" \"npm run dev\"",
     "build": "vite build frontend",
     "preview": "vite preview frontend",

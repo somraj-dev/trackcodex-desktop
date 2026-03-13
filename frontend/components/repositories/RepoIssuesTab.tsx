@@ -144,7 +144,7 @@ const RepoIssuesTab: React.FC<RepoIssuesTabProps> = ({ repo }) => {
             <div
               key={issue.id}
               onClick={() =>
-                navigate(`/repositories/${repo.id}/issues/${issue.number}`)
+                navigate(`/repo/${repo.id}/issues/${issue.number}`)
               }
               className="bg-gh-bg-secondary border border-gh-border rounded-xl p-4 hover:border-primary transition-all cursor-pointer group"
             >

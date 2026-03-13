@@ -47,7 +47,7 @@ services:
   openvscode:
     build:
       context: .
-      dockerfile: docker/ide.Dockerfile
+      dockerfile: infrastructure/docker/ide.Dockerfile
     ports:
       - "8080:8080"   # OpenVSCode Web UI (TrackCodex Custom)
     volumes:

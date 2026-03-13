@@ -12,7 +12,7 @@ WORKDIR /tmp/quantaforze
 
 # Copy necessary files for rebranding
 COPY scripts/rebrand-ide.js ./scripts/rebrand-ide.js
-COPY official-logo.png ./official-logo.png
+COPY frontend/public/official-logo.png ./official-logo.png
 COPY package.json ./package.json
 
 # Run the rebranding script

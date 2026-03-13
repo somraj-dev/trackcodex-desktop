@@ -17,7 +17,7 @@ declare global {
 // Dynamic API Base: Uses Electron Bridge if available (Desktop), environment variable (Web Production), or relative (Web Dev)
 export const API_URL = window.electron?.env.API_URL
   ? window.electron.env.API_URL
-  : import.meta.env?.VITE_API_URL || "";
+  : import.meta.env?.VITE_API_URL || "http://localhost:4000";
 
 export const API_BASE = `${API_URL}/api/v1`;
 

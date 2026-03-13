@@ -53,7 +53,7 @@ const RepoDetailView = () => {
         throw new Error(err.message || "Fork failed");
       }
       const newRepo = await res.json();
-      navigate(`/repositories/${newRepo.id}`);
+      navigate(`/repo/${newRepo.id}`);
       window.location.reload();
     } catch (err) {
       console.error(err);
@@ -90,7 +90,7 @@ const RepoDetailView = () => {
         throw new Error(err.message || "Template generation failed");
       }
       const newRepo = await res.json();
-      navigate(`/repositories/${newRepo.id}`);
+      navigate(`/repo/${newRepo.id}`);
       window.location.reload();
     } catch (err) {
       console.error(err);
@@ -241,7 +241,7 @@ const RepoDetailView = () => {
                   className="text-primary cursor-pointer hover:underline"
                   onClick={() => navigate("/repositories")}
                 >
-                  {repo.owner || "track-codex"}
+                  {repo.owner?.username || repo.owner?.name || "track-codex"}
                 </span>
                 <span className="text-gh-text-secondary">/</span>
                 <span className="font-bold text-primary cursor-pointer hover:underline">
@@ -346,13 +346,11 @@ const RepoDetailView = () => {
             </div>
           </div>
 
-          <div className="flex gap-1 text-sm font-medium text-gh-text overflow-x-auto">
+          <div className="flex gap-1 text-sm font-medium text-gh-text overflow-x-auto no-scrollbar scrollbar-none">
             {[
               "Code",
               "Issues",
               "Pull Requests",
-              "Activity",
-              "Discussions",
               "Actions",
               "Projects",
               "Wiki",

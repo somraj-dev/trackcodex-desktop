@@ -59,7 +59,7 @@ export async function routes(fastify: FastifyInstance) {
   await fastify.register(repositoryRoutes);
   await fastify.register(jobRoutes);
   await fastify.register(orgRoutes);
-  await fastify.register(communityRoutes);
+  await fastify.register(communityRoutes, { prefix: "/community" });
   await fastify.register(profileRoutes);
   await fastify.register(growthRoutes);
   await fastify.register(forgeRoutes);

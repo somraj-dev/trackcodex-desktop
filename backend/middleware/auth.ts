@@ -15,6 +15,34 @@ export async function requireAuth(
   reply: FastifyReply,
 ) {
   try {
+    // DEV MODE BYPASS: Auto-inject local dev user when no auth credentials exist
+    if (process.env.NODE_ENV !== "production") {
+      const devAuthHeader = request.headers.authorization;
+      const devSessionId = request.cookies?.session_id;
+      
+      // Only bypass if there are NO auth credentials at all
+      if (!devAuthHeader && !devSessionId) {
+        // Ensure a dev user exists in the database
+        const devUser = await prisma.user.upsert({
+          where: { email: "dev@trackcodex.dev" },
+          update: {},
+          create: {
+            id: "local-dev-user-1",
+            email: "dev@trackcodex.dev",
+            name: "Local Developer",
+            username: "local-dev",
+            role: "user",
+          },
+        });
+
+        (request as any).user = {
+          userId: devUser.id,
+          email: devUser.email,
+          role: devUser.role,
+        };
+        return; // Skip all further auth checks in dev mode
+      }
+    }
     // 1. Try to get Firebase ID token from Authorization header
     const authHeader = request.headers.authorization;
     let firebaseUid: string | null = null;

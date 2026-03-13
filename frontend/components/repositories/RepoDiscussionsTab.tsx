@@ -61,7 +61,7 @@ const RepoDiscussionsTab: React.FC<RepoDiscussionsTabProps> = ({ repo }) => {
       setShowCreateModal(false);
       setNewTitle("");
       setNewBody("");
-      navigate(`/repositories/${repo.id}/discussions/${discussion.number}`);
+      navigate(`/repo/${repo.id}/discussions/${discussion.number}`);
     } catch (err) {
       console.error(err);
       alert("Failed to create discussion");
@@ -151,7 +151,7 @@ const RepoDiscussionsTab: React.FC<RepoDiscussionsTabProps> = ({ repo }) => {
                 key={discussion.id}
                 onClick={() =>
                   navigate(
-                    `/repositories/${repo.id}/discussions/${discussion.number}`,
+                    `/repo/${repo.id}/discussions/${discussion.number}`,
                   )
                 }
                 className="p-4 hover:bg-gh-bg group flex gap-3 cursor-pointer"

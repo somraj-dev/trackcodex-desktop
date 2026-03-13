@@ -11,7 +11,11 @@ RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Install all dependencies (including devDeps like Esbuild, Prisma CLI, etc.)
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm config set fetch-retries 5 && \
+  npm config set fetch-retry-mintimeout 20000 && \
+  npm config set fetch-retry-maxtimeout 120000 && \
+  npm config set strict-ssl false && \
+  npm install --legacy-peer-deps
 
 # Copy source and config
 COPY . .
@@ -47,8 +51,8 @@ COPY --from=builder /app/backend/schema.prisma ./backend/schema.prisma
 
 # Create data directory and set ownership
 RUN mkdir -p /app/data/repos && \
-    chown -R trackcodex:trackcodex /app && \
-    chmod -R 755 /app/data
+  chown -R trackcodex:trackcodex /app && \
+  chmod -R 755 /app/data
 
 # Security: Switch to non-root user for runtime
 USER trackcodex

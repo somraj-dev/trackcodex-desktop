@@ -435,7 +435,7 @@ const RepoCodeTab: React.FC<RepoCodeTabProps> = ({ repo }) => {
           onFileClick={handleFileClick}
           latestCommit={{
             message: "Project files synchronized with GitHub Hardware",
-            author: repo.owner || "trackcodex",
+            author: (repo.owner as any)?.username || (repo.owner as any)?.name || (typeof repo.owner === 'string' ? repo.owner : "trackcodex"),
             time: "Live",
             avatar: "https://github.com/github.png",
           }}

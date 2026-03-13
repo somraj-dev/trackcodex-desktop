@@ -16,18 +16,31 @@ const firebaseConfig = {
     databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
 };
 
-const app = initializeApp(firebaseConfig);
-const auth: Auth = getAuth(app);
+let app;
+let auth: Auth;
+let googleProvider: GoogleAuthProvider;
+let githubProvider: GithubAuthProvider;
 
-// OAuth providers
-const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope("email");
-googleProvider.addScope("profile");
+if (firebaseConfig.apiKey) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+    googleProvider.addScope("email");
+    googleProvider.addScope("profile");
+    githubProvider = new GithubAuthProvider();
+    githubProvider.addScope("repo");
+    githubProvider.addScope("read:user");
+    githubProvider.addScope("read:org");
+} else {
+    console.warn("Firebase API key missing. Authentication will fail.");
+    // Provide a mocked auth object to prevent the entire React app from crashing
+    // when components import `auth` and attempt to read `auth.currentUser`.
+    auth = {} as Auth;
+    googleProvider = {} as GoogleAuthProvider;
+    githubProvider = {} as GithubAuthProvider;
+}
 
-const githubProvider = new GithubAuthProvider();
-githubProvider.addScope("repo");
-githubProvider.addScope("read:user");
-githubProvider.addScope("read:org");
+const isFirebaseConfigured = !!firebaseConfig.apiKey;
 
-export { auth, googleProvider, githubProvider };
+export { auth, googleProvider, githubProvider, isFirebaseConfigured };
 

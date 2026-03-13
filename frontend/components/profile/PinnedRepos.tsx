@@ -75,7 +75,7 @@ const PinnedRepos = () => {
         {pinnedRepos.map((repo) => (
           <div
             key={repo.id}
-            onClick={() => navigate(`/repositories/${repo.id}`)}
+            onClick={() => navigate(`/repo/${repo.id}`)}
             className="p-6 bg-gh-bg-secondary border border-gh-border rounded-2xl group hover:border-gh-text-secondary transition-all cursor-pointer flex flex-col shadow-lg hover:shadow-2xl"
           >
             <div className="flex items-center justify-between mb-4">

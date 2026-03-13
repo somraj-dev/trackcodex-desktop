@@ -147,7 +147,7 @@ const IssueDetail: React.FC = () => {
       <div className="border-b border-gh-border bg-gh-bg-secondary">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <button
-            onClick={() => navigate(`/repositories/${repoId}`)}
+            onClick={() => navigate(`/repo/${repoId}`)}
             className="text-sm text-gh-text-secondary hover:text-primary mb-3 flex items-center gap-1"
           >
             <span className="material-symbols-outlined !text-[16px]">

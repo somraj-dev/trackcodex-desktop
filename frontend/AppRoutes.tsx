@@ -53,6 +53,7 @@ const CommunityView = React.lazy(() => import("./views/community/Community"));
 const DiscussionDetail = React.lazy(() => import("./views/community/DiscussionDetail"));
 const CreateRepoView = React.lazy(() => import("./views/repo/CreateRepo"));
 const ImportRepoView = React.lazy(() => import("./views/repo/ImportRepo"));
+const IssueDetail = React.lazy(() => import("./views/repo/IssueDetail"));
 
 // Strata
 const StrataIndexView = React.lazy(() => import("./views/organizations/StrataIndexView"));
@@ -200,9 +201,10 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
             <Route path="repositories/new" element={<CreateRepoView />} />
             <Route path="repositories/import" element={<ImportRepoView />} />
             <Route path="repo/:owner/:repo/pull/:number" element={<ReviewMode />} />
-            <Route path="repositories/:id/pulls/:number" element={<ReviewMode />} />
+            <Route path="repo/:id/pulls/:number" element={<ReviewMode />} />
+            <Route path="repo/:id/discussions/:number" element={<DiscussionDetail />} />
+            <Route path="repo/:id/issues/:number" element={<IssueDetail />} />
             <Route path="repo/:id/*" element={<RepoDetailView />} />
-            <Route path="repositories/:id/discussions/:number" element={<DiscussionDetail />} />
             <Route path="dashboard/library" element={<LibraryView />} />
             <Route path="editor" element={<EditorView />} />
             <Route path="profile" element={<ProfileView />} />

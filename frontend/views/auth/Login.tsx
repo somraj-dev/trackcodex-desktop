@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { auth, googleProvider, githubProvider } from "../../lib/firebase";
+import { auth, googleProvider, githubProvider, isFirebaseConfigured } from "../../lib/firebase";
 import { signInWithEmailAndPassword, signInWithPopup, fetchSignInMethodsForEmail, GithubAuthProvider, linkWithCredential } from "firebase/auth";
 
 const Login = () => {
@@ -33,6 +33,9 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
+      if (!isFirebaseConfigured) {
+        throw new Error("Firebase Authentication is not configured. Google login unavailable.");
+      }
       await signInWithPopup(auth, googleProvider);
       // Auth state change is handled by onAuthStateChanged in AuthContext
     } catch (err: any) {
@@ -47,6 +50,9 @@ const Login = () => {
   const handleGithubLogin = async () => {
     setIsLoading(true);
     try {
+      if (!isFirebaseConfigured) {
+        throw new Error("Firebase Authentication is not configured. GitHub login unavailable.");
+      }
       await signInWithPopup(auth, githubProvider);
       // Auth state change is handled by onAuthStateChanged in AuthContext
     } catch (error: any) {
@@ -80,9 +86,24 @@ const Login = () => {
         throw new Error("Please use your email address to sign in.");
       }
 
-      await signInWithEmailAndPassword(auth, loginEmail, password);
+      if (!isFirebaseConfigured) {
+        // Attempt a mocked 'bypass' login for local testing since AuthContext is also bypassed
+        console.warn("Bypassing actual Firebase Auth because no API keys were found. Performing mock login.");
 
-      // State update is handled by onAuthStateChanged in AuthContext
+        // Use the auth context login function to simulate a session
+        login({
+          id: "local-dev-user-1",
+          email: loginEmail,
+          username: loginEmail.split('@')[0],
+          name: "Local Developer",
+          role: "user"
+        }, "mock-csrf-token");
+
+      } else {
+        await signInWithEmailAndPassword(auth, loginEmail, password);
+      }
+
+      // State update is handled by onAuthStateChanged in AuthContext OR by our mock `login()` call above
       const redirectPath = localStorage.getItem("redirect_after_login") || "/";
       localStorage.removeItem("redirect_after_login");
       navigate(redirectPath);

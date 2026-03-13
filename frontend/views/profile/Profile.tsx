@@ -89,7 +89,7 @@ const ProfileRepositories: React.FC<ProfileRepositoriesProps> = ({ repos, loadin
           {repos.map((repo) => (
             <div
               key={repo.id}
-              onClick={() => navigate(`/repositories/${repo.id}`)}
+              onClick={() => navigate(`/repo/${repo.id}`)}
               className="group bg-gh-bg-secondary border border-gh-border p-5 rounded-lg hover:border-gh-text-secondary transition-all cursor-pointer flex flex-col justify-between"
             >
               <div className="flex items-start justify-between mb-4">

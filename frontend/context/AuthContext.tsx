@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { API_BASE_URL } from "../config/api";
 import { profileService } from "../services/activity/profile";
-import { auth } from "../lib/firebase";
+import { auth, isFirebaseConfigured } from "../lib/firebase";
 import { onAuthStateChanged, signOut as firebaseSignOut, type User as FirebaseUser } from "firebase/auth";
 import { apiInstance } from "../services/infra/api";
 
@@ -67,6 +67,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsLoading(false);
       }
     }, 10000);
+
+    // If Firebase isn't configured (no env keys), bypass the listener entirely
+    if (!isFirebaseConfigured) {
+      console.warn("Bypassing Firebase Auth Context listener - Missing API Keys");
+      if (isMounted) setIsLoading(false);
+      return;
+    }
 
     // Listen for Firebase auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {

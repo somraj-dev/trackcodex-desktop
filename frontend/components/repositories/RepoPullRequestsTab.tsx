@@ -167,7 +167,7 @@ const RepoPullRequestsTab: React.FC<RepoPullRequestsTabProps> = ({ repo }) => {
             <div
               key={pr.id}
               onClick={() =>
-                navigate(`/repositories/${repo.id}/pulls/${pr.number}`)
+                navigate(`/repo/${repo.id}/pulls/${pr.number}`)
               }
               className="bg-gh-bg-secondary border border-gh-border rounded-xl p-4 hover:border-primary transition-all cursor-pointer group"
             >
