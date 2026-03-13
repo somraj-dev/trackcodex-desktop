@@ -52,13 +52,20 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
             {post.community?.avatar || post.author.avatar ? (
               <img src={post.community?.avatar || post.author.avatar} alt="avatar" className="size-full object-cover" />
             ) : (
-              <span className="text-[10px] font-bold text-primary">{post.community ? 'r/' : 'u/'}</span>
+              <span className="text-[10px] font-bold text-primary">
+                {post.community ? (post.community.name?.[0] || 'C').toUpperCase() : (post.author.username?.[0] || 'U').toUpperCase()}
+              </span>
             )}
           </div>
 
           <div className="flex items-center gap-1 text-[12px]">
-            <span className="font-bold text-[#D7DADC] hover:underline cursor-pointer">
-              {post.community ? `r/${post.community.slug}` : `u/${post.author.username}`}
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                if (post.community) navigate(`/community/${post.community.slug}`);
+              }}
+              className="font-bold text-[#D7DADC] hover:underline cursor-pointer transition-colors hover:text-white">
+              {post.community ? post.community.slug : post.author.username}
             </span>
             <span className="text-[#717273]">•</span>
             {isPostPromoted ? (

@@ -6,12 +6,15 @@ import { CreateCommunityModal } from "../../components/community/CreateCommunity
 import CommunityLeftSidebar from "../../components/community/CommunityLeftSidebar";
 import ManageCommunities from "../../components/community/ManageCommunities";
 import CreatePostView from "../../components/community/CreatePostView";
-import { useLocation, useNavigate } from "react-router-dom";
+import CommunityPage from "../../components/community/CommunityPage";
+import { useLocation, useNavigate, Routes, Route } from "react-router-dom";
 
 
 const CommunityView = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  // Check if we're on a specific community page
+  const isCommunityPage = location.pathname.startsWith('/community/') && location.pathname !== '/community/manage' && location.pathname !== '/community/create-post';
   const [view, setView] = useState<'feed' | 'manage' | 'create-post'>('feed');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +62,7 @@ const CommunityView = () => {
       const mockPosts: Post[] = [
         {
           id: "m1",
-          author: { id: "a1", name: "r/developersIndia", username: "developersIndia", avatar: "https://styles.redditmedia.com/t5_2sk9r/styles/communityIcon_v0b5j9z6z5z51.png" },
+          author: { id: "a1", name: "developersIndia", username: "developersIndia", avatar: "https://styles.redditmedia.com/t5_2sk9r/styles/communityIcon_v0b5j9z6z5z51.png" },
           title: "2025 F CSE grad still unplaced — would appreciate resume feedback",
           content: "I've been searching for roles for 6 months now...",
           mediaUrls: [
@@ -71,7 +74,7 @@ const CommunityView = () => {
           awards: 2,
           isPopular: true,
           createdAt: new Date().toISOString(),
-          community: { id: "c1", name: "r/developersIndia", slug: "developersIndia" }
+          community: { id: "c1", name: "developersIndia", slug: "developersIndia" }
         },
         {
           id: "m2",
@@ -110,7 +113,11 @@ const CommunityView = () => {
       />
 
       {/* Main Content Area */}
-      {view === 'feed' ? (
+      {isCommunityPage ? (
+        <Routes>
+          <Route path=":slug" element={<CommunityPage />} />
+        </Routes>
+      ) : view === 'feed' ? (
         <>
           {/* Main Feed */}
           <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#030303]">

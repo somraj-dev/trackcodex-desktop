@@ -24,6 +24,8 @@ export async function communityRoutes(fastify: FastifyInstance) {
         slug: c.slug,
         description: c.description,
         avatar: c.avatar || `https://ui-avatars.com/api/?name=${c.slug}&background=random`,
+        coverImage: c.coverImage,
+        createdAt: c.createdAt,
         memberCount: c._count.members,
         isMember: false // Simplified for now
       }));
@@ -99,9 +101,9 @@ export async function communityRoutes(fastify: FastifyInstance) {
 
   // Create Community
   fastify.post<{
-    Body: { name: string; description?: string; avatar?: string };
+    Body: { name: string; description?: string; avatar?: string; coverImage?: string };
   }>("/community", { preHandler: requireAuth }, async (request, reply) => {
-    const { name, description, avatar } = request.body;
+    const { name, description, avatar, coverImage } = request.body;
     const currentUser = (request as any).user;
     const slug = name
       .toLowerCase()
@@ -115,6 +117,7 @@ export async function communityRoutes(fastify: FastifyInstance) {
           slug,
           description,
           avatar,
+          coverImage,
           creatorId: currentUser.id,
           members: {
             create: { userId: currentUser.id, role: "ADMIN" },
@@ -125,6 +128,35 @@ export async function communityRoutes(fastify: FastifyInstance) {
     } catch (error) {
       console.error("Create community error:", error);
       return reply.code(500).send({ message: "Failed to create community" });
+    }
+  });
+
+  // Update Community
+  fastify.patch<{
+    Params: { slug: string };
+    Body: { avatar?: string; coverImage?: string; description?: string };
+  }>("/community/:slug", { preHandler: requireAuth }, async (request, reply) => {
+    const { slug } = request.params;
+    const { avatar, coverImage, description } = request.body;
+    const currentUser = (request as any).user;
+
+    try {
+      const community = await prisma.community.findUnique({ where: { slug } });
+      if (!community) return reply.code(404).send({ message: "Community not found" });
+      if (community.creatorId !== currentUser.id) return reply.code(403).send({ message: "Forbidden" });
+
+      const updated = await prisma.community.update({
+        where: { slug },
+        data: {
+          ...(avatar !== undefined && { avatar }),
+          ...(coverImage !== undefined && { coverImage }),
+          ...(description !== undefined && { description }),
+        },
+      });
+      return updated;
+    } catch (error) {
+      console.error("Update community error:", error);
+      return reply.code(500).send({ message: "Failed to update community" });
     }
   });
 
