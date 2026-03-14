@@ -44,8 +44,18 @@ export const api = apiInstance;
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Restore from localStorage on first render (needed when Firebase is not configured)
+    try {
+      const stored = localStorage.getItem("trackcodex_user");
+      return stored ? (JSON.parse(stored) as User) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [csrfToken, setCsrfToken] = useState<string | null>(
+    () => localStorage.getItem("trackcodex_csrf_token") || null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -73,7 +83,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // If Firebase isn't configured (no env keys), bypass the listener entirely
     if (!isFirebaseConfigured) {
       console.warn("Bypassing Firebase Auth Context listener - Missing API Keys");
+      // User already restored from localStorage in useState initializer above
       if (isMounted) setIsLoading(false);
+      clearTimeout(loadingTimeout);
       return;
     }
 
@@ -133,6 +145,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = (userData: User, token: string) => {
     setUser(userData);
     setCsrfToken(token);
+    // Persist so isAuthenticated survives navigation without Firebase
+    try {
+      localStorage.setItem("trackcodex_user", JSON.stringify(userData));
+    } catch { /* ignore quota errors */ }
     profileService.initFromAuth(userData);
   };
 
@@ -152,6 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setUser(null);
       setCsrfToken(null);
+      localStorage.removeItem("trackcodex_user");
       localStorage.removeItem("trackcodex_github_username");
       localStorage.removeItem("redirect_after_login");
       profileService.clearProfile();

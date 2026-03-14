@@ -4,6 +4,9 @@ import { prisma } from "../services/infra/prisma";
 import { firebaseAdmin, isFirebaseConfigured } from "../services/infra/firebase";
 import { logSensitiveOperation } from "../services/activity/auditLogger";
 
+// Module-level cache for the dev bypass user (upsert runs once per process)
+let devUserCache: { id: string; email: string; role: string } | null = null;
+
 // Shared prisma instance
 
 /**
@@ -22,23 +25,25 @@ export async function requireAuth(
       
       // Only bypass if there are NO auth credentials at all
       if (!devAuthHeader && !devSessionId) {
-        // Ensure a dev user exists in the database
-        const devUser = await prisma.user.upsert({
-          where: { email: "dev@trackcodex.dev" },
-          update: {},
-          create: {
-            id: "local-dev-user-1",
-            email: "dev@trackcodex.dev",
-            name: "Local Developer",
-            username: "local-dev",
-            role: "user",
-          },
-        });
+        // Cache the dev user so we only hit the DB once per process
+        if (!devUserCache) {
+          devUserCache = await prisma.user.upsert({
+            where: { email: "dev@trackcodex.dev" },
+            update: {},
+            create: {
+              id: "local-dev-user-1",
+              email: "dev@trackcodex.dev",
+              name: "Local Developer",
+              username: "local-dev",
+              role: "user",
+            },
+          });
+        }
 
         (request as any).user = {
-          userId: devUser.id,
-          email: devUser.email,
-          role: devUser.role,
+          userId: devUserCache.id,
+          email: devUserCache.email,
+          role: devUserCache.role,
         };
         return; // Skip all further auth checks in dev mode
       }

@@ -3,19 +3,24 @@ import { prisma } from "../../services/infra/prisma";
 import { requireAuth } from "../../middleware/auth";
 import { searchService } from "../../services/infra/searchService";
 
-const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL || "https://bumpy-snakes-guess.loca.lt";
+// Only use ES when explicitly configured (not the placeholder/tunnel URL)
+const ELASTICSEARCH_URL = (() => {
+  const url = process.env.ELASTICSEARCH_URL || "";
+  if (!url || url.includes("loca.lt") || url.includes("placeholder")) return null;
+  return url;
+})();
 
 /**
  * Try to search via ElasticSearch. Returns results array or throws on failure.
  * Uses a 3-second timeout so we don't block the user if ES is down.
  */
 async function tryElasticSearch(query: string): Promise<any[]> {
+  if (!ELASTICSEARCH_URL) throw new Error("ES not configured");
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 3000);
 
   try {
     const indicesString = "*users,*repositories,*jobs,*workspaces";
-
     const esRes = await fetch(`${ELASTICSEARCH_URL}/${indicesString}/_search`, {
       method: "POST",
       headers: {
@@ -133,52 +138,51 @@ export async function searchRoutes(fastify: FastifyInstance) {
       const query = q; // Prisma mode: "insensitive" handles the original case
 
       try {
-        // ── Strategy: Try ElasticSearch first (for performance), fallback to Prisma ──
-        let esResults: any[] | null = null;
-        let esSearchPerformed = false;
-
-        try {
-          if (ELASTICSEARCH_URL && ELASTICSEARCH_URL.includes("http") && !ELASTICSEARCH_URL.includes("loca.lt")) {
-            esSearchPerformed = true;
-            esResults = await tryElasticSearch(q);
-            if (esResults && type) {
-               esResults = esResults.filter(r => r.type === type || (type === 'repositories' && r.type === 'repo'));
+        // ── Strategy: Try ElasticSearch first, fallback to Prisma ──
+        if (ELASTICSEARCH_URL) {
+          try {
+            let esResults = await tryElasticSearch(q);
+            if (type) {
+              esResults = esResults.filter(
+                r => r.type === type || (type === "repositories" && r.type === "repo")
+              );
             }
+            if (esResults.length > 0) return { results: esResults };
+          } catch (esError: any) {
+            request.log.warn({ error: esError.message }, "ES failed, using Prisma fallback");
           }
-        } catch (esError: any) {
-          request.log.warn({ error: esError.message }, "ElasticSearch failed or skipped, using Prisma fallback");
-        }
-
-        if (esResults && esResults.length > 0) {
-          return { results: esResults };
         }
 
         // ── Prisma fallback (sophisticated filtering) ──
         const results: any[] = [];
 
-        // 1. Search Users
+        // ── 1. Fast User Search ──
+        // Uses OR with startsWith for prefix B-tree scan (O(log n) on indexed columns)
+        // Falls back to contains only when query is short and prefix might miss results
         if (!type || type === "users") {
-          const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q);
+          const q_lower = q.trim();
           const users = await prisma.user.findMany({
             where: {
-              AND: [
-                { deletedAt: null },
-                { accountLocked: false },
-                { isPrivate: false },
-                { username: { not: null } }
-              ],
+              deletedAt: null,
+              accountLocked: false,
+              isPrivate: false,
+              username: { not: null },
               OR: [
-                { username: { contains: query, mode: "insensitive" } },
-                { name: { contains: query, mode: "insensitive" } },
-                { email: { contains: query, mode: "insensitive" } },
-                ...(isUuid ? [{ id: q }] : []),
+                { username: { startsWith: q_lower, mode: "insensitive" } },
+                { name:     { startsWith: q_lower, mode: "insensitive" } },
+                { username: { contains:   q_lower, mode: "insensitive" } },
+                { name:     { contains:   q_lower, mode: "insensitive" } },
               ],
             },
-            include: { profile: true },
+            select: {
+              id: true, name: true, username: true, avatar: true,
+              profile: { select: { bio: true, location: true, followersCount: true } },
+            },
             take: type === "users" ? 30 : 5,
+            orderBy: { name: "asc" },
           });
 
-          request.log.info({ q, esSearchPerformed, userCount: users.length }, "Prisma fallback found users");
+          request.log.info({ q, userCount: users.length }, "Prisma user search");
 
           users.forEach((u) => {
             results.push({
@@ -194,7 +198,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
                 bio: u.profile?.bio,
                 location: u.profile?.location,
                 followersCount: u.profile?.followersCount || 0,
-              }
+              },
             });
           });
         }
@@ -307,8 +311,8 @@ export async function searchRoutes(fastify: FastifyInstance) {
       const skip = (page - 1) * limit;
 
       try {
-        // 1. Try Elasticsearch first
-        if (ELASTICSEARCH_URL && ELASTICSEARCH_URL.includes("http") && !ELASTICSEARCH_URL.includes("loca.lt")) {
+        // ── 1. Try Elasticsearch first ──
+        if (ELASTICSEARCH_URL) {
           try {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 3000);
@@ -329,12 +333,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
                   query: {
                     multi_match: {
                       query: q,
-                      fields: [
-                        "payload.name^3",
-                        "payload.username^2",
-                        "payload.bio",
-                        "payload.location",
-                      ],
+                      fields: ["payload.name^3", "payload.username^2", "payload.bio", "payload.location"],
                       fuzziness: "AUTO",
                     },
                   },
@@ -347,7 +346,6 @@ export async function searchRoutes(fastify: FastifyInstance) {
               const result = await esRes.json();
               const hits = result.hits?.hits || [];
               const total = result.hits?.total?.value ?? hits.length;
-
               if (hits.length > 0) {
                 const users = hits.map((hit: any) => {
                   const src = hit._source?.payload || hit._source;
@@ -370,44 +368,34 @@ export async function searchRoutes(fastify: FastifyInstance) {
           }
         }
 
-        // 2. Prisma fallback
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q);
+        // ── 2. Optimised Prisma fallback ──
+        // Single OR with both startsWith and contains (prefix scan first, covers suffix)
+        const q_lower = q.trim();
+        const where = {
+          deletedAt: null,
+          accountLocked: false,
+          isPrivate: false,
+          username: { not: null as any },
+          OR: [
+            { username: { startsWith: q_lower, mode: "insensitive" as const } },
+            { name:     { startsWith: q_lower, mode: "insensitive" as const } },
+            { username: { contains:   q_lower, mode: "insensitive" as const } },
+            { name:     { contains:   q_lower, mode: "insensitive" as const } },
+          ],
+        };
+
         const [users, total] = await Promise.all([
           prisma.user.findMany({
-            where: {
-              AND: [
-                { deletedAt: null },
-                { accountLocked: false },
-                { isPrivate: false },
-                { username: { not: null } },
-              ],
-              OR: [
-                { name: { contains: q, mode: "insensitive" } },
-                { username: { contains: q, mode: "insensitive" } },
-                { email: { contains: q, mode: "insensitive" } },
-                ...(isUuid ? [{ id: q }] : []),
-              ],
+            where,
+            select: {
+              id: true, name: true, username: true, avatar: true,
+              profile: { select: { bio: true, location: true, followersCount: true } },
             },
-            include: { profile: { select: { bio: true, location: true, followersCount: true } } },
             skip,
             take: limit,
             orderBy: { name: "asc" },
           }),
-          prisma.user.count({
-            where: {
-              AND: [
-                { deletedAt: null },
-                { accountLocked: false },
-                { isPrivate: false },
-                { username: { not: null } },
-              ],
-              OR: [
-                { name: { contains: q, mode: "insensitive" } },
-                { username: { contains: q, mode: "insensitive" } },
-                { email: { contains: q, mode: "insensitive" } },
-              ],
-            },
-          }),
+          prisma.user.count({ where }),
         ]);
 
         return {
