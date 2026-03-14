@@ -74,17 +74,19 @@ export async function requireAuth(
 
       if (!dbUser) {
         // AUTO-SYNC: User is valid in Firebase but doesn't exist in DB yet.
-        // We need to fetch full details from Firebase and seed our database
-        // to prevent downstream failures like "User record not found".
         try {
           const fbUser = await firebaseAdmin.auth().getUser(firebaseUid);
           const email = fbUser.email || "";
           const name = fbUser.displayName || "TrackCodex User";
           const username = fbUser.email ? fbUser.email.split("@")[0] : `user_${firebaseUid.substring(0, 8)}`;
 
-          // Create the user in Postgres
-          dbUser = await prisma.user.create({
-            data: {
+          // Create the user in Postgres using upsert to handle race conditions
+          dbUser = await prisma.user.upsert({
+            where: { id: firebaseUid },
+            update: {
+              emailVerified: fbUser.emailVerified || false, // Sync latest status
+            },
+            create: {
               id: firebaseUid,
               email: email,
               username: username,
@@ -100,11 +102,14 @@ export async function requireAuth(
               tokenVersion: true,
             }
           });
-          console.log(`[AUTH-SYNC] Successfully auto-created user record for ${firebaseUid}`);
-        } catch (syncErr) {
+          console.log(`[AUTH-SYNC] Successfully auto-synced user record for ${firebaseUid}`);
+        } catch (syncErr: any) {
           console.error(`[AUTH-SYNC] Failed to auto-sync user ${firebaseUid}:`, syncErr);
-          // Fallback: allow request to proceed if it's for /auth/sync, 
-          // but for other routes, this will likely fail later.
+          // If creation fails, we MUST NOT proceed with an unrecorded ID
+          return reply.code(401).send({
+            error: "Unauthorized",
+            message: "User synchronization failed. Please sign in again.",
+          });
         }
       }
 
@@ -116,14 +121,11 @@ export async function requireAuth(
         };
         return; // Success with Firebase JWT
       } else {
-        // Last resort fallback
-        (request as any).user = {
-          userId: firebaseUid,
-          email: "",
-          role: "user",
-          isNewFirebaseUser: true
-        };
-        return;
+        // Should be unreachable due to previous check, but safer to reject
+        return reply.code(401).send({
+          error: "Unauthorized",
+          message: "User record not found in database",
+        });
       }
     }
 
@@ -158,10 +160,20 @@ export async function requireAuth(
       select: { role: true },
     });
 
+    if (!freshUser) {
+      // If session exists but user record is gone, reject
+      console.error(`[AUTH] Session ${sessionId} found but User ${sessionData.userId} MISSING from DB.`);
+      reply.clearCookie("session_id");
+      return reply.code(401).send({
+        error: "Unauthorized",
+        message: "User account no longer exists.",
+      });
+    }
+
     (request as Record<string, any>).user = {
       userId: sessionData.userId,
       email: sessionData.email,
-      role: freshUser?.role || sessionData.role, // Fresh from DB, fallback to session
+      role: freshUser.role,
       organizationId: sessionData.organizationId,
       workspaceId: sessionData.workspaceId,
     };
