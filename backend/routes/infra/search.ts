@@ -111,12 +111,12 @@ async function tryElasticSearch(query: string): Promise<any[]> {
 
 export async function searchRoutes(fastify: FastifyInstance) {
   // Global Search Endpoint
-  // GET /api/v1/search?q=query
+  // GET /api/v1/search?q=query&type=users
   fastify.get(
     "/search",
     { preHandler: requireAuth },
     async (request, reply) => {
-      const { q } = request.query as { q: string };
+      const { q, type } = request.query as { q: string; type?: string };
       const user = (request as any).user;
 
       if (!q || q.length < 2) {
@@ -126,135 +126,138 @@ export async function searchRoutes(fastify: FastifyInstance) {
       const query = q.toLowerCase();
 
       try {
-        // ── Strategy: Try ElasticSearch first, fallback to Prisma ──
+        // ── Strategy: Try ElasticSearch first (for performance), fallback to Prisma ──
         let esResults: any[] | null = null;
 
+        // Skip ES if a specific type is requested that ES might not filter well, 
+        // or just let ES handle it if ES is available.
+        // For now, we'll try ES and then filter by type if needed.
         try {
           esResults = await tryElasticSearch(q);
+          if (esResults && type) {
+            esResults = esResults.filter(r => r.type === type || (type === 'repositories' && r.type === 'repo'));
+          }
         } catch (esError) {
-          // ES failed — silently fall through to Prisma
           request.log.warn({ esError }, "ElasticSearch unavailable, using Prisma fallback");
         }
 
-        // If ES returned results, merge with org search and return
         if (esResults && esResults.length > 0) {
-          // Add orgs from Prisma (ES may not index them)
+          return { results: esResults };
+        }
+
+        // ── Prisma fallback (sophisticated filtering) ──
+        const results: any[] = [];
+
+        // 1. Search Users
+        if (!type || type === "users") {
+          const users = await prisma.user.findMany({
+            where: {
+              OR: [
+                { username: { contains: query, mode: "insensitive" } },
+                { name: { contains: query, mode: "insensitive" } },
+              ],
+            },
+            include: { profile: true },
+            take: type === "users" ? 30 : 5,
+          });
+
+          users.forEach((u) => {
+            results.push({
+              id: `user-${u.id}`,
+              type: "user",
+              label: u.name || u.username || "User",
+              subLabel: `@${u.username}`,
+              icon: "person",
+              group: "People",
+              url: `/profile/${u.username}`,
+              metadata: {
+                avatar: u.avatar,
+                bio: u.profile?.bio,
+                location: u.profile?.location,
+                followersCount: u.profile?.followersCount || 0,
+              }
+            });
+          });
+        }
+
+        // 2. Search Repositories
+        if (!type || type === "repositories" || type === "repo") {
+          const repos = await prisma.repository.findMany({
+            where: {
+              OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+              ],
+              visibility: "PUBLIC",
+            },
+            include: { owner: true },
+            take: type === "repositories" ? 30 : 5,
+            orderBy: { stars: "desc" },
+          });
+
+          repos.forEach((repo) => {
+            results.push({
+              id: `repo-${repo.id}`,
+              type: "repo",
+              label: repo.name,
+              subLabel: repo.description || `${repo.language || "Code"} • ★ ${repo.stars}`,
+              icon: "book",
+              group: "Repositories",
+              url: `/repo/${repo.id}`,
+              metadata: {
+                owner: repo.owner?.username,
+                stars: repo.stars,
+                language: repo.language,
+              }
+            });
+          });
+        }
+
+        // 3. Search Jobs
+        if (!type || type === "jobs") {
+          const jobs = await prisma.job.findMany({
+            where: {
+              OR: [
+                { title: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+              ],
+            },
+            take: type === "jobs" ? 20 : 3,
+            select: { id: true, title: true, type: true, budget: true },
+          });
+
+          jobs.forEach((job) => {
+            results.push({
+              id: `job-${job.id}`,
+              type: "job",
+              label: job.title,
+              subLabel: `${job.type || "Job"} - ${job.budget || ""}`,
+              icon: "work",
+              group: "Jobs",
+              url: `/jobs/${job.id}`,
+            });
+          });
+        }
+
+        // 4. Search Organizations
+        if (!type || type === "orgs" || type === "organizations") {
           const orgs = await prisma.organization.findMany({
             where: { name: { contains: query, mode: "insensitive" } },
-            take: 3,
+            take: 5,
             select: { id: true, name: true },
           });
 
-          const finalResults = [
-            ...esResults,
-            ...orgs.map((o) => ({
+          orgs.forEach((o) => {
+            results.push({
               id: `org-${o.id}`,
               type: "org",
               label: o.name,
               icon: "domain",
               group: "Organizations",
               url: `/org/${o.id}`,
-            })),
-          ];
-
-          return { results: finalResults };
+            });
+          });
         }
-
-        // ── Prisma fallback (reliable, always works) ──
-        const searchData = await searchService.globalSearch(q, user?.userId, 10);
-        const results: any[] = [];
-
-        // Map users
-        searchData.owners.forEach((owner) => {
-          results.push({
-            id: `user-${owner.id}`,
-            type: "user",
-            label: owner.name || owner.username || "User",
-            subLabel: `@${owner.username}`,
-            icon: "person",
-            group: "People",
-            url: `/profile/${owner.username}`,
-          });
-        });
-
-        // Map repositories
-        searchData.repositories.forEach((repo) => {
-          results.push({
-            id: `repo-${repo.id}`,
-            type: "repo",
-            label: repo.fullName || repo.name,
-            subLabel: repo.description || `${repo.language || "Code"} • ★ ${repo.stars}`,
-            icon: "book",
-            group: "Repositories",
-            url: `/repo/${repo.id}`,
-          });
-        });
-
-        // Search jobs
-        const jobs = await prisma.job.findMany({
-          where: {
-            OR: [
-              { title: { contains: query, mode: "insensitive" } },
-              { description: { contains: query, mode: "insensitive" } },
-            ],
-          },
-          take: 5,
-          select: { id: true, title: true, type: true, budget: true },
-        });
-
-        jobs.forEach((job) => {
-          results.push({
-            id: `job-${job.id}`,
-            type: "job",
-            label: job.title,
-            subLabel: `${job.type || "Job"} - ${job.budget || ""}`,
-            icon: "work",
-            group: "Jobs",
-            url: `/jobs/${job.id}`,
-          });
-        });
-
-        // Search workspaces
-        const workspaces = await prisma.workspace.findMany({
-          where: {
-            OR: [
-              { name: { contains: query, mode: "insensitive" } },
-            ],
-            ownerId: user?.userId,
-          },
-          take: 5,
-          select: { id: true, name: true, status: true },
-        });
-
-        workspaces.forEach((ws) => {
-          results.push({
-            id: `ws-${ws.id}`,
-            type: "workspace",
-            label: ws.name,
-            subLabel: ws.status,
-            icon: "terminal",
-            group: "Workspaces",
-            url: `/workspace/${ws.id}`,
-          });
-        });
-
-        // Search organizations
-        const orgs = await prisma.organization.findMany({
-          where: { name: { contains: query, mode: "insensitive" } },
-          take: 3,
-          select: { id: true, name: true },
-        });
-
-        orgs.forEach((o) => {
-          results.push({
-            id: `org-${o.id}`,
-            type: "org",
-            label: o.name,
-            icon: "domain",
-            group: "Organizations",
-            url: `/org/${o.id}`,
-          });
-        });
 
         return { results };
       } catch (error) {

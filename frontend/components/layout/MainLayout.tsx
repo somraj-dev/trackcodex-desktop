@@ -161,7 +161,22 @@ const MainLayout: React.FC = () => {
               <div className="flex-1 flex justify-center max-w-[720px] mx-auto">
                 <div onClick={() => setIsCommandPaletteOpen(true)} className="flex items-center gap-2 px-3 py-1 bg-[#0A0D14] border border-[#1E232E] rounded-md w-full max-w-[272px] cursor-pointer hover:border-[#58a6ff]/50 transition-colors group">
                   <span className="material-symbols-outlined !text-[14px] text-gh-text-secondary">search</span>
-                  <span className="text-[13px] text-gh-text-secondary flex-1">Search...</span>
+                  <input
+                    type="text"
+                    placeholder="Search TrackCodex..."
+                    className="flex-1 bg-transparent border-none text-[13px] text-gh-text placeholder-gh-text-secondary focus:ring-0 outline-none h-6"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const q = (e.target as HTMLInputElement).value;
+                        if (q.trim()) {
+                          navigate(`/search?q=${encodeURIComponent(q)}`);
+                        }
+                      }
+                    }}
+                  />
+                  <div className="hidden md:flex items-center gap-1 border border-[#1E232E] rounded px-1.5 py-0.5 bg-[#11141A]">
+                    <span className="text-[10px] text-gh-text-secondary font-mono">/</span>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-0.5">

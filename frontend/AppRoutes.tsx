@@ -38,7 +38,6 @@ const ForgeAIView = React.lazy(() => import("./views/ForgeAI"));
 const NotificationsView = React.lazy(() => import("./views/NotificationsView"));
 const MessagesView = React.lazy(() => import("./views/messages/MessagesView"));
 const AcceptInvite = React.lazy(() => import("./views/AcceptInvite"));
-const WorkspaceSettings = React.lazy(() => import("./views/workspace/WorkspaceSettings"));
 const Leaderboard = React.lazy(() => import("./views/community/Leaderboard"));
 const AdminRoomView = React.lazy(() => import("./views/admin/Admin"));
 const TaskVault = React.lazy(() => import("./views/TaskVault"));
@@ -54,6 +53,7 @@ const DiscussionDetail = React.lazy(() => import("./views/community/DiscussionDe
 const CreateRepoView = React.lazy(() => import("./views/repo/CreateRepo"));
 const ImportRepoView = React.lazy(() => import("./views/repo/ImportRepo"));
 const IssueDetail = React.lazy(() => import("./views/repo/IssueDetail"));
+const SearchResults = React.lazy(() => import("./views/SearchResults"));
 const TrackCoinView = React.lazy(() => import("./views/TrackCoin"));
 
 // Strata
@@ -112,20 +112,15 @@ const OfferEditorView = React.lazy(() => import("./views/hiring/OfferEditorView"
 const SessionSchedulerView = React.lazy(() => import("./views/hiring/SessionSchedulerView"));
 const InterviewerFeedbackView = React.lazy(() => import("./views/hiring/InterviewerFeedbackView"));
 const AssessmentsView = React.lazy(() => import("./views/hiring/AssessmentsView"));
-const JobApplicationsView = React.lazy(() => import("./views/hiring/JobApplicationsView"));
 
 // Onboarding & Growth
-const OnboardingLayout = React.lazy(() => import("./views/onboarding/OnboardingLayout"));
 const WelcomeView = React.lazy(() => import("./views/onboarding/WelcomeView"));
-const OnboardingWorkspace = React.lazy(() => import("./views/onboarding/OnboardingWorkspace"));
-const BuddyDashboardView = React.lazy(() => import("./views/onboarding/BuddyDashboardView"));
 const GrowthLayout = React.lazy(() => import("./views/growth/GrowthLayout"));
 const SkillDashboardView = React.lazy(() => import("./views/growth/SkillDashboardView"));
 const DeveloperProfileView = React.lazy(() => import("./views/growth/DeveloperProfileView"));
 
 // Finance & Admin
 const WalletDashboard = React.lazy(() => import("./views/finance/WalletDashboard"));
-const AdminDashboard = React.lazy(() => import("./views/admin/AdminDashboard"));
 const AdminOverview = React.lazy(() => import("./components/admin/AdminOverview"));
 const UserManager = React.lazy(() => import("./components/admin/UserManager"));
 const TeamManager = React.lazy(() => import("./components/admin/TeamManager"));
@@ -135,15 +130,9 @@ const JobOversight = React.lazy(() => import("./components/admin/JobOversight"))
 const CommunityModeration = React.lazy(() => import("./components/admin/CommunityModeration"));
 const RoleEditor = React.lazy(() => import("./components/admin/RoleEditor"));
 const AuditLogs = React.lazy(() => import("./components/admin/AuditLogs"));
-const TrialSubmittedView = React.lazy(() => import("./views/trials/TrialSubmittedView"));
-const OfferAcceptanceView = React.lazy(() => import("./views/trials/OfferAcceptanceView"));
 
 // Docs & Blog
-const DocsLayout = React.lazy(() => import("./components/docs/DocsLayout"));
-const DocsViewer = React.lazy(() => import("./views/docs/DocsViewer"));
-const BlogLayout = React.lazy(() => import("./components/blog/BlogLayout"));
-const BlogIndex = React.lazy(() => import("./views/blog/BlogIndex"));
-const BlogPost = React.lazy(() => import("./views/blog/BlogPost"));
+// (Placeholders removed - will be added when features are ready)
 
 import { RoleGuard } from "./components/auth";
 
@@ -191,6 +180,7 @@ const AppRoutes = ({ isAuthenticated }: { isAuthenticated: boolean }) => {
             <Route path="onboarding/welcome" element={<WelcomeView />} />
             <Route path="accept-invite" element={<AcceptInvite />} />
             <Route path="explore" element={<ExploreView />} />
+            <Route path="search" element={<SearchResults />} />
             <Route path="platform-matrix" element={<PlatformMatrix />} />
             <Route path="overview" element={<Overview />} />
             <Route path="workspaces" element={<WorkspacesView />} />
