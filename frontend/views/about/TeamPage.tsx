@@ -55,8 +55,8 @@ const teamMembers: TeamMember[] = [
 
 const TeamPage: React.FC = () => {
   return (
-    <div className="team-page-container min-h-screen bg-[#000] text-white font-sans py-20 px-6">
-      <div className="max-w-6xl mx-auto text-center">
+    <div className="team-page-container flex-1 w-full flex flex-col bg-[#000] text-white font-sans py-20 px-6">
+      <div className="max-w-6xl w-full mx-auto text-center flex-1">
         <div className="flex items-center justify-center gap-4 mb-8">
           <div className="h-[1px] w-12 bg-gh-border" />
           <span className="text-xs uppercase tracking-[0.3em] text-gh-text-secondary font-semibold">Teams</span>

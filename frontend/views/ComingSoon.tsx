@@ -5,7 +5,7 @@ const ComingSoon: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center bg-gh-bg min-h-screen p-6 text-center">
+        <div className="flex-1 w-full flex flex-col items-center justify-center bg-gh-bg p-6 text-center">
             <div className="max-w-md w-full animate-slide-up">
                 {/* Visual element */}
                 <div className="relative mb-8 flex justify-center">

@@ -76,7 +76,7 @@ const OAuthCallback: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gh-bg text-gh-text-secondary">
+      <div className="flex-1 w-full flex flex-col items-center justify-center bg-gh-bg text-gh-text-secondary">
         <div className="bg-gh-bg-secondary border border-red-500 rounded-lg p-8 max-w-md text-center">
           <div className="text-red-500 text-5xl mb-4">⚠️</div>
           <h1 className="text-xl font-bold mb-2 text-red-400">
@@ -90,7 +90,7 @@ const OAuthCallback: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gh-bg text-gh-text-secondary">
+    <div className="flex-1 w-full flex flex-col items-center justify-center bg-gh-bg text-gh-text-secondary">
       <div className="bg-gh-bg-secondary border border-gh-border rounded-lg p-8 max-w-md text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-500 mx-auto mb-4"></div>
         <h1 className="text-xl font-bold mb-2">Completing Sign In</h1>

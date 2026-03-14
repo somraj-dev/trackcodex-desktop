@@ -36,7 +36,7 @@ const Portfolio = () => {
     ]);
 
     return (
-        <div className="min-h-screen bg-gh-bg text-gh-text p-8">
+        <div className="flex-1 w-full bg-gh-bg text-gh-text p-8">
             <div className="max-w-6xl mx-auto">
                 {/* Header Section */}
                 <div className="mb-12">

@@ -43,7 +43,7 @@ const VerifyEmail = () => {
     }, [token, userId, navigate]);
 
     return (
-        <div className="min-h-screen bg-[#f6f8fa] flex flex-col items-center justify-center p-4">
+        <div className="flex-1 w-full bg-gh-bg flex flex-col items-center justify-center p-4">
             <div className="w-full max-w-md bg-white border border-gh-border rounded-lg p-8 shadow-sm text-center">
                 <div className="mb-6">
                     <span className="material-symbols-outlined !text-[48px] text-primary">

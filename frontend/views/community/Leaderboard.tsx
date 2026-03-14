@@ -77,7 +77,7 @@ const Leaderboard = () => {
     const upcomingUsers = leaderboardData.slice(3);
 
     return (
-        <div className="min-h-screen bg-gh-bg text-gh-text p-4 md:p-8 pb-32 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 w-full bg-gh-bg text-gh-text p-4 md:p-8 pb-32">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Leaderboard</h1>
 

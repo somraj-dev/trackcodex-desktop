@@ -194,7 +194,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex min-h-screen lg:h-screen bg-[#f6f8fa] font-sans overflow-hidden">
+    <div className="flex flex-1 w-full bg-[#f6f8fa] font-sans overflow-hidden">
       {/* Left Panel - Information & Code Snippet */}
       <div className="hidden lg:flex w-1/2 relative flex-col justify-center p-16 xl:p-24 overflow-hidden">
         <div className="relative z-10 w-full max-w-lg">

@@ -83,8 +83,8 @@ const ImportRepo: React.FC = () => {
   };
 
   return (
-    <div className="bg-gh-bg min-h-screen font-sans selection:bg-primary/30">
-      <div className="max-w-[768px] mx-auto py-12 px-6 animate-in fade-in duration-500">
+    <div className="bg-gh-bg flex-1 w-full flex flex-col font-sans selection:bg-primary/30">
+      <div className="max-w-[768px] mx-auto py-12 px-6 animate-in fade-in duration-500 w-full">
         <header className="mb-8 border-b border-gh-border pb-6">
           <h1 className="text-2xl font-semibold text-gh-text mb-2 tracking-tight">
             Import your project to TrackCodex
