@@ -4,6 +4,7 @@ import admin from "firebase-admin";
 // In production, set FIREBASE_SERVICE_ACCOUNT_KEY env var to the JSON string
 // of your service account key, or use Application Default Credentials on GCP.
 let serviceAccount: admin.ServiceAccount | undefined;
+let isConfigured = false;
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     try {
@@ -15,10 +16,15 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
 
 if (!admin.apps.length) {
     if (serviceAccount) {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
-        console.log("✅ [FIREBASE] Admin SDK initialized with service account");
+        try {
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+            });
+            console.log("✅ [FIREBASE] Admin SDK initialized with service account");
+            isConfigured = true;
+        } catch (err) {
+            console.error("❌ [FIREBASE] Admin SDK initialization with cert failed:", err);
+        }
     } else {
         // Fallback: use Application Default Credentials (works with gcloud auth application-default login)
         try {
@@ -28,13 +34,18 @@ if (!admin.apps.length) {
                 databaseURL: process.env.VITE_FIREBASE_DATABASE_URL || "https://trackcodex-38862-default-rtdb.firebaseio.com",
             });
             console.log("✅ [FIREBASE] Admin SDK initialized with Application Default Credentials (gcloud)");
+            isConfigured = true;
         } catch (err) {
-            console.error("❌ [FIREBASE] Admin SDK initialization failed:", err);
+            // Do not log a full error here as it's a common fallback failure
+            console.warn("⚠️ [FIREBASE] Admin SDK: No credentials found (FIREBASE_SERVICE_ACCOUNT_KEY or ADC). Cloud features disabled.");
         }
     }
+} else {
+    isConfigured = true;
 }
 
 export const firebaseAdmin = admin;
+export const isFirebaseConfigured = isConfigured;
 
 
 

@@ -12,7 +12,7 @@ import {
   revokeSession,
   revokeAllUserSessions,
 } from "../../services/auth/session";
-import { firebaseAdmin } from "../../services/infra/firebase";
+import { firebaseAdmin, isFirebaseConfigured } from "../../services/infra/firebase";
 import {
   logLoginAttempt,
   checkSuspiciousActivity,
@@ -74,22 +74,29 @@ export async function authRoutes(fastify: FastifyInstance) {
           throw BadRequest("Password must be at least 8 characters");
         }
 
-        // 2. Register user with Firebase
-        let firebaseUser;
-        try {
-          firebaseUser = await firebaseAdmin.auth().createUser({
-            email,
-            password,
-            displayName: name,
-          });
-        } catch (fbErr: any) {
-          if (fbErr.code === "auth/email-already-exists") {
-            throw Conflict("Email already registered");
+        // 2. Register user with Firebase (Optional)
+        let firebaseUid: string | undefined;
+
+        if (isFirebaseConfigured) {
+          try {
+            const firebaseUser = await firebaseAdmin.auth().createUser({
+              email,
+              password,
+              displayName: name,
+            });
+            firebaseUid = firebaseUser.uid;
+            console.log(`✅ [AUTH] Firebase user created: ${firebaseUid}`);
+          } catch (fbErr: any) {
+            if (fbErr.code === "auth/email-already-exists") {
+              throw Conflict("Email already registered in Firebase");
+            }
+            console.error("❌ [AUTH] Firebase registration failed (continuing with local only):", fbErr.message);
           }
-          throw BadRequest(fbErr.message || "Failed to create user");
+        } else {
+          console.log("ℹ️ [AUTH] Firebase not configured, skipping cloud registration.");
         }
 
-        const firebaseUid = firebaseUser.uid;
+        const userId = firebaseUid || crypto.randomUUID();
 
         // 3. Create user in our database (with Saga Pattern)
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -99,7 +106,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           const result = await prisma.$transaction([
             prisma.user.create({
               data: {
-                id: firebaseUid,
+                id: userId,
                 email,
                 username,
                 name: name || username,
@@ -127,7 +134,7 @@ export async function authRoutes(fastify: FastifyInstance) {
               data: {
                 topic: "user",
                 payload: {
-                  id: firebaseUid,
+                  id: userId,
                   email,
                   username,
                   name: name || username,
@@ -141,20 +148,22 @@ export async function authRoutes(fastify: FastifyInstance) {
           newUser = result[0];
         } catch (dbError: any) {
           // Compensating Transaction (Saga): Rollback Firebase user if DB insert fails
-          console.error("Database registration failed (Prisma Transaction), rolling back Firebase user:", dbError);
-          await firebaseAdmin.auth().deleteUser(firebaseUid).catch(console.error);
+          console.error("Database registration failed (Prisma Transaction), rolling back if needed:", dbError);
+          if (userId && isFirebaseConfigured) {
+            await firebaseAdmin.auth().deleteUser(userId).catch(console.error);
+          }
           throw BadRequest("Database error during user creation. Please try again or choose a different username.");
         }
 
-        // 3.5 Send verification email via Resend
-        try {
-          const verificationLink = await firebaseAdmin.auth().generateEmailVerificationLink(email);
-          await emailService.sendVerificationEmail(email, verificationLink);
-        } catch (emailErr: any) {
-          console.error("Failed to send verification email (but user was created):", emailErr);
-          // Don't throw a full error, allow creation to proceed and return a specific message
-          request.log.error({ msg: "Email Verification Dispatch Failed", detail: emailErr.message });
-          // We will inject a warning into the success response later
+        // 3.5 Send verification email via Resend (Optional)
+        if (isFirebaseConfigured) {
+          try {
+            const verificationLink = await firebaseAdmin.auth().generateEmailVerificationLink(email);
+            await emailService.sendVerificationEmail(email, verificationLink);
+          } catch (emailErr: any) {
+            console.error("Failed to send verification email:", emailErr);
+            request.log.error({ msg: "Email Verification Dispatch Failed", detail: emailErr.message });
+          }
         }
 
         // 4. Create Session
@@ -162,7 +171,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         const { csrfToken } = await createSession(
           sessionId,
           {
-            userId: firebaseUid,
+            userId: userId,
             email: email,
             username: username,
             name: name || username,
@@ -200,7 +209,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           message: "Registration successful",
           csrfToken,
           user: {
-            id: firebaseUid,
+            id: userId,
             email,
             username,
             name: name || username,
