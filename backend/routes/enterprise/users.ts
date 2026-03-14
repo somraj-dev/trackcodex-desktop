@@ -486,6 +486,12 @@ export async function userRoutes(fastify: FastifyInstance) {
     try {
       const users = await prisma.user.findMany({
         where: {
+          AND: [
+            { deletedAt: null },
+            { accountLocked: false },
+            { isPrivate: false },
+            { username: { not: null } }
+          ],
           OR: [
             { username: { contains: q, mode: "insensitive" } },
             { name: { contains: q, mode: "insensitive" } },
@@ -509,6 +515,14 @@ export async function userRoutes(fastify: FastifyInstance) {
   fastify.get("/users/trending", async (request, reply) => {
     try {
       const users = await prisma.user.findMany({
+        where: {
+          AND: [
+            { deletedAt: null },
+            { accountLocked: false },
+            { isPrivate: false },
+            { username: { not: null } }
+          ],
+        },
         include: { profile: true },
         orderBy: {
           profile: {
@@ -547,9 +561,13 @@ export async function userRoutes(fastify: FastifyInstance) {
 
       const users = await prisma.user.findMany({
         where: {
-          id: {
-            notIn: currentUser ? [...followingIds, currentUser.userId] : [],
-          },
+          AND: [
+            { id: { notIn: currentUser ? [...followingIds, currentUser.userId] : [] } },
+            { deletedAt: null },
+            { accountLocked: false },
+            { isPrivate: false },
+            { username: { not: null } }
+          ],
         },
         include: { profile: true },
         take: 5,
