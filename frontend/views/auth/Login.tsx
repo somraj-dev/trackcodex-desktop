@@ -278,16 +278,6 @@ const Login = () => {
         </div>
       </div>
 
-      <footer className="mt-16 py-8 pb-16 text-center">
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-[12px] text-[#8b949e] px-4 max-w-3xl mx-auto">
-          <a href="https://docs.trackcodex.com/governance/policies/terms" className="hover:text-[#2f81f7] hover:underline transition-colors">Terms</a>
-          <a href="https://docs.trackcodex.com/governance/policies/privacy" className="hover:text-[#2f81f7] hover:underline transition-colors">Privacy</a>
-          <a href="https://docs.trackcodex.com" className="hover:text-[#2f81f7] hover:underline transition-colors">Docs</a>
-          <a href="https://support.trackcodex.com" className="hover:text-[#2f81f7] hover:underline transition-colors">Contact TrackCodex Support</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('open-cookie-settings')); }} className="hover:text-[#2f81f7] hover:underline transition-colors">Manage cookies</a>
-          <a href="https://docs.trackcodex.com/governance/policies/privacy" className="hover:text-[#2f81f7] hover:underline transition-colors">Do not share my personal information</a>
-        </div>
-      </footer>
     </div>
   );
 };
