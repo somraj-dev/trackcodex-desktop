@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import "../../styles/Footer.css";
 
 const Footer: React.FC = () => {
@@ -33,7 +32,7 @@ const Footer: React.FC = () => {
           >
             Support
           </a>
-          <Link to="/contact" className="footer-link">Contact</Link>
+          <a href="https://support.trackcodex.com" className="footer-link">Contact</a>
           <button className="footer-link footer-cookie-btn">
             Manage cookies
           </button>
