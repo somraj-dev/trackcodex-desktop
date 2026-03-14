@@ -35,19 +35,19 @@ const teamMembers: TeamMember[] = [
   },
   {
     name: "Yug Mittal",
-    role: "Team Member",
+    role: "Co-Founder",
     image: "",
     linkedin: "#"
   },
   {
     name: "Abhay Gupta",
-    role: "Team Member",
+    role: "Co-Founder",
     image: "",
     linkedin: "#"
   },
   {
     name: "Sudhanshu Patel",
-    role: "Team Member",
+    role: "CTO",
     image: "",
     linkedin: "#"
   }
@@ -77,7 +77,7 @@ const TeamPage: React.FC = () => {
                     alt={member.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=222222&color=ffffff&size=512&font-size=0.33`;
+                      (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.name}`;
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
