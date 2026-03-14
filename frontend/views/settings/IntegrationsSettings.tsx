@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { auth, githubProvider } from "../../lib/firebase";
-import { signInWithPopup, GithubAuthProvider } from "firebase/auth";
+import { signInWithRedirect, getRedirectResult, GithubAuthProvider } from "firebase/auth";
 import { api } from "../../services/infra/api";
-import { githubService } from "../../services/git/github";
-import { gitlabService } from "../../services/git/gitlab";
 import IntegrationPermissionModal from "../../components/settings/IntegrationPermissionModal";
 
 // Reusable Section Component (matching ProfileSettings)
@@ -154,42 +152,39 @@ const IntegrationsSettings = () => {
     loadStatus();
   }, []);
 
-  const toggleConnection = (id: string) => {
-    const updated = integrations.map((int) =>
-      int.id === id ? { ...int, connected: !int.connected } : int,
-    );
-    setIntegrations(updated);
-    localStorage.setItem("trackcodex_integrations", JSON.stringify(updated));
-
-    // Show notification
-    const integration = updated.find((i) => i.id === id);
-    if (integration) {
-      window.dispatchEvent(
-        new CustomEvent("trackcodex-notification", {
-          detail: {
-            title: integration.connected
-              ? "Integration Connected"
-              : "Integration Disconnected",
-            message: `${integration.name} has been ${integration.connected ? "successfully connected" : "disconnected"}.`,
-            type: integration.connected ? "success" : "info",
-          },
-        }),
+  const toggleConnection = useCallback((id: string) => {
+    setIntegrations((prev) => {
+      const updated = prev.map((int) =>
+        int.id === id ? { ...int, connected: !int.connected } : int,
       );
-    }
-  };
+      localStorage.setItem("trackcodex_integrations", JSON.stringify(updated));
+
+      // Show notification
+      const integration = updated.find((i) => i.id === id);
+      if (integration) {
+        window.dispatchEvent(
+          new CustomEvent("trackcodex-notification", {
+            detail: {
+              title: integration.connected
+                ? "Integration Connected"
+                : "Integration Disconnected",
+              message: `${integration.name} has been ${integration.connected ? "successfully connected" : "disconnected"}.`,
+              type: integration.connected ? "success" : "info",
+            },
+          }),
+        );
+      }
+      return updated;
+    });
+  }, []);
 
 
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [pendingIntegration, setPendingIntegration] = useState<Integration | null>(null);
 
-  // Manual Token flow state (Fallback)
-  const [showTokenModal, setShowTokenModal] = useState(false);
-  const [activeIntegrationId, setActiveIntegrationId] = useState<string | null>(null);
-  const [tokenInput, setTokenInput] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // OAuth Handler
+  // OAuth Handler for custom backend-to-frontend redirect (if used)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const service = params.get("service");
@@ -197,34 +192,57 @@ const IntegrationsSettings = () => {
     const username = params.get("username");
 
     if (service && token) {
-      // Persist token to backend (server-side only)
       const submitOAuthToken = async () => {
         try {
           await api.integrations.connect(service, token, username || undefined);
+          if (service === "github") {
+            if (username) localStorage.setItem("trackcodex_github_username", username);
+            toggleConnection("github");
+            api.integrations.syncGithub().catch(console.error);
+          }
         } catch { }
       };
       submitOAuthToken();
-      if (service === "github") {
-        if (username) localStorage.setItem("trackcodex_github_username", username);
-        toggleConnection("github");
-      } else if (service === "gitlab") {
-        toggleConnection("gitlab");
-      }
 
-      // Clear URL
       window.history.replaceState({}, document.title, window.location.pathname);
-
-      window.dispatchEvent(
-        new CustomEvent("trackcodex-notification", {
-          detail: {
-            title: "Integration Successful",
-            message: `Successfully connected to ${service === 'github' ? 'GitHub' : 'GitLab'}.`,
-            type: "success",
-          },
-        }),
-      );
     }
-  }, [integrations]);
+  }, [toggleConnection]);
+
+  // Handle Firebase Redirect Result
+  useEffect(() => {
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          const credential = GithubAuthProvider.credentialFromResult(result);
+          const accessToken = credential?.accessToken;
+          const githubUser = result.user;
+
+          if (accessToken) {
+            await api.integrations.connect("github", accessToken, githubUser.displayName || githubUser.email || undefined);
+            if (githubUser.displayName) {
+              localStorage.setItem("trackcodex_github_username", githubUser.displayName);
+            }
+            api.integrations.syncGithub().catch(console.error);
+            toggleConnection("github");
+
+            window.dispatchEvent(
+              new CustomEvent("trackcodex-notification", {
+                detail: {
+                  title: "GitHub Connected",
+                  message: "Successfully integrated with GitHub. Syncing data...",
+                  type: "success",
+                },
+              }),
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Redirect error:", error);
+      }
+    };
+    checkRedirect();
+  }, [toggleConnection]);
 
   const handleConnectClick = (integration: Integration) => {
     if (integration.connected) {
@@ -244,76 +262,33 @@ const IntegrationsSettings = () => {
     setShowPermissionModal(false);
     if (!pendingIntegration) return;
 
-    // Use Firebase OAuth to link GitHub/GitLab identity
-    if (pendingIntegration.id === "github" || pendingIntegration.id === "gitlab") {
+    if (pendingIntegration.id === "github") {
       try {
-        const provider = pendingIntegration.id as "github" | "gitlab";
-
-        // Save return path so we come back to integrations after OAuth
-        localStorage.setItem("integration_return_path", window.location.pathname);
-        localStorage.setItem("integration_pending_provider", provider);
-
-        // Use Firebase signInWithPopup for GitHub
-        if (provider === "github") {
-          const result = await signInWithPopup(auth, githubProvider);
-          const credential = GithubAuthProvider.credentialFromResult(result);
-          const accessToken = credential?.accessToken;
-          if (accessToken) {
-            // Persist token to backend
-            await api.integrations.connect(provider, accessToken);
-          }
-        } else {
-          // GitLab: Fall back to manual token entry
-          setActiveIntegrationId(pendingIntegration.id);
-        }
+        setIsVerifying(true);
+        // Use Firebase signInWithRedirect for a full-page OAuth flow
+        // The page will redirect to GitHub confirmation page
+        await signInWithRedirect(auth, githubProvider);
       } catch (err: any) {
-        console.error("OAuth link failed:", err);
-        // Fallback to manual token entry
-        setActiveIntegrationId(pendingIntegration.id);
-        setShowTokenModal(true);
+        console.error("GitHub OAuth redirect failed:", err);
+        setIsVerifying(false);
       }
-    } else {
-      // For non-VCS integrations, just toggle
-      toggleConnection(pendingIntegration.id);
-    }
-    setPendingIntegration(null);
-  };
-
-  const submitToken = async () => {
-    setError(null);
-    setIsVerifying(true);
-    try {
-      if (activeIntegrationId === "github") {
-        const data = await githubService.verifyToken(tokenInput);
-        // Persist to backend only, never localStorage
-        await api.integrations.connect("github", tokenInput, data.login || undefined);
-        if (data.login) {
-          localStorage.setItem("trackcodex_github_username", data.login);
-        }
-      } else if (activeIntegrationId === "gitlab") {
-        await gitlabService.verifyToken(tokenInput);
-        await api.integrations.connect("gitlab", tokenInput);
-      }
-
-      toggleConnection(activeIntegrationId || "");
-      setShowTokenModal(false);
-      setTokenInput("");
-
+    } else if (pendingIntegration.id === "gitlab") {
+      // GitLab can be implemented similarly with an OAuth provider if available
+      // For now, if no GitLab OAuth is set up, we keep it simple or show a message
       window.dispatchEvent(
         new CustomEvent("trackcodex-notification", {
           detail: {
-            title: `${activeIntegrationId === "github" ? "GitHub" : "GitLab"} Verified`,
-            message: "Token valid. Fetching repositories...",
-            type: "success",
+            title: "GitLab OAuth",
+            message: "GitLab OAuth is currently being configured for this environment.",
+            type: "info",
           },
         }),
       );
-    } catch (error) {
-      console.error("Token verification failed:", error);
-      setError("Invalid Personal Access Token. Please check scopes.");
-    } finally {
-      setIsVerifying(false);
+    } else {
+      // For non-VCS integrations
+      toggleConnection(pendingIntegration.id);
     }
+    setPendingIntegration(null);
   };
 
   return (
@@ -325,72 +300,6 @@ const IntegrationsSettings = () => {
         onConfirm={handlePermissionConfirm}
         integration={pendingIntegration}
       />
-
-      {/* Token Modal - Fallback for when OAuth is not configured */}
-      {showTokenModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A0A0A]lack/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-gh-bg-secondary border border-gh-border p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
-            <button
-              onClick={() => setShowTokenModal(false)}
-              className="absolute top-4 right-4 text-slate-500 hover:text-white"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-            <h3 className="text-xl font-bold text-white mb-2">
-              Connect {activeIntegrationId === "github" ? "GitHub" : "GitLab"}
-            </h3>
-            <p className="text-sm text-yellow-500/80 mb-6 bg-yellow-500/10 p-2 rounded-lg border border-yellow-500/20">
-              <strong>Development Mode:</strong> OAuth Client ID not configured. Please enter a Personal Access Token manually.
-            </p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
-                  Personal Access Token
-                </label>
-                <input
-                  type="password"
-                  value={tokenInput}
-                  onChange={(e) => setTokenInput(e.target.value)}
-                  placeholder={
-                    activeIntegrationId === "github" ? "ghp_..." : "glpat-..."
-                  }
-                  className="w-full bg-gh-bg border border-gh-border rounded-xl px-4 py-3 text-white text-sm focus:ring-1 focus:ring-primary outline-none"
-                />
-                {error && (
-                  <p className="text-xs text-rose-500 mt-2 font-bold">
-                    {error}
-                  </p>
-                )}
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <a
-                  href={
-                    activeIntegrationId === "github"
-                      ? "https://github.com/settings/tokens/new?scopes=repo&description=TrackCodex"
-                      : "https://gitlab.com/-/profile/personal_access_tokens?name=TrackCodex&scopes=api"
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center px-4 py-2 hover:bg-white/5 rounded-xl text-xs font-bold text-slate-400 transition-colors"
-                >
-                  Generate Token
-                  <span className="material-symbols-outlined !text-[14px] ml-1">
-                    open_in_new
-                  </span>
-                </a>
-                <button
-                  onClick={submitToken}
-                  disabled={!tokenInput || isVerifying}
-                  className="px-6 py-2 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[#0A0A0A]lue-600 transition-all disabled:opacity-50"
-                >
-                  {isVerifying ? "Verifying..." : "Connect"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <header className="border-b border-gh-border pb-6">
         <h1 className="text-2xl font-black text-white tracking-tight">

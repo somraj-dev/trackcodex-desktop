@@ -170,4 +170,25 @@ export default async function integrationRoutes(fastify: FastifyInstance) {
             }
         }
     );
+
+    // Trigger full sync for GitHub
+    fastify.get(
+        "/integrations/sync/github",
+        { preHandler: requireAuth },
+        async (request: any, reply) => {
+            const userId = request.user.userId;
+
+            // Trigger sync in the background
+            import("../../services/git/github").then(({ GitHubService }) => {
+                GitHubService.syncAllData(userId).catch(err => {
+                    console.error(`[Integrations] Background sync failed for user ${userId}:`, err);
+                });
+            });
+
+            return reply.send({
+                success: true,
+                message: "Integration sync started in background",
+            });
+        }
+    );
 }
