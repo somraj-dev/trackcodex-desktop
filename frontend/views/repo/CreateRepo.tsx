@@ -294,21 +294,6 @@ const CreateRepo: React.FC = () => {
         </form>
 
         {/* GitHub-style Page Footer */}
-        <footer className="mt-20 pt-10 border-t border-gh-border flex flex-col md:flex-row items-center justify-between gap-6 text-[12px] text-gh-text-secondary animate-in fade-in duration-700 delay-500 pb-10">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined !text-[18px]">account_tree</span>
-            <span>© 2026 TrackCodex, Inc.</span>
-          </div>
-          <nav className="flex flex-wrap justify-center gap-x-4 gap-y-2">
-            <button type="button" className="hover:text-primary hover:underline">Terms</button>
-            <button type="button" className="hover:text-primary hover:underline">Privacy</button>
-            <button type="button" className="hover:text-primary hover:underline">Security</button>
-            <button type="button" className="hover:text-primary hover:underline">Status</button>
-            <button type="button" className="hover:text-primary hover:underline">Docs</button>
-            <button type="button" className="hover:text-primary hover:underline">Contact</button>
-            <button type="button" className="hover:text-primary hover:underline">Manage cookies</button>
-          </nav>
-        </footer>
       </div>
     </div>
   );

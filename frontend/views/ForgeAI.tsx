@@ -162,7 +162,7 @@ const ForgeAIView = () => {
               <PillButton icon="edit_note" label="Write" />
               <PillButton icon="school" label="Learn" />
               <PillButton icon="local_cafe" label="Life stuff" />
-              <PillButton icon="lightbulb" label="Claude's choice" />
+              <PillButton icon="lightbulb" label="TrackCodex's Hand" />
             </div>
           </div>
 

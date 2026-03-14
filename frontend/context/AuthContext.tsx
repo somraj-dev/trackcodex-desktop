@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
 import { profileService } from "../services/activity/profile";
 import { auth, isFirebaseConfigured } from "../lib/firebase";
@@ -46,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Sync CSRF token to localStorage for the axios interceptor in api.ts
   useEffect(() => {
@@ -151,10 +153,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(null);
       setCsrfToken(null);
       localStorage.removeItem("trackcodex_github_username");
+      localStorage.removeItem("redirect_after_login");
       profileService.clearProfile();
-      window.location.href = "/";
+      navigate("/", { replace: true }); // Changed from window.location.href to navigate
     }
   };
+
 
   return (
     <AuthContext.Provider
