@@ -180,6 +180,9 @@ export const api = {
     markRead: (id: string) => request<any>({ url: `/notifications/${id}/read`, method: "POST" }),
     markAllRead: (userId: string) => request<any>({ url: `/notifications/read-all`, method: "POST" }),
   },
+  ciRuns: {
+    list: (repoId: string) => request<any[]>({ url: `/repositories/${repoId}/ci-runs` }),
+  },
   // ... other services can be added here following the same pattern
   get: <T>(url: string, params?: any) => request<T>({ url, params }),
   post: <T>(url: string, data?: any) => request<T>({ url, method: "POST", data }),

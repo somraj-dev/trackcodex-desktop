@@ -135,11 +135,11 @@ const BoardColumn: React.FC<{
       </div>
 
       <SortableContext
-        items={cards.map((c) => c.id)}
+        items={(cards || []).map((c) => c.id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="flex-1 overflow-y-auto max-h-[600px]">
-          {cards.length === 0 ? (
+          {!cards || cards.length === 0 ? (
             <div className="text-center py-8 text-gh-text-secondary text-sm">
               No cards
             </div>

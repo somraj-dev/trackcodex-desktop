@@ -7,6 +7,8 @@ import RedirectAfterAuth from "./components/auth/RedirectAfterAuth";
 import SettingsLayout from "./components/settings/SettingsLayout";
 import { useAuth } from "./context/AuthContext";
 
+const ComingSoon = React.lazy(() => import("./views/ComingSoon"));
+
 // Lazy imports (extracted from App.tsx)
 // Auth
 const Login = React.lazy(() => import("./views/auth/Login"));
@@ -245,10 +247,10 @@ const AppRoutes = () => {
                 <Route path="compare" element={<CandidateComparisonView />} />
                 <Route path="offer/:id" element={<OfferEditorView />} />
                 <Route path="schedule/:id" element={<SessionSchedulerView />} />
-                <Route path="feedback/:id" element={<InterviewerFeedbackView />} />
+                <Route path="feedback/:id" element={<ComingSoon />} />
                 <Route path="jobs" element={<HiringJobsView />} />
-                <Route path="analytics" element={<HiringAnalyticsView />} />
-                <Route path="assessments" element={<AssessmentsView />} />
+                <Route path="analytics" element={<ComingSoon />} />
+                <Route path="assessments" element={<ComingSoon />} />
               </Route>
               <Route path="growth" element={<GrowthLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
@@ -274,8 +276,8 @@ const AppRoutes = () => {
               <Route path="integrations" element={<IntegrationsSettings />} />
               <Route path="sessions" element={<SessionsSettings />} />
               <Route path="ssh-keys" element={<SSHKeysSettings />} />
-              <Route path="ahi-cs" element={<AhiCsSettings />} />
-              <Route path="privacy" element={<PrivacySettings />} />
+              <Route path="ahi-cs" element={<ComingSoon />} />
+              <Route path="privacy" element={<ComingSoon />} />
               <Route path="billing/usage" element={<BillingUsage />} />
               <Route path="billing/analytics" element={<BillingAnalytics />} />
               <Route path="billing/budgets" element={<BillingBudgets />} />
