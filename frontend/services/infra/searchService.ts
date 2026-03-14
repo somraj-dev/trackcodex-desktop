@@ -3,7 +3,7 @@ import { api } from '../infra/api';
 
 export interface SearchResult {
   id: string;
-  type: "user" | "repo" | "workspace" | "job" | "org" | "nav";
+  type: "user" | "repo" | "workspace" | "job" | "org" | "nav" | "search";
   label: string;
   subLabel?: string; // Role, Tech Stack, Description
   icon: string;

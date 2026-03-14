@@ -165,6 +165,7 @@ const MainLayout: React.FC = () => {
                     type="text"
                     placeholder="Search TrackCodex..."
                     className="flex-1 bg-transparent border-none text-[13px] text-gh-text placeholder-gh-text-secondary focus:ring-0 outline-none h-6"
+                    onClick={(e) => e.stopPropagation()}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         const q = (e.target as HTMLInputElement).value;

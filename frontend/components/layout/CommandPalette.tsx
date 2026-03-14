@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { searchService, SearchResult } from "../../services/infra/searchService";
-import { Terminal, Users, Search, Play, Plus, History, ArrowRight } from "lucide-react";
+import { Search } from "lucide-react";
 
 const CommandPalette = ({
   isOpen,
@@ -62,6 +62,15 @@ const CommandPalette = ({
           ...navCommands.filter((c) =>
             c.label.toLowerCase().includes(search.toLowerCase()),
           ).map(c => ({ ...c, group: "Commands" })),
+          // Always add search all option if there's a query
+          ...(search.trim().length >= 2 ? [{
+            id: "search-all",
+            type: "search",
+            label: `Search for "${search}" in TrackCodex`,
+            icon: "search",
+            group: "Search",
+            url: `/search?q=${encodeURIComponent(search)}`
+          } as SearchResult] : [])
         ]);
         setSelectedIndex(0);
       } catch (error) {
@@ -194,12 +203,18 @@ const CommandPalette = ({
 
                           {/* GitHub-style Icons */}
                           <div className="flex items-center justify-center text-[#7d8590]">
-                            {item.icon === "repo" ? (
+                            {item.icon === "repo" || item.type === "repo" ? (
                               <span className="material-symbols-outlined !text-[18px]">book</span>
-                            ) : item.icon === "user" ? (
+                            ) : item.icon === "user" || item.type === "user" ? (
                               <span className="material-symbols-outlined !text-[18px]">account_circle</span>
                             ) : item.icon === "copilot" ? (
                               <span className="material-symbols-outlined !text-[18px] text-[#8b5cf6]">smart_toy</span>
+                            ) : item.type === "org" ? (
+                              <span className="material-symbols-outlined !text-[18px]">corporate_fare</span>
+                            ) : item.type === "job" ? (
+                              <span className="material-symbols-outlined !text-[18px]">work</span>
+                            ) : item.type === "search" ? (
+                              <span className="material-symbols-outlined !text-[18px]">search</span>
                             ) : (
                               <span className="material-symbols-outlined !text-[18px]">bookmark_border</span>
                             )}

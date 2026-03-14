@@ -161,6 +161,8 @@ export async function searchRoutes(fastify: FastifyInstance) {
             take: type === "users" ? 30 : 5,
           });
 
+          request.log.info({ query, userCount: users.length }, "Prisma search found users");
+
           users.forEach((u) => {
             results.push({
               id: `user-${u.id}`,
