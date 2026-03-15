@@ -36,7 +36,8 @@ const ResumePreviewModal: React.FC<ResumePreviewModalProps> = ({ isOpen, onClose
       });
 
       pdf.addImage(imgData, "PNG", 0, 0, canvas.width * 0.75, canvas.height * 0.75);
-      pdf.save(`${profile.name}_Resume_TrackCodex.pdf`);
+      const filename = `${profile.username.replace("@", "")}_trackcodex.pdf`;
+      pdf.save(filename);
     } catch (error) {
       console.error("PDF generation failed:", error);
       alert("Failed to generate PDF. Please try again.");
