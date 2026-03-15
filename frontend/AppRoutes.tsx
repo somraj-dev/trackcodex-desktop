@@ -188,6 +188,7 @@ const AppRoutes = () => {
             <Route path="/dashboard/home" element={<HomeView />} />
             <Route path="/onboarding/welcome" element={<WelcomeView />} />
             <Route path="/accept-invite" element={<AcceptInvite />} />
+            <Route path="/team" element={<TeamPage />} />
             <Route path="/explore" element={<ExploreView />} />
             <Route path="/search" element={<SearchResults />} />
             <Route path="/platform-matrix" element={<PlatformMatrix />} />
