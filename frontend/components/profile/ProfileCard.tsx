@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 
 import ProofProfileModal from "./ProofProfileModal";
 import EditStatusModal from "./EditStatusModal";
+import ResumePreviewModal from "./ResumePreviewModal";
 
 const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
   const [isProofProfileOpen, setIsProofProfileOpen] = useState(false);
   const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
   const [isEditStatusOpen, setIsEditStatusOpen] = useState(false);
+  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [followModalType, setFollowModalType] = useState<
     "followers" | "following"
@@ -213,6 +215,15 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
             className="px-4 py-1.5 bg-gh-bg-secondary text-gh-text border border-gh-border rounded-md text-sm font-bold hover:border-primary/50 transition-all hover:text-primary"
           >
             Message
+          </button>
+          <button
+            onClick={() => setIsResumeModalOpen(true)}
+            className="px-4 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-md text-sm font-black hover:bg-primary/20 transition-all flex items-center justify-center gap-1"
+            title="Download auto-generated Resume"
+          >
+            <span className="material-symbols-outlined !text-[18px]">
+              description
+            </span>
           </button>
         </div>
       )}
@@ -430,6 +441,11 @@ const ProfileCard = ({ profile: propProfile }: { profile?: UserProfile }) => {
           onClose={() => setIsEditStatusOpen(false)}
         />
       )}
+      <ResumePreviewModal
+        isOpen={isResumeModalOpen}
+        onClose={() => setIsResumeModalOpen(false)}
+        profile={profile}
+      />
     </div>
   );
 };
