@@ -37,7 +37,7 @@ import { ideConfigRoutes } from "./workspace/ideconfig";
 import { galleryRoutes } from "./infra/gallery";
 import integrationRoutes from "./auth/integrations";
 import { applicationRoutes } from "./hiring/applications";
-import { workflowRoutes } from "./git/workflows";
+import workflowRoutes from "./infra/ci";
 
 export async function routes(fastify: FastifyInstance) {
   fastify.addHook("onRequest", async (request) => {
