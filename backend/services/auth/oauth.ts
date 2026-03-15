@@ -18,6 +18,12 @@ const getGithubRedirectUri = () =>
   process.env.GITHUB_REDIRECT_URI ||
   `${process.env.FRONTEND_URL || "https://trackcodex.com"}/auth/callback/github`;
 
+const getIntegrationGithubClientId = () => process.env.INTEGRATION_GITHUB_CLIENT_ID || "";
+const getIntegrationGithubClientSecret = () => process.env.INTEGRATION_GITHUB_CLIENT_SECRET || "";
+const getIntegrationGithubRedirectUri = () =>
+  process.env.INTEGRATION_GITHUB_REDIRECT_URI ||
+  `${process.env.FRONTEND_URL || "https://trackcodex.com"}/auth/callback/github`;
+
 const getGitlabClientId = () => process.env.GITLAB_CLIENT_ID || "";
 const getGitlabClientSecret = () => process.env.GITLAB_CLIENT_SECRET || "";
 const getGitlabRedirectUri = () =>
@@ -140,14 +146,14 @@ export class OAuthService {
   }
 
   /**
-   * Exchange GitHub authorization code for access token
+   * Exchange GitHub authorization code for access token (Integration Flow)
    */
-  static async exchangeGithubCode(
+  static async exchangeIntegrationGithubCode(
     code: string,
     redirectUri?: string
   ): Promise<OAuthTokenData> {
-    if (!getGithubClientId() || !getGithubClientSecret()) {
-      throw new Error("GitHub credentials are not configured on the server.");
+    if (!getIntegrationGithubClientId() || !getIntegrationGithubClientSecret()) {
+      throw new Error("GitHub Integration credentials are not configured on the server.");
     }
 
     const response = await fetch(
@@ -159,10 +165,10 @@ export class OAuthService {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          client_id: getGithubClientId(),
-          client_secret: getGithubClientSecret(),
+          client_id: getIntegrationGithubClientId(),
+          client_secret: getIntegrationGithubClientSecret(),
           code,
-          redirect_uri: redirectUri || getGithubRedirectUri(),
+          redirect_uri: redirectUri || getIntegrationGithubRedirectUri(),
         }),
       },
     );

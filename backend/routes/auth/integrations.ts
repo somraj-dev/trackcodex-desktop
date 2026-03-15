@@ -206,8 +206,8 @@ export default async function integrationRoutes(fastify: FastifyInstance) {
             }
 
             try {
-                // 1. Exchange code for access token
-                const tokenData = await OAuthService.exchangeGithubCode(code);
+                // 1. Exchange code for access token (Using the NEW integration credentials)
+                const tokenData = await OAuthService.exchangeIntegrationGithubCode(code);
                 const accessToken = tokenData.access_token;
 
                 if (!accessToken) {

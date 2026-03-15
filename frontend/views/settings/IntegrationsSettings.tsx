@@ -249,7 +249,7 @@ const IntegrationsSettings = () => {
         setIsVerifying(true);
         
         // Use standard redirect URI registered in GitHub App
-        const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+        const clientId = import.meta.env.VITE_INTEGRATION_GITHUB_CLIENT_ID;
         const redirectUri = `${window.location.origin}/auth/callback/github`;
         const scope = "repo,read:user,read:org";
         const state = Math.random().toString(36).substring(7);
