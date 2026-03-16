@@ -4,6 +4,15 @@ import { spawn, ChildProcess } from "child_process";
 import net from "net";
 import { fileURLToPath } from "url";
 
+import { authManager } from "./auth-manager";
+import { TrayManager } from "./tray-manager";
+import { NotificationManager } from "./notification-manager";
+import { UpdateManager } from "./update-manager";
+import Store from "electron-store";
+
+// Initialize the store
+Store.initRenderer();
+
 // ESM replacement for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +22,9 @@ const isDev = !app.isPackaged;
 
 let mainWindow: BrowserWindow | null = null;
 let backendProcess: ChildProcess | null = null;
+let trayManager: TrayManager | null = null;
+let notificationManager: NotificationManager | null = null;
+let updateManager: UpdateManager | null = null;
 
 // Ensure trackcodex:// protocol is handled
 if (process.defaultApp) {
@@ -52,7 +64,26 @@ if (!gotTheLock) {
 function handleDeepLink(url: string) {
   const parsedUrl = new URL(url);
   const token = parsedUrl.searchParams.get("token");
-  if (token && mainWindow) {
+  
+  // TrackCodex digital handshake callback
+  if (token && (parsedUrl.pathname === "//auth/callback" || parsedUrl.hostname === "auth" || url.includes("auth/callback"))) {
+    // We received the one-time token from the browser.
+    // Exchange it via the backend API.
+    authManager.exchangeHandshakeToken(token)
+      .then(({ sessionId }) => {
+        console.log("Handshake successful, session created.");
+        if (mainWindow) {
+          mainWindow.webContents.send("auth-success", sessionId);
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          mainWindow.show();
+          mainWindow.focus();
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to exchange token from deep link:", err);
+      });
+  } else if (token && mainWindow) {
+    // Legacy support
     mainWindow.webContents.send("auth-token", token);
   }
 }
@@ -140,15 +171,44 @@ async function createWindow() {
   console.log(`🌍 Loading URL: ${startUrl}`);
   mainWindow.loadURL(startUrl);
 
+  // Initialize Managers after window is created
+  trayManager = new TrayManager(mainWindow);
+  notificationManager = new NotificationManager(mainWindow);
+  
+  if (!isDev) {
+    updateManager = new UpdateManager(mainWindow);
+  }
+
+  // Handle minimize to tray
+  mainWindow.on("minimize", (event: any) => {
+    event.preventDefault();
+    mainWindow?.hide();
+  });
+
+  mainWindow.on("close", (event) => {
+    if (!isAppQuiting) {
+      event.preventDefault();
+      mainWindow?.hide();
+      return false;
+    }
+    return true;
+  });
+
   mainWindow.on("closed", () => (mainWindow = null));
 }
+
+// We keep a separate flag since augmenting the App interface in the same file can be tricky with ESM
+let isAppQuiting = false;
+
+app.on("before-quit", () => {
+  isAppQuiting = true;
+});
 
 app.on("ready", createWindow);
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  // We keep the app running in the background for the system tray
+  // Empty, intentionally not quitting
 });
 
 app.on("activate", () => {

@@ -1,0 +1,24 @@
+/* LandingPage.css */
+
+.landing-container {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+}
+
+/* Optional subtle float animation for the code window if desired */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.landing-container main > div:last-child > div {
+  animation: float 6s ease-in-out infinite;
+}

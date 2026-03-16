@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { authRoutes } from "./auth/auth";
+import { desktopAuthRoutes } from "./auth/desktop-auth";
 import { rateLimiter } from "../middleware/rateLimiter";
 import { authOtpRoutes } from "./auth/auth_otp";
 import { workspaceRoutes } from "./workspace/workspaces";
@@ -54,6 +55,7 @@ export async function routes(fastify: FastifyInstance) {
   });
 
   await fastify.register(authRoutes);
+  await fastify.register(desktopAuthRoutes, { prefix: "/auth/desktop" });
   await fastify.register(authOtpRoutes);
   await fastify.register(notificationRoutes);
   await fastify.register(workspaceRoutes);
