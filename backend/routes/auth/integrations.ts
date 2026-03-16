@@ -198,6 +198,7 @@ export default async function integrationRoutes(fastify: FastifyInstance) {
         "/integrations/github/callback",
         { preHandler: requireAuth },
         async (request: any, reply) => {
+            console.log("📥 [Integrations] GitHub Callback triggered", { body: request.body });
             const userId = request.user.userId;
             const { code } = request.body as { code: string };
 
