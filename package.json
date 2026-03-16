@@ -4,6 +4,7 @@
   "version": "0.1.13",
   "description": "TrackCodex Desktop App",
   "author": "Quantaforze LLC",
+  "repository": "somraj-dev/trackcodex-desktop",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
