@@ -171,26 +171,6 @@ async function createWindow() {
   console.log(`🌍 Loading URL: ${startUrl}`);
   mainWindow.loadURL(startUrl);
 
-  // Intercept external links (target="_blank") and open in default system browser
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith("http:") || url.startsWith("https:")) {
-      import("electron").then(({ shell }) => shell.openExternal(url));
-    }
-    return { action: "deny" };
-  });
-
-  // Intercept direct navigation to external sites
-  mainWindow.webContents.on("will-navigate", (event, url) => {
-    const isLocalhost = url.includes("localhost:") || url.includes("127.0.0.1:");
-    const isDeepLink = url.startsWith("trackcodex://");
-    
-    // Prevent the Electron app from navigating away to an external website
-    if (!isLocalhost && !isDeepLink && (url.startsWith("http:") || url.startsWith("https:"))) {
-      event.preventDefault();
-      import("electron").then(({ shell }) => shell.openExternal(url));
-    }
-  });
-
   // Initialize Managers after window is created
   trayManager = new TrayManager(mainWindow);
   notificationManager = new NotificationManager(mainWindow);
