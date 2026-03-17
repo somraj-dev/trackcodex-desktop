@@ -23,13 +23,36 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Build and Publish Electron App
+      - name: Build Electron App (Publish to Release)
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist -- --publish always
+
+      - name: Build Electron App (No Publish)
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist -- --publish never
+
+      - name: Upload Installers as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: trackcodex-${{ matrix.os }}
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.AppImage
+            release/*.deb
+            release/*.snap
+            release/*.yml
+            release/*.yaml
+            release/*.blockmap
+          if-no-files-found: warn
+          retention-days: 30

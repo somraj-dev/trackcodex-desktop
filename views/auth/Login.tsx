@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, api } from "../../context/AuthContext";
-import { supabase } from "../../lib/supabase";
 
 const Login = () => {
   const { login } = useAuth();
@@ -12,38 +11,26 @@ const Login = () => {
   const [error, setError] = useState("");
 
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback/google`,
-        }
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to initialize Google login");
-      setIsLoading(false);
+  const handleGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      setError("Configuration Error: Missing Google Client ID");
+      return;
     }
+    const redirectUri = `${window.location.origin}/auth/callback/google`;
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&access_type=offline&prompt=consent`;
+    window.location.href = googleAuthUrl;
   };
 
-  const handleGithubLogin = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback/github`,
-        }
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to initialize GitHub login");
-      setIsLoading(false);
+  const handleGithubLogin = () => {
+    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    if (!clientId) {
+      setError("Configuration Error: Missing GitHub Client ID");
+      return;
     }
+    const redirectUri = `${window.location.origin}/auth/callback/github`;
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent("user:email")}`;
+    window.location.href = githubAuthUrl;
   };
 
 
@@ -53,90 +40,25 @@ const Login = () => {
     setError("");
 
     try {
-      // 1. Sign in with Supabase
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: username.includes('@') ? username : `${username}@manual-sync.local`, // Fallback logic for username
+      // Sign in via backend API
+      const res = await api.post("/auth/login", {
+        email: username.includes("@") ? username : undefined,
+        username: !username.includes("@") ? username : undefined,
         password,
       });
 
-      if (authError) {
-        if (authError.message === "Invalid login credentials") {
-          throw new Error("Invalid username/email or password");
-        }
-        throw authError;
-      }
+      login(res.data.user, res.data.csrfToken, res.data.sessionId);
 
-      // 2. State update is handled by onAuthStateChange in AuthContext
-
-      // 3. Redirect
+      // Redirect
       const redirectPath = localStorage.getItem("redirect_after_login") || "/dashboard/home";
       localStorage.removeItem("redirect_after_login");
       navigate(redirectPath);
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.response?.data?.error || err.message || "Login failed");
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Effect to handle redirect after successful login
-  // We can't do this inside handleSubmit easily because login() is void and might trigger rerender
-  // But typically useAuth's login just needs to facilitate the state change.
-  // Wait, useAuth.login is synchronous in context, but the CONSUMER usually handles the navigate.
-  // Actually, looking at AuthContext, login just sets state. App.tsx listens to state change.
-  // BUT App.tsx just renders ProtectedApp.
-  // Let's check where the redirection usually happens.
-  // In App.tsx:
-  // {!isAuthenticated ? ( ...Login... ) : ( <Route path="/*" element={<ProtectedApp />} /> )}
-  // So once isAuthenticated becomes true, ProtectedApp renders.
-  // ProtectedApp renders routes. Default route is / -> /dashboard/home.
-
-  // So we need to ensure that when ProtectedApp mounts, or somewhere, we navigate.
-  // OR we can manually navigate here after calling login().
-  // Let's modify handleSubmit to navigate.
-
-  // Wait, if I call login(), isAuthenticated becomes true.
-  // React Router will switch to ProtectedApp.
-  // If I'm strictly at /login, ProtectedApp might redirect me to /dashboard/home via its own logic?
-  // Let's check App.tsx again.
-  // <Route path="*" element={<Navigate to="/dashboard/home" />} /> (inside ProtectedApp)
-
-  // Actually, if we are at /login, and auth becomes true, App.tsx renders ProtectedApp.
-  // ProtectedApp defines routes. /login is NOT a valid route in ProtectedApp.
-  // So it falls through to * -> /dashboard/home.
-
-  // To fix this, we should programmatically navigate to the intended URL *before* or *immediately after* setting auth state?
-  // Or better, let ProtectedApp handle "if I am at /login, go to dashboard".
-
-  // Actually, the standard pattern:
-  // 1. User is at /login.
-  // 2. User clicks login.
-  // 3. handler calls login() -> context updates -> App rerenders -> shows ProtectedApp.
-  // 4. URL is still /login.
-  // 5. ProtectedApp routes don't have /login.
-  // 6. It hits * -> Navigate to /dashboard/home.
-
-  // SO, we can't easily intercept this in the component unless we change the URL *before* the context update triggers the App rerender?
-  // No, context update triggers render immediately.
-
-  // Better approach:
-  // In Login.tsx:
-  // const navigate = useNavigate();
-  // ...
-  // login(...)
-  // const redirectPath = localStorage.getItem('redirect_after_login') || '/dashboard/home';
-  // localStorage.removeItem('redirect_after_login');
-  // navigate(redirectPath);
-
-  // This race condition (App rerender vs navigate) is tricky.
-  // If App rerenders first, it sees /login, renders ProtectedApp, which redirects to /dashboard.
-  // However, if we navigate immediately after login(), we might beat it?
-
-  // Let's try adding navigate import and usage.
-
-  // Wait, I can't write all this reasoning in the ReplacementContent.
-
-  // I will just add the navigation logic.
 
   return (
     <div className="flex min-h-screen font-display">

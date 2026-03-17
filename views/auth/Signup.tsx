@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { supabase } from "../../lib/supabase";
+import { useAuth, api } from "../../context/AuthContext";
 
 const Signup = () => {
-  const { } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,38 +16,26 @@ const Signup = () => {
   const [otpMode, setOtpMode] = useState(false);
   const [otpInput, setOtpInput] = useState("");
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback/google`,
-        }
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to initialize Google login");
-      setIsLoading(false);
+  const handleGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      setError("Configuration Error: Missing Google Client ID");
+      return;
     }
+    const redirectUri = `${window.location.origin}/auth/callback/google`;
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&access_type=offline&prompt=consent`;
+    window.location.href = googleAuthUrl;
   };
 
-  const handleGithubLogin = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback/github`,
-        }
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to initialize GitHub login");
-      setIsLoading(false);
+  const handleGithubLogin = () => {
+    const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
+    if (!clientId) {
+      setError("Configuration Error: Missing GitHub Client ID");
+      return;
     }
+    const redirectUri = `${window.location.origin}/auth/callback/github`;
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent("user:email")}`;
+    window.location.href = githubAuthUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,24 +44,19 @@ const Signup = () => {
     setError("");
 
     try {
-      // Step 1: Sign up with Supabase
-      const { error: signUpError } = await supabase.auth.signUp({
+      // Register via backend API
+      const res = await api.post("/auth/register", {
         email,
         password,
-        options: {
-          data: {
-            username,
-            full_name: username,
-            country,
-          }
-        }
+        username,
+        name: username,
       });
 
-      if (signUpError) throw signUpError;
-
-      setOtpMode(true);
+      // Login the user with the returned data
+      login(res.data.user, res.data.csrfToken, res.data.sessionId);
+      navigate("/dashboard/home");
     } catch (err: any) {
-      setError(err.message || "Signup failed. Please try again.");
+      setError(err.response?.data?.error || err.message || "Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -85,21 +67,15 @@ const Signup = () => {
     setError("");
 
     try {
-      // Step 2: Verify OTP
-      const { error: verifyError } = await supabase.auth.verifyOtp({
+      // Verify OTP via backend API
+      await api.post("/auth/verify-email/confirm", {
         email,
         token: otpInput,
-        type: 'signup',
       });
 
-      if (verifyError) throw verifyError;
-
-      // Note: Backend sync is handled via Supabase triggers.
-      // After verification, onAuthStateChange in AuthContext will trigger navigation
-      // but we can also navigate manually for immediate feedback.
       navigate("/dashboard/home");
     } catch (err: any) {
-      setError(err.message || "Verification failed");
+      setError(err.response?.data?.error || err.message || "Verification failed");
     } finally {
       setIsLoading(false);
     }

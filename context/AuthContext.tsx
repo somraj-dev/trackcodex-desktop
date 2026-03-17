@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import { profileService } from "../services/profile";
-import { supabase } from "../lib/supabase";
 
 interface User {
   id: string;
@@ -57,60 +56,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
   const [isLoading, setIsLoading] = useState(true);
 
-  // Supabase Auth Listener
+  // Check session on mount via backend /auth/me
   useEffect(() => {
-    // 1. Get initial session
-    if (supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          const mappedUser: User = {
-            id: session.user.id,
-            email: session.user.email || "",
-            username: session.user.user_metadata?.username || "",
-            name: session.user.user_metadata?.full_name || "",
-            avatar: session.user.user_metadata?.avatar_url || "",
-            role: session.user.user_metadata?.role || "user",
-          };
-          setUser(mappedUser);
-          profileService.initFromAuth(mappedUser);
+    const checkSession = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        if (res.data?.user) {
+          setUser(res.data.user);
+          setCsrfToken(res.data.csrfToken || null);
+          profileService.initFromAuth(res.data.user);
         }
+      } catch {
+        // Not authenticated — that's fine
+        setUser(null);
+      } finally {
         setIsLoading(false);
-      });
-    } else {
-      setIsLoading(false);
-    }
-
-    // 2. Listen for auth changes
-    if (supabase) {
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session) {
-          const mappedUser: User = {
-            id: session.user.id,
-            email: session.user.email || "",
-            username: session.user.user_metadata?.username || "",
-            name: session.user.user_metadata?.full_name || "",
-            avatar: session.user.user_metadata?.avatar_url || "",
-            role: session.user.user_metadata?.role || "user",
-          };
-          setUser(mappedUser);
-          profileService.initFromAuth(mappedUser);
-        } else {
-          setUser(null);
-          profileService.clearProfile();
-        }
-        setIsLoading(false);
-      });
-
-      return () => subscription.unsubscribe();
-    }
+      }
+    };
+    checkSession();
   }, []);
 
-  // Configure axios interceptor to attach Supabase JWT or legacy Session ID
+  // Configure axios interceptor to attach Session ID
   useEffect(() => {
     const interceptor = api.interceptors.request.use(async (config) => {
-      // CSRF token is needed for state-changing requests (Legacy)
+      // CSRF token is needed for state-changing requests
       if (
         ["post", "put", "delete", "patch"].includes(
           config.method?.toLowerCase() || "",
@@ -120,24 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         config.headers["X-CSRF-Token"] = csrfToken;
       }
 
-      // 1. Try to get current Supabase session
-      if (supabase) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.access_token) {
-          config.headers["Authorization"] = `Bearer ${session.access_token}`;
-        } else {
-          // 2. Fallback to legacy Session ID
-          const sessionId = localStorage.getItem("session_id");
-          if (sessionId) {
-            config.headers["Authorization"] = `Bearer ${sessionId}`;
-          }
-        }
-      } else {
-        // Fallback to legacy Session ID if Supabase is missing
-        const sessionId = localStorage.getItem("session_id");
-        if (sessionId) {
-          config.headers["Authorization"] = `Bearer ${sessionId}`;
-        }
+      // Attach session ID from localStorage
+      const sessionId = localStorage.getItem("session_id");
+      if (sessionId) {
+        config.headers["Authorization"] = `Bearer ${sessionId}`;
       }
 
       return config;
@@ -156,7 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
       await api.post("/auth/logout");
     } catch (err) {
       console.error("Logout failed", err);

@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { supabase } from "../../lib/supabase";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth, api } from "../../context/AuthContext";
 
 const OAuthCallback: React.FC = () => {
   const { provider } = useParams<{ provider: "google" | "github" }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
@@ -25,9 +23,12 @@ const OAuthCallback: React.FC = () => {
           throw new Error("No authorization code received");
         }
 
-        // Exchange code for session
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        if (exchangeError) throw exchangeError;
+        // Exchange code via backend API
+        const endpoint = provider === "google" ? "/auth/google" : "/auth/github";
+        const res = await api.post(endpoint, { code });
+
+        // Login with response data
+        login(res.data.user, res.data.csrfToken, res.data.sessionId);
 
         // Redirect to dashboard or saved path
         const redirectPath = localStorage.getItem("redirect_after_login") || "/dashboard/home";
@@ -36,13 +37,13 @@ const OAuthCallback: React.FC = () => {
         navigate(redirectPath);
       } catch (err: any) {
         console.error("OAuth callback error:", err);
-        setError(err.message || "Authentication failed");
+        setError(err.response?.data?.error || err.message || "Authentication failed");
         setTimeout(() => navigate("/login"), 5000);
       }
     };
 
     handleCallback();
-  }, [provider, navigate, login, location.search]);
+  }, [provider, navigate, login]);
 
   if (error) {
     return (
