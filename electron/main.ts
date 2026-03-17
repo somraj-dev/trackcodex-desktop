@@ -13,9 +13,10 @@ import Store from "electron-store";
 // Initialize the store
 Store.initRenderer();
 
-// ESM replacement for __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ESM/CJS compatibility shims for _dirname and _filename
+const isESM = typeof import.meta.url !== 'undefined';
+const _filename = isESM ? fileURLToPath(import.meta.url) : (global as any).__filename || '';
+const _dirname = path.dirname(_filename);
 
 // Native check for dev environment
 const isDev = !app.isPackaged;
@@ -122,7 +123,7 @@ async function startBackend(): Promise<number> {
   // Use resourcesPath in production
   const backendPath = path.join(process.resourcesPath, "dist-backend/index.js");
   // Fallback for local testing of "dist"
-  const localDistPath = path.join(__dirname, "../dist-backend/index.js");
+  const localDistPath = path.join(_dirname, "../dist-backend/index.js");
 
   const finalBackendPath = app.isPackaged ? backendPath : localDistPath;
 
@@ -160,7 +161,7 @@ async function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, "preload.js"),
+      preload: path.join(_dirname, "preload.js"),
       devTools: true,
     },
   });

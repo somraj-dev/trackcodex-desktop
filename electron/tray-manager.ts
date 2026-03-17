@@ -2,8 +2,10 @@ import { app, Tray, Menu, nativeImage, BrowserWindow } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ESM/CJS compatibility shims for _dirname and _filename
+const isESM = typeof import.meta.url !== 'undefined';
+const _filename = isESM ? fileURLToPath(import.meta.url) : (global as any).__filename || '';
+const _dirname = path.dirname(_filename);
 
 export class TrayManager {
   private tray: Tray | null = null;
@@ -11,7 +13,7 @@ export class TrayManager {
 
   constructor(private mainWindow: BrowserWindow) {
     // Assuming you have an icon in the build resources
-    this.iconPath = path.join(__dirname, "../icon.png"); 
+    this.iconPath = path.join(_dirname, "../icon.png"); 
     
     // Create tray only when app is ready
     app.whenReady().then(() => {
