@@ -163,6 +163,7 @@ async function bootstrap() {
         "http://127.0.0.1:3001",
         "http://localhost:4000",
         "http://localhost:5173",
+        "http://localhost:3000", // Duplicate in original, kept if needed but usually one is enough
     ];
 
     await server.register(cors, {
@@ -201,7 +202,7 @@ async function bootstrap() {
 
     // 1.5 Cookie Support - Required for session management
     await server.register(cookie, {
-        secret: process.env.COOKIE_SECRET || "cookie-secret-change-this-min-32-chars",
+        secret: env.COOKIE_SECRET,
         parseOptions: {}
     });
 

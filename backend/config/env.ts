@@ -16,12 +16,10 @@ const envSchema = z.object({
   // Security — defaults prevent crash when secrets are missing from ECS
   ENCRYPTION_KEY: z
     .string()
-    .min(32, "ENCRYPTION_KEY must be at least 32 characters")
-    .default("default-encryption-key-CHANGE-IN-PROD!!"),
+    .min(32, "ENCRYPTION_KEY must be at least 32 characters"),
   COOKIE_SECRET: z
     .string()
-    .min(32, "COOKIE_SECRET must be at least 32 characters")
-    .default("default-cookie-secret-CHANGE-IN-PROD!!"),
+    .min(32, "COOKIE_SECRET must be at least 32 characters"),
   JWT_SECRET: z
     .string()
     .min(32, "JWT_SECRET must be at least 32 characters")
@@ -83,8 +81,5 @@ if (!_env.success) {
 
 export const env = _env.success ? _env.data : envSchema.parse({
   ...process.env,
-  // Force defaults for critical fields so the server can start
-  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || "default-encryption-key-CHANGE-IN-PROD!!",
-  COOKIE_SECRET: process.env.COOKIE_SECRET || "default-cookie-secret-CHANGE-IN-PROD!!",
   FRONTEND_URL: process.env.FRONTEND_URL || "https://trackcodex.com",
 });
