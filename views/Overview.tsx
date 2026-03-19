@@ -9,22 +9,20 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { api } from "../services/api";
-import { MOCK_AI_TASKS } from "../constants";
 import { useNavigate } from "react-router-dom";
 import { Workspace } from "../types";
 import Spinner from "../components/ui/Spinner";
 
-const activityData = [
-  { name: "Mon", commits: 40, ai: 24 },
-  { name: "Tue", commits: 30, ai: 13 },
-  { name: "Wed", commits: 20, ai: 98 },
-  { name: "Thu", commits: 27, ai: 39 },
-  { name: "Fri", commits: 18, ai: 48 },
-  { name: "Sat", commits: 23, ai: 38 },
-  { name: "Sun", commits: 34, ai: 43 },
-];
 
-const StatCard = ({ title, value, change, color }: any) => (
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  change: string;
+  color: string;
+}
+
+const StatCard = ({ title, value, change }: StatCardProps) => (
   <div className="card-hover-glow p-4 rounded-xl bg-gh-bg-secondary border border-gh-border flex flex-col group transition-all">
     <div className="flex items-center justify-between mb-2">
       <span className="text-[11px] font-bold uppercase tracking-wider text-gh-text-secondary">
@@ -40,38 +38,52 @@ const StatCard = ({ title, value, change, color }: any) => (
   </div>
 );
 
+interface GlobalStats {
+  counts: {
+    workspaces: number;
+    repos: number;
+    aiTasks: number;
+    users: number;
+  };
+  hardware: {
+    cpuUsage: number;
+    memoryUsage: number;
+    status: string;
+    label: string;
+  };
+  activityFlux: Array<{
+    name: string;
+    commits: number;
+    ai: number;
+  }>;
+  recentAITasks: Array<{
+    id: string;
+    taskName: string;
+    repoName: string;
+    timestamp: string;
+    status: string;
+  }>;
+}
+
 const Overview = () => {
   const navigate = useNavigate();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    workspaces: "0",
-    repos: "0",
-    intelligence: "12.4k",
-    issues: "0",
-  });
+  const [globalData, setGlobalData] = useState<GlobalStats | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [wsData, repoData] = await Promise.all([
+        const [wsData, globalStats] = await Promise.all([
           api.workspaces.list(),
-          api.repositories.list(),
+          api.stats.getGlobal()
         ]);
 
-        const safeWsData = Array.isArray(wsData) ? wsData : [];
-        const safeRepoData = Array.isArray(repoData) ? repoData : [];
-
-        setWorkspaces(safeWsData);
-        setStats({
-          workspaces: String(safeWsData.length),
-          repos: String(safeRepoData.length),
-          intelligence: "12.4k",
-          issues: "0",
-        });
+        setWorkspaces(Array.isArray(wsData) ? wsData : []);
+        setGlobalData(globalStats);
       } catch (e) {
-        console.error("❌ Failed to fetch hardware metrics:", e);
+        console.error("❌ Failed to fetch platform metrics:", e);
       } finally {
         setLoading(false);
       }
@@ -116,26 +128,26 @@ const Overview = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             title="Total Workspaces"
-            value={stats.workspaces}
-            change="+2"
+            value={globalData?.counts?.workspaces ?? "0"}
+            change="+0"
             color="primary"
           />
           <StatCard
             title="Active Repositories"
-            value={stats.repos}
-            change="+5"
+            value={globalData?.counts?.repos ?? "0"}
+            change="+0"
             color="emerald-500"
           />
           <StatCard
             title="Hardware Status"
-            value="SYNCED"
-            change="L5 Active"
+            value={globalData?.hardware?.status ?? "SYNCED"}
+            change={globalData?.hardware?.label ?? "L5 Active"}
             color="rose-500"
           />
           <StatCard
-            title="AI Intelligence"
-            value={stats.intelligence}
-            change="+1.2k"
+            title="AI Tasks"
+            value={globalData?.counts?.aiTasks ?? "0"}
+            change={`CPU ${globalData?.hardware?.cpuUsage ?? 0}%`}
             color="amber-500"
           />
         </div>
@@ -161,7 +173,7 @@ const Overview = () => {
 
               <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={activityData}>
+                  <AreaChart data={globalData?.activityFlux || []}>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       stroke="var(--gh-border)"
@@ -291,24 +303,33 @@ const Overview = () => {
                 ForgeAI Activity
               </h3>
               <div className="bg-gh-bg-secondary border border-gh-border rounded-xl p-4 space-y-4">
-                {MOCK_AI_TASKS.map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex gap-3 group cursor-pointer border-b border-gh-border last:border-0 pb-4 last:pb-0"
-                  >
-                    <span className="material-symbols-outlined text-primary !text-[20px] mt-0.5">
-                      auto_awesome
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-bold text-gh-text leading-snug group-hover:text-primary">
-                        {task.taskName}
-                      </p>
-                      <p className="text-[10px] text-gh-text-secondary mt-1 uppercase font-bold tracking-tighter">
-                        {task.timestamp}
-                      </p>
+                {globalData?.recentAITasks && globalData.recentAITasks.length > 0 ? (
+                  globalData.recentAITasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex gap-3 group cursor-pointer border-b border-gh-border last:border-0 pb-4 last:pb-0"
+                    >
+                      <span className="material-symbols-outlined text-primary !text-[20px] mt-0.5">
+                        auto_awesome
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-bold text-gh-text leading-snug group-hover:text-primary">
+                          {task.taskName} <span className="text-gh-text-secondary font-normal italic">on {task.repoName || 'System'}</span>
+                        </p>
+                        <p className="text-[10px] text-gh-text-secondary mt-1 uppercase font-bold tracking-tighter flex items-center gap-2">
+                          <span>{task.timestamp}</span>
+                          <span className={`px-1 rounded ${task.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                            {task.status}
+                          </span>
+                        </p>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-xs text-gh-text-secondary">
+                    No recent AI sessions found.
                   </div>
-                ))}
+                )}
               </div>
             </section>
           </div>

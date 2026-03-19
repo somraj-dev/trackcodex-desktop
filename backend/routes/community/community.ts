@@ -35,13 +35,30 @@ export async function communityRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Trending Repositories (Mocked for now based on community activity or just a fixed list)
+  // Trending Repositories (Real data from DB)
   fastify.get('/trending-repos', async (request, reply) => {
-    return [
-      { id: '1', name: 'facebook/react', description: 'A JavaScript library for building user interfaces', stars: 213000, language: 'JavaScript', avatar: 'https://ui-avatars.com/api/?name=R&background=61DAFB' },
-      { id: '2', name: 'rust-lang/rust', description: 'Empowering everyone to build reliable and efficient software.', stars: 95000, language: 'Rust', avatar: 'https://ui-avatars.com/api/?name=R&background=dea584' },
-      { id: '3', name: 'shadcn/ui', description: 'Beautifully designed components built with Radix UI and Tailwind CSS.', stars: 52000, language: 'TypeScript', avatar: 'https://ui-avatars.com/api/?name=S&background=000000' }
-    ];
+    try {
+      const repos = await prisma.repository.findMany({
+        where: { visibility: "PUBLIC" },
+        take: 10,
+        orderBy: { stars: "desc" },
+        include: {
+          owner: { select: { username: true, avatar: true } }
+        }
+      });
+
+      return repos.map(r => ({
+        id: r.id,
+        name: r.name,
+        description: r.description || "No description provided.",
+        stars: r.stars,
+        language: r.language || "Code",
+        avatar: r.owner?.avatar || `https://ui-avatars.com/api/?name=${r.name.split('/')[0]}&background=random`
+      }));
+    } catch (err) {
+      console.error(err);
+      return reply.status(500).send({ error: 'Failed to fetch trending repositories' });
+    }
   });
 
   // List Posts

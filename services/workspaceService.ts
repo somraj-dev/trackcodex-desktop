@@ -1,9 +1,28 @@
-import { api } from "../services/api";
+import { apiAxios } from "../config/axios";
+import { API_BASE_URL } from "../config/api";
 
 /**
  * Workspace Service
  * Handles backend integration for TrackCodex IDE workspaces
  */
+
+export interface Workspace {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  ownerId: string;
+  repoUrl: string | null;
+  visibility: string;
+  starsCount: number;
+  forksCount: number;
+  owner?: {
+    id: string;
+    username: string;
+    avatar: string | null;
+    name: string | null;
+  };
+}
 
 export interface WorkspaceFile {
   id: string;
@@ -29,28 +48,29 @@ class WorkspaceService {
   private settings: Map<string, WorkspaceSettings> = new Map();
 
   /**
+   * Get all public workspaces for discovery
+   */
+  async getPublicWorkspaces(): Promise<Workspace[]> {
+    try {
+      const response = await apiAxios.get(`${API_BASE_URL}/workspaces`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching public workspaces:", error);
+      return [];
+    }
+  }
+
+  /**
    * Get workspace files from backend
    */
   async getWorkspaceFiles(workspaceId: string): Promise<WorkspaceFile[]> {
     try {
       console.log("📁 Fetching workspace files for:", workspaceId);
 
-      // Call backend API
-      const response = await fetch(
-        `http://localhost:4000/api/workspace/${workspaceId}/files`,
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch workspace files");
-      }
-
-      const files = await response.json();
-      console.log("✅ Loaded workspace files:", files);
-      return files;
+      const response = await apiAxios.get(`${API_BASE_URL}/workspaces/${workspaceId}/files`);
+      return response.data;
     } catch (error) {
       console.error("❌ Error fetching workspace files:", error);
-
-      // Fallback to demo files
       return this.getDemoWorkspace();
     }
   }
@@ -60,16 +80,10 @@ class WorkspaceService {
    */
   async getFileContent(workspaceId: string, filePath: string): Promise<string> {
     try {
-      const response = await fetch(
-        `http://localhost:4000/api/workspace/${workspaceId}/file?path=${encodeURIComponent(filePath)}`,
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch file content");
-      }
-
-      const data = await response.json();
-      return data.content;
+      const response = await apiAxios.get(`${API_BASE_URL}/workspaces/${workspaceId}/file`, {
+        params: { path: filePath }
+      });
+      return response.data.content;
     } catch (error) {
       console.error("❌ Error fetching file content:", error);
       return "// File content could not be loaded";
@@ -85,19 +99,10 @@ class WorkspaceService {
     content: string,
   ): Promise<boolean> {
     try {
-      const response = await fetch(
-        `http://localhost:4000/api/workspace/${workspaceId}/file`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: filePath, content }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to save file");
-      }
-
+      await apiAxios.post(`${API_BASE_URL}/workspaces/${workspaceId}/file`, {
+        path: filePath,
+        content
+      });
       console.log("✅ File saved:", filePath);
       return true;
     } catch (error) {

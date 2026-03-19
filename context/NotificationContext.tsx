@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { Notification } from "../types";
 import { profileService, UserProfile } from "../services/profile";
-import { MOCK_JOBS } from "../constants";
 import { api } from "../services/api";
 import { useAuth } from "./AuthContext";
 
@@ -32,45 +31,52 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  const checkJobMatches = (profile: UserProfile | null) => {
+  const checkJobMatches = async (profile: UserProfile | null) => {
     if (!profile || !profile.skills) return;
 
-    const notifiedJobsKey = "trackcodex_notified_jobs";
-    const notifiedJobs = JSON.parse(
-      localStorage.getItem(notifiedJobsKey) || "[]",
-    );
-
-    const userSkillNames = profile.skills.map((s) => s.name.toLowerCase());
-
-    MOCK_JOBS.forEach((job) => {
-      // Skip if already notified
-      if (notifiedJobs.includes(job.id)) return;
-
-      // Check for overlap
-      const hasMatch = job.techStack.some((tech) =>
-        userSkillNames.includes(tech.toLowerCase()),
+    try {
+      const notifiedJobsKey = "trackcodex_notified_jobs";
+      const notifiedJobs = JSON.parse(
+        localStorage.getItem(notifiedJobsKey) || "[]",
       );
 
-      if (hasMatch) {
-        // Trigger Notification
-        const newNotif: Notification = {
-          id: `job-match-${job.id}-${Date.now()}`,
-          title: "New Job Match!",
-          message: `Your skill matches the requirements for: ${job.title}`,
-          type: "job_match",
-          read: false,
-          timestamp: new Date().toISOString(),
-          link: `/marketplace/job/${job.id}`,
-          metadata: { jobId: job.id, company: job.creator.name },
-        };
+      const userSkillNames = profile.skills.map((s) => s.name.toLowerCase());
+      
+      // Fetch real jobs
+      const realJobs = await api.jobs.list();
 
-        setNotifications((prev) => [newNotif, ...prev]);
+      realJobs.forEach((job) => {
+        // Skip if already notified
+        if (notifiedJobs.push && notifiedJobs.includes(job.id)) return;
 
-        // Mark as notified
-        notifiedJobs.push(job.id);
-        localStorage.setItem(notifiedJobsKey, JSON.stringify(notifiedJobs));
-      }
-    });
+        // Check for overlap
+        const hasMatch = job.techStack?.some((tech) =>
+          userSkillNames.includes(tech.toLowerCase()),
+        );
+
+        if (hasMatch) {
+          // Trigger Notification
+          const newNotif: Notification = {
+            id: `job-match-${job.id}-${Date.now()}`,
+            title: "New Job Match!",
+            message: `Your skill matches the requirements for: ${job.title}`,
+            type: "job_match",
+            read: false,
+            timestamp: new Date().toISOString(),
+            link: `/marketplace/job/${job.id}`,
+            metadata: { jobId: job.id, company: job.creator?.name || "Verified Partner" },
+          };
+
+          setNotifications((prev) => [newNotif, ...prev]);
+
+          // Mark as notified
+          notifiedJobs.push(job.id);
+          localStorage.setItem(notifiedJobsKey, JSON.stringify(notifiedJobs));
+        }
+      });
+    } catch (error) {
+      console.error("Failed to check job matches with real data", error);
+    }
   };
 
   const loadNotifications = async () => {

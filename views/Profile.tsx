@@ -20,7 +20,6 @@ const ProfileRepositories = () => {
   const navigate = useNavigate();
   const [repos, setRepos] = useState<Repository[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchRepos = async () => {
@@ -36,7 +35,7 @@ const ProfileRepositories = () => {
 
         // Transform to UI Model
         // Transform to UI Model
-        const uiRepos: any[] = data.map((repo) => ({
+        const uiRepos: Repository[] = data.map((repo: any) => ({
           id: String(repo.id),
           name: repo.name,
           description: repo.description || "No description provided.",
@@ -69,7 +68,6 @@ const ProfileRepositories = () => {
         setRepos(uiRepos);
       } catch (err) {
         console.error("Failed to fetch remote repos", err);
-        setError("Failed to sync remote. Using cached data.");
         setRepos(MOCK_REPOS);
       } finally {
         setLoading(false);
@@ -77,7 +75,7 @@ const ProfileRepositories = () => {
     };
 
     fetchRepos();
-  }, []);
+  }, [setLoading]);
 
   if (loading) {
     return (
@@ -183,7 +181,7 @@ const ProfileRepositories = () => {
                   <span className="material-symbols-outlined !text-[14px]">
                     adjust
                   </span>
-                  {(repo as any).openIssues || 0}
+                  {((repo as unknown) as Repository).openIssues || 0}
                 </span>
               </div>
               <span className="text-[10px] text-gh-text-secondary font-medium uppercase tracking-wider">
@@ -208,56 +206,65 @@ const ProfileView = () => {
     // Sync with backend on mount
     // profileService.syncWithBackend(); // REMOVED: Mock mode only
 
-    // Sync GitHub User Data
+    // Sync GitHub & Backend User Data
     const syncProfile = async () => {
-      const token = localStorage.getItem("trackcodex_git_token");
-      if (!token) {
-        setIsMockMode(true);
-        return;
-      }
-
+      const gitToken = localStorage.getItem("trackcodex_git_token");
+      
       try {
-        const userData = await githubService.verifyToken(token);
-
-        // Calculate Skill DNA
-        let computedSkills: { name: string; level: number }[] = [];
-        try {
-          const repos = await githubService.getRepos(token);
-          if (githubService.calculateSkillDNA) {
-            computedSkills = githubService.calculateSkillDNA(repos);
-          }
-        } catch (e) {
-          console.warn("Skill DNA calculation skipped", e);
+        // 1. Fetch from REAL Backend first to get current stats (Karma, Posts, etc.)
+        if (profile.id) {
+          const backendProfile = await profileService.getProfileByIdOrUsername(profile.id);
+          setProfile(prev => ({
+            ...prev,
+            ...backendProfile,
+            // Keep existing avatar/name if backend doesn't have them yet
+            avatar: backendProfile.avatar || prev.avatar,
+            name: backendProfile.name || prev.name,
+          }));
         }
 
-        setProfile((prev) => {
-          const updated = {
-            ...prev,
-            name: userData.name || userData.login,
-            username: userData.login,
-            avatar: userData.avatar_url,
-            bio: userData.bio || prev.bio,
-            company: userData.company || prev.company,
-            location: userData.location || prev.location,
-            website: userData.blog || prev.website,
-            followers: userData.followers,
-            following: userData.following,
-            skills: computedSkills.length > 0 ? computedSkills : prev.skills,
-          };
-          // Broadcast to global service for Sidebar
-          profileService.updateProfile(updated);
-          return updated;
-        });
-        setIsMockMode(false);
+        // 2. Sync GitHub if token exists
+        if (gitToken) {
+          const userData = await githubService.verifyToken(gitToken);
+
+          // Calculate Skill DNA
+          let computedSkills: { name: string; level: number }[] = [];
+          try {
+            const repos = await githubService.getRepos(gitToken);
+            if (githubService.calculateSkillDNA) {
+              computedSkills = githubService.calculateSkillDNA(repos);
+            }
+          } catch (e) {
+            console.warn("Skill DNA calculation skipped", e);
+          }
+
+          setProfile((prev) => {
+            const updated = {
+              ...prev,
+              name: userData.name || userData.login || prev.name,
+              username: userData.login || prev.username,
+              avatar: userData.avatar_url || prev.avatar,
+              bio: userData.bio || prev.bio,
+              company: userData.company || prev.company,
+              location: userData.location || prev.location,
+              website: userData.blog || prev.website,
+              followers: userData.followers || prev.followers,
+              following: userData.following || prev.following,
+              skills: computedSkills.length > 0 ? computedSkills : prev.skills,
+            };
+            // Broadcast to global service for Sidebar
+            profileService.updateProfile(updated);
+            return updated;
+          });
+        }
       } catch (err) {
         console.error("Profile sync failed", err);
-        setIsMockMode(true);
       }
     };
     syncProfile();
 
     return profileService.subscribe((updated) => setProfile(updated));
-  }, []);
+  }, [profile.id]);
 
   const tabs = [
     { label: "Overview", icon: "dashboard" },
@@ -542,54 +549,39 @@ const ProfileView = () => {
 
             {activeTab === "Jobs" && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gh-text">
-                    Recent Missions
-                  </h2>
-                  <button
-                    onClick={() => navigate("/dashboard/jobs")}
-                    className="text-xs font-bold text-primary uppercase tracking-widest"
-                  >
-                    Browse All
-                  </button>
-                </div>
                 <div className="bg-gh-bg-secondary border border-gh-border rounded-xl overflow-hidden">
-                  {[
-                    {
-                      title: "Backend Refactor for Fintech App",
-                      status: "In Progress",
-                      pay: "$4,500",
-                    },
-                    {
-                      title: "React Native UI Polish",
-                      status: "Completed",
-                      pay: "$1,200",
-                    },
-                  ].map((job, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-6 border-b border-gh-border last:border-0 hover:bg-gh-bg-tertiary transition-colors"
-                    >
-                      <div>
-                        <h4 className="text-sm font-bold text-gh-text">
-                          {job.title}
-                        </h4>
-                        <span className="text-xs text-gh-text-secondary">
-                          Contract • Remote
-                        </span>
+                  {profile.receivedReviews && profile.receivedReviews.length > 0 ? (
+                    profile.receivedReviews.map((review, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-6 border-b border-gh-border last:border-0 hover:bg-gh-bg-tertiary transition-colors"
+                      >
+                        <div>
+                          <h4 className="text-sm font-bold text-gh-text">
+                            {review.jobTitle}
+                          </h4>
+                          <span className="text-xs text-gh-text-secondary">
+                            Contract • Completed • {review.date}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-500`}
+                          >
+                            Completed
+                          </span>
+                          <span className="text-sm font-bold text-gh-text flex items-center gap-1">
+                            <span className="material-symbols-outlined !text-sm text-amber-500">star</span>
+                            {review.rating}.0
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-6">
-                        <span
-                          className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full ${job.status === "Completed" ? "bg-emerald-500/10 text-emerald-500" : "bg-blue-500/10 text-blue-500"}`}
-                        >
-                          {job.status}
-                        </span>
-                        <span className="text-sm font-bold text-gh-text">
-                          {job.pay}
-                        </span>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12 text-gh-text-secondary italic text-xs">
+                      No missions completed yet. Explore the Jobs board to start.
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )}

@@ -1,16 +1,57 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { WorkflowRun, Deployment, WorkflowJob, WorkflowStep } from "../../types";
 
 const WorkflowRunDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [run, setRun] = useState<any>(null);
+  const { user } = useAuth();
+  const [run, setRun] = useState<WorkflowRun | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [autoScroll, setAutoScroll] = useState(true);
-  const [pendingDeployment, setPendingDeployment] = useState<any>(null);
+  const [pendingDeployment, setPendingDeployment] = useState<Deployment | null>(null);
   const logsEndRef = useRef<HTMLDivElement>(null);
+
+  const fetchJobLogs = React.useCallback(async (jobId: string, currentRun?: WorkflowRun | null) => {
+    try {
+      const activeRun = currentRun || run;
+      const job = activeRun?.jobs?.find((j: WorkflowJob) => j.id === jobId);
+      if (job && job.steps) {
+        const allLogs: string[] = [];
+        job.steps.forEach((step: WorkflowStep) => {
+          if (step.logs && step.logs.length > 0) {
+            allLogs.push(`=== ${step.name} ===`);
+            allLogs.push(...step.logs);
+          }
+        });
+        setLogs(allLogs);
+      }
+    } catch (err) {
+      console.error("Failed to fetch logs", err);
+    }
+  }, [run]);
+
+  const fetchRun = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/v1/runs/${id}`);
+      const data: WorkflowRun = await res.json();
+      setRun(data);
+
+      // Auto-select first job if none selected
+      if (!selectedJob && data.jobs && data.jobs.length > 0) {
+        setSelectedJob(data.jobs[0].id);
+        fetchJobLogs(data.jobs[0].id, data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch run", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, selectedJob, fetchJobLogs]);
 
   useEffect(() => {
     fetchRun();
@@ -22,7 +63,7 @@ const WorkflowRunDetail: React.FC = () => {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [id]);
+  }, [fetchRun, run?.status]);
 
   useEffect(() => {
     if (autoScroll && logsEndRef.current) {
@@ -32,49 +73,12 @@ const WorkflowRunDetail: React.FC = () => {
 
   useEffect(() => {
     if (run?.deployments) {
-      const waiting = run.deployments.find((d: any) => d.status === "WAITING");
+      const waiting = run.deployments.find((d) => d.status === "WAITING") || null;
       setPendingDeployment(waiting);
     } else {
       setPendingDeployment(null);
     }
   }, [run]);
-
-  const fetchRun = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/v1/runs/${id}`);
-      const data = await res.json();
-      setRun(data);
-
-      // Auto-select first job if none selected
-      if (!selectedJob && data.jobs && data.jobs.length > 0) {
-        setSelectedJob(data.jobs[0].id);
-        fetchJobLogs(data.jobs[0].id);
-      }
-    } catch (err) {
-      console.error("Failed to fetch run", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchJobLogs = async (jobId: string) => {
-    try {
-      const job = run?.jobs?.find((j: any) => j.id === jobId);
-      if (job && job.steps) {
-        const allLogs: string[] = [];
-        job.steps.forEach((step: any) => {
-          if (step.logs && step.logs.length > 0) {
-            allLogs.push(`=== ${step.name} ===`);
-            allLogs.push(...step.logs);
-          }
-        });
-        setLogs(allLogs);
-      }
-    } catch (err) {
-      console.error("Failed to fetch logs", err);
-    }
-  };
 
   const handleCancelRun = async () => {
     if (!confirm("Cancel this workflow run?")) return;
@@ -104,7 +108,7 @@ const WorkflowRunDetail: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status,
-          userId: "current-user-id", // TODO: Get actual user ID from AuthContext
+          userId: user?.id,
         }),
       });
       fetchRun();
@@ -258,7 +262,7 @@ const WorkflowRunDetail: React.FC = () => {
         <div className="w-64 border-r border-gh-border bg-gh-bg-secondary p-4 overflow-y-auto">
           <h3 className="text-sm font-bold text-gh-text mb-3">Jobs</h3>
           <div className="space-y-2">
-            {run.jobs?.map((job: any) => (
+            {run.jobs?.map((job: WorkflowJob) => (
               <button
                 key={job.id}
                 onClick={() => {
@@ -277,7 +281,7 @@ const WorkflowRunDetail: React.FC = () => {
                 {job.steps && (
                   <div className="text-xs opacity-70">
                     {
-                      job.steps.filter((s: any) => s.status === "success")
+                      job.steps.filter((s: WorkflowStep) => s.status === "success" || (s.conclusion === "SUCCESS" && s.status === "COMPLETED"))
                         .length
                     }
                     /{job.steps.length} steps

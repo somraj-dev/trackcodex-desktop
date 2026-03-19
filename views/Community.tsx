@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 import { socialService, Post } from "../services/socialService";
 import { CommunityBrowser } from "../components/community/CommunityBrowser";
 import { CreatePostModal } from "../components/community/CreatePostModal";
@@ -10,6 +11,9 @@ const CommunityView = () => {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trendingRepos, setTrendingRepos] = useState<any[]>([]);
+  const [loadingTrending, setLoadingTrending] = useState(true);
+  const [myCommunities, setMyCommunities] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("for-you");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -20,8 +24,31 @@ const CommunityView = () => {
 
   useEffect(() => {
     loadFeed();
+    loadTrends();
     setCurrentUser(profileService.getProfile());
+    fetchMyCommunities();
   }, []);
+
+  const loadTrends = async () => {
+    setLoadingTrending(true);
+    try {
+      const data = await api.community.trendingRepos();
+      setTrendingRepos(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingTrending(false);
+    }
+  };
+
+  const fetchMyCommunities = async () => {
+    try {
+      const data = await api.community.listJoined();
+      setMyCommunities(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const loadFeed = async () => {
     setLoading(true);
@@ -321,28 +348,28 @@ const CommunityView = () => {
             Trending Repos
           </h3>
           <div className="space-y-4">
-            {[
-              { name: "facebook/react", stars: "213k", diff: "+124" },
-              { name: "rust-lang/rust", stars: "94k", diff: "+89" },
-              { name: "shadcn/ui", stars: "45k", diff: "+432" },
-            ].map((r) => (
-              <div
-                key={r.name}
-                className="flex items-center justify-between group cursor-pointer"
-              >
-                <div>
-                  <div className="text-xs font-bold text-gh-text group-hover:text-[#58a6ff] transition-colors">
-                    {r.name}
-                  </div>
-                  <div className="text-[10px] text-gh-text-secondary">
-                    {r.stars} stars
+            {loadingTrending ? (
+              <div className="text-xs text-gh-text-secondary">Loading...</div>
+            ) : trendingRepos.length > 0 ? (
+              trendingRepos.slice(0, 5).map((r: any) => (
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between group cursor-pointer"
+                  onClick={() => navigate(`/repository/${r.id}`)}
+                >
+                  <div>
+                    <div className="text-xs font-bold text-gh-text group-hover:text-[#58a6ff] transition-colors">
+                      {r.name}
+                    </div>
+                    <div className="text-[10px] text-gh-text-secondary">
+                      {r.stars > 1000 ? `${(r.stars / 1000).toFixed(1)}k` : r.stars} stars
+                    </div>
                   </div>
                 </div>
-                <div className="text-[10px] font-bold text-[#3fb950]">
-                  {r.diff}
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="text-xs text-gh-text-secondary">No trends found</div>
+            )}
           </div>
         </div>
       </div>

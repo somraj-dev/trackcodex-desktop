@@ -6,7 +6,7 @@ import {
   Panel,
   PanelResizeHandle
 } from 'react-resizable-panels';
-import { forgeAIService } from '../services/gemini';
+import { api } from '../services/api';
 import { fileService } from '../services/fileService';
 import Spinner from '../components/ui/Spinner';
 import FileExplorer from '../components/ide/FileExplorer';
@@ -64,25 +64,28 @@ const ForgeAIAssistantPanel: React.FC<ForgeAIAssistantPanelProps> = ({ editorRef
     }
 
     let prompt = '';
-    let serviceCall: Promise<string | undefined>;
+    let systemRole = '';
 
     if (action === 'review') {
-      prompt = `Reviewing selected code from ${activeFile}:`;
-      serviceCall = forgeAIService.getCodeReview(selectedText, activeFile);
+      prompt = `Reviewing selected code from ${activeFile}:\n\n${selectedText}`;
+      systemRole = 'You are a senior code reviewer. Analyze the code for bugs, performance, and best practices.';
     } else if (action === 'explain') {
-      prompt = `Explaining selected code from ${activeFile}:`;
-      serviceCall = forgeAIService.getTechnicalAnswer(`Explain this code snippet`, selectedText, activeFile);
+      prompt = `Explaining selected code from ${activeFile}:\n\n${selectedText}`;
+      systemRole = 'You are a technical educator. Explain the logic, data flow, and purpose of this code clearly.';
     } else { // refactor
-      prompt = `Refactoring selected code from ${activeFile}:`;
-      serviceCall = forgeAIService.getCodeRefactorSuggestion(selectedText, activeFile);
+      prompt = `Refactoring selected code from ${activeFile}:\n\n${selectedText}`;
+      systemRole = 'You are a refactoring specialist. Suggest improvements for readability, DRYness, and efficiency.';
     }
 
-    setConversation(prev => [...prev, { type: 'user', text: prompt }]);
+    setConversation(prev => [...prev, { type: 'user', text: prompt.slice(0, 100) + (prompt.length > 100 ? '...' : '') }]);
     setIsLoading(true);
 
     try {
-      const response = await serviceCall;
-      setConversation(prev => [...prev, { type: 'ai', text: response || "I couldn't generate a response." }]);
+      const { result } = await api.forgeAI.complete({
+        prompt: prompt,
+        systemPrompt: systemRole
+      });
+      setConversation(prev => [...prev, { type: 'ai', text: result || "I couldn't generate a response." }]);
     } catch (e: any) {
       setConversation(prev => [...prev, { type: 'system', text: `An error occurred: ${e.message}` }]);
     } finally {
@@ -103,8 +106,11 @@ const ForgeAIAssistantPanel: React.FC<ForgeAIAssistantPanelProps> = ({ editorRef
     setIsLoading(true);
 
     try {
-      const response = await forgeAIService.getTechnicalAnswer(question, fullCode, activeFile);
-      setConversation(prev => [...prev, { type: 'ai', text: response || "I couldn't generate a response." }]);
+      const { result } = await api.forgeAI.complete({
+        prompt: `Question: ${question}\n\nContext:\n${fullCode}`,
+        systemPrompt: "You are a helpful software engineering assistant. Answer questions based on the provided code context."
+      });
+      setConversation(prev => [...prev, { type: 'ai', text: result || "I couldn't generate a response." }]);
     } catch (e: any) {
       setConversation(prev => [...prev, { type: 'system', text: `An error occurred: ${e.message}` }]);
     } finally {

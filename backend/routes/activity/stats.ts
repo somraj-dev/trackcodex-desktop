@@ -1,8 +1,22 @@
-import { FastifyInstance } from "fastify";
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { contributionStatsService } from "../../services/activity/contributionStatsService";
 import { prisma } from "../../services/infra/prisma";
+import { requireAuth, requireRole } from "../../middleware/auth";
+import { globalStatsService } from "../../services/activity/globalStatsService";
 
 export default async function statsRoutes(fastify: FastifyInstance) {
+  // Apply auth to all stats routes
+  fastify.addHook("preHandler", requireAuth);
+
+  // Global System Stats (Admin Only)
+  fastify.get("/global", { preHandler: requireRole("admin", "super_admin") }, async (request, reply) => {
+    try {
+      return await globalStatsService.getSystemOverview();
+    } catch (error: any) {
+      request.log.error(error);
+      return reply.code(500).send({ error: "Failed to fetch global stats" });
+    }
+  });
   // Get contribution graph for a year
   fastify.get("/contributions/:userId", async (request, reply) => {
     let { userId } = request.params as { userId: string };

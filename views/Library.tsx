@@ -139,12 +139,16 @@ const LibraryDetail = ({
   const handleForgeAIPreview = async () => {
     setIsAnalyzing(true);
     try {
-      const insight = await forgeAIService.getLiveChatResponse(
-        `Provide a quick technical preview and security analysis for the template: ${resource.name}. Describe why it's a good choice for high-fidelity production apps.`,
-        [],
-        `Analyzing Library Resource: ${resource.name}`,
-        ["ForgeAI Specialist"],
-      );
+      // Use backend API instead of direct SDK call
+      const fetchRes = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/forgeai/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Provide a quick technical preview and security analysis for the template: ${resource.name}. Describe why it's a good choice for high-fidelity production apps.`,
+          systemPrompt: "You are ForgeAI, an specialized architect. Provide concise technical analysis of library resources."
+        })
+      });
+      const insight = await fetchRes.text();
       setAiInsight(insight || null);
     } catch {
       setAiInsight(

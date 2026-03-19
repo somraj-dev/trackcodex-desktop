@@ -5,6 +5,20 @@ import { prisma } from "../../services/infra/prisma";
 // Shared prisma instance
 
 export async function leaderboardRoutes(fastify: FastifyInstance) {
+    // Get summary stats for leaderboard
+    fastify.get("/leaderboard/stats", async (request: FastifyRequest, reply: FastifyReply) => {
+        try {
+            const [totalUsers, participatedUsers] = await Promise.all([
+                prisma.user.count(),
+                prisma.userSkillScore.count()
+            ]);
+            return { totalRegistered: totalUsers, totalParticipated: participatedUsers };
+        } catch (error) {
+            console.error("Error fetching leaderboard stats:", error);
+            reply.status(500).send({ error: "Failed to fetch stats" });
+        }
+    });
+
     fastify.get("/leaderboard", async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             // Fetch top 50 users based on a calculated total score

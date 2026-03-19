@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MOCK_SESSIONS } from '../constants';
-import { forgeAIService } from '../services/gemini';
+import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface ChatMessage {
   id: string;
@@ -68,18 +68,16 @@ const SyntaxHighlighter: React.FC<{ code: string; lang?: string }> = ({ code, la
   );
 };
 
-const INITIAL_MESSAGES: ChatMessage[] = [];
-
-const INITIAL_PARTICIPANTS: Participant[] = [];
-
 const LiveSessions = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isHosting, setIsHosting] = useState(true);
-  const [participants, setParticipants] = useState<Participant[]>(INITIAL_PARTICIPANTS);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [isSharingMyScreen, setIsSharingMyScreen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
   // Mention system states
   const [showMentionPicker, setShowMentionPicker] = useState(false);
@@ -90,6 +88,50 @@ const LiveSessions = () => {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load conversation and messages
+  useEffect(() => {
+    const initSession = async () => {
+      try {
+        const convs = await api.messages.listConversations();
+        if (convs && convs.length > 0) {
+          const mainConv = convs[0];
+          setConversationId(mainConv.id);
+          
+          const msgs = await api.messages.getMessages(mainConv.id);
+          const formattedMsgs: ChatMessage[] = msgs.map((m: any) => ({
+            id: m.id,
+            sender: m.sender?.name || m.sender?.username || 'Unknown',
+            avatar: m.sender?.avatar || `https://picsum.photos/seed/${m.senderId}/32`,
+            text: m.content,
+            timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isMe: m.senderId === user?.id,
+            isAI: m.sender?.username === 'ForgeAI'
+          }));
+          setMessages(formattedMsgs);
+
+          // Get participants from conversation
+          if (mainConv.participants) {
+            const parts: Participant[] = mainConv.participants.map((p: any) => ({
+              id: p.userId,
+              name: p.user?.name || p.user?.username || 'Peer',
+              username: p.user?.username || 'peer',
+              avatar: p.user?.avatar || `https://picsum.photos/seed/${p.userId}/32`,
+              isMuted: false,
+              isSharingScreen: false,
+              role: p.userId === mainConv.creatorId ? 'host' : 'participant',
+              isTalking: false
+            }));
+            setParticipants(parts);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load session:", err);
+      }
+    };
+
+    if (user) initSession();
+  }, [user]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -193,59 +235,67 @@ const LiveSessions = () => {
   const handleSendMessage = async (e?: React.FormEvent, customText?: string) => {
     if (e) e.preventDefault();
     const textToSend = (customText || inputValue).trim();
-    if (!textToSend) return;
+    if (!textToSend || !conversationId) return;
 
-    const newUserMsg: ChatMessage = {
-      id: Date.now().toString(),
-      sender: 'You',
-      avatar: 'https://picsum.photos/seed/user1/32',
-      text: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isMe: true,
-    };
+    try {
+      // 1. Perspective: optimistic update
+      const newUserMsg: ChatMessage = {
+        id: Date.now().toString(),
+        sender: user?.name || user?.username || 'You',
+        avatar: user?.avatar || 'https://picsum.photos/seed/user1/32',
+        text: textToSend,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isMe: true,
+      };
 
-    setMessages(prev => [...prev, newUserMsg]);
-    setInputValue('');
-    setShowMentionPicker(false);
+      setMessages(prev => [...prev, newUserMsg]);
+      setInputValue('');
+      setShowMentionPicker(false);
 
-    const lowerText = textToSend.toLowerCase();
-    const shouldTriggerAI = lowerText.includes('@forgeai') ||
-      lowerText.includes('forgeai') ||
-      textToSend.endsWith('?');
+      // 2. Real update to backend
+      await api.messages.sendMessage(conversationId, textToSend);
 
-    if (shouldTriggerAI) {
-      setIsTyping(true);
-      try {
-        const activeSession = MOCK_SESSIONS?.[0];
-        const participantNames = participants.map(p => p.name);
-        const chatHistory = messages.slice(-5).map(m => ({
-          sender: m.sender,
-          text: m.text
-        }));
+      const lowerText = textToSend.toLowerCase();
+      const shouldTriggerAI = lowerText.includes('@forgeai') ||
+        lowerText.includes('forgeai') ||
+        textToSend.endsWith('?');
 
-        const aiResponse = await forgeAIService.getLiveChatResponse(
-          textToSend,
-          chatHistory,
-          `Collaborating on ${activeSession?.project || 'Anonymous Project'}`,
-          participantNames
-        );
+      if (shouldTriggerAI) {
+        setIsTyping(true);
+        try {
+          // Call backend ForgeAI
+          const fetchRes = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/v1/forgeai/complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: textToSend,
+              systemPrompt: `You are ForgeAI in a live collaboration session with ${participants.map(p => p.name).join(', ')}. Respond concicely.`
+            })
+          });
+          const aiText = await fetchRes.text();
 
-        const botMsg: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          sender: 'ForgeAI',
-          avatar: 'https://picsum.photos/seed/ai/64',
-          text: aiResponse || "Understood. Analyzing code blocks now.",
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isMe: false,
-          isAI: true,
-        };
+          const botMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            sender: 'ForgeAI',
+            avatar: 'https://picsum.photos/seed/ai/64',
+            text: aiText || "Understood. Analyzing code blocks now.",
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isMe: false,
+            isAI: true,
+          };
 
-        setMessages(prev => [...prev, botMsg]);
-      } catch (err) {
-        console.error("ForgeAI Error:", err);
-      } finally {
-        setIsTyping(false);
+          setMessages(prev => [...prev, botMsg]);
+          
+          // Persist AI message too
+          await api.messages.sendMessage(conversationId, aiText);
+        } catch (err) {
+          console.error("ForgeAI Error:", err);
+        } finally {
+          setIsTyping(false);
+        }
       }
+    } catch (err) {
+      console.error("Failed to send message:", err);
     }
   };
 
@@ -291,7 +341,7 @@ const LiveSessions = () => {
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">Live Engineering Session</h1>
             <p className="text-gh-text-secondary text-sm mt-1">
-              Synchronized cloud environment for {MOCK_SESSIONS?.[0]?.project || 'Anonymous Project'}.
+              Synchronized cloud environment for active engineering session.
             </p>
           </div>
           <div className="flex items-center gap-3">

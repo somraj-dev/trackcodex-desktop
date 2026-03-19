@@ -23,6 +23,7 @@ const Leaderboard = () => {
 
     // Fetched api data
     const [leaderboardData, setLeaderboardData] = useState<LeaderboardUser[]>([]);
+    const [leaderboardStats, setLeaderboardStats] = useState({ totalRegistered: 0, totalParticipated: 0 });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -30,12 +31,11 @@ const Leaderboard = () => {
             // Fetch current user profile first (already existing logic)
             try {
                 const profile = await profileService.getProfile();
-                // We will update current user stats from the leaderboard data if found, or keep default
                 setCurrentUser({
-                    id: "current-user-id", // Will be overwritten if found in leaderboard
+                    id: profile.id || "current-user-id",
                     rank: 0,
                     name: profile.name,
-                    handle: profile.username || "@me",
+                    handle: profile.username ? `@${profile.username}` : "@me",
                     avatar: profile.avatar,
                     wins: 0,
                     matches: 0,
@@ -45,21 +45,21 @@ const Leaderboard = () => {
                     bestWin: "--",
                 });
 
-                // Fetch Leaderboard API
-                const response = await fetch("http://localhost:5000/api/v1/leaderboard");
-                if (response.ok) {
-                    const data = await response.json();
-                    setLeaderboardData(data);
+                // Fetch Leaderboard API & Stats
+                const apiUrl = import.meta.env.VITE_API_URL || "";
+                const [lbRes, statsRes] = await Promise.all([
+                    fetch(`${apiUrl}/api/v1/leaderboard`),
+                    fetch(`${apiUrl}/api/v1/leaderboard/stats`)
+                ]);
 
-                    // Find current user in leaderboard to update their specific stats
-                    // In a real app we'd use the real user ID from auth context
-                    // For now, let's assume if we find a matching name/handle we update
-                    // or just leave it as is for the "Your Rank" card which might need a specific /me endpoint
-                } else {
-                    console.error("Failed to fetch leaderboard data");
+                if (lbRes.ok) {
+                    setLeaderboardData(await lbRes.json());
+                }
+                if (statsRes.ok) {
+                    setLeaderboardStats(await statsRes.json());
                 }
             } catch (e) {
-                console.error("Failed to fetch data", e);
+                console.error("Failed to fetch leaderboard data", e);
             } finally {
                 setLoading(false);
             }
@@ -85,7 +85,7 @@ const Leaderboard = () => {
                     {/* Total Registered */}
                     <div className="bg-gh-bg-secondary p-4 md:p-6 rounded-2xl border border-gh-border flex items-center justify-between">
                         <div>
-                            <div className="text-3xl md:text-4xl font-bold mb-1">1277</div>
+                            <div className="text-3xl md:text-4xl font-bold mb-1">{leaderboardStats.totalRegistered || "--"}</div>
                             <div className="text-gh-text-secondary text-xs md:text-sm">Total Registered</div>
                         </div>
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
@@ -96,7 +96,7 @@ const Leaderboard = () => {
                     {/* Total Participated */}
                     <div className="bg-gh-bg-secondary p-4 md:p-6 rounded-2xl border border-gh-border flex items-center justify-between">
                         <div>
-                            <div className="text-3xl md:text-4xl font-bold mb-1">255</div>
+                            <div className="text-3xl md:text-4xl font-bold mb-1">{leaderboardStats.totalParticipated || "--"}</div>
                             <div className="text-gh-text-secondary text-xs md:text-sm">Total Participated</div>
                         </div>
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center">

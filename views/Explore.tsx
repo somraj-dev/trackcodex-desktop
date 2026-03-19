@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Users, Search, TrendingUp, UserPlus, Star } from "lucide-react";
+import { Users, Search, TrendingUp, UserPlus, Star, Globe, Shield } from "lucide-react";
 import { profileService } from "../services/profile";
+import { workspaceService, Workspace } from "../services/workspaceService";
 import { useNavigate } from "react-router-dom";
 import "../styles/Explore.css";
 
@@ -20,23 +21,29 @@ export const Explore: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [trendingUsers, setTrendingUsers] = useState<User[]>([]);
   const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadDiscoveryData();
-  }, []);
+  }, [activeTab]);
 
   const loadDiscoveryData = async () => {
     setLoading(true);
     try {
-      const [trending, suggested] = await Promise.all([
-        profileService.getTrendingUsers(),
-        profileService.getSuggestedUsers(),
-      ]);
-      setTrendingUsers(trending);
-      setSuggestedUsers(suggested);
+      if (activeTab === "users") {
+        const [trending, suggested] = await Promise.all([
+          profileService.getTrendingUsers(),
+          profileService.getSuggestedUsers(),
+        ]);
+        setTrendingUsers(trending);
+        setSuggestedUsers(suggested);
+      } else {
+        const publicWorkspaces = await workspaceService.getPublicWorkspaces();
+        setWorkspaces(publicWorkspaces);
+      }
     } catch (error) {
       console.error("Error loading discovery data:", error);
     } finally {
@@ -86,7 +93,7 @@ export const Explore: React.FC = () => {
   };
 
   const renderUserCard = (user: User) => (
-    <div key={user.id} className="user-card">
+    <div key={user.id} className="user-card" onClick={() => navigate(`/profile/${user.username.replace('@', '')}`)}>
       <div className="user-card-header">
         <img
           src={
@@ -98,13 +105,14 @@ export const Explore: React.FC = () => {
         />
         <div className="user-info">
           <h3 className="user-name">{user.name}</h3>
-          <p className="user-username">@{user.username}</p>
+          <p className="user-username">@{user.username.replace('@', '')}</p>
         </div>
         <button
           className={`follow-btn ${user.isFollowing ? "following" : ""}`}
-          onClick={() =>
-            user.isFollowing ? handleUnfollow(user.id) : handleFollow(user.id)
-          }
+          onClick={(e) => {
+            e.stopPropagation();
+            user.isFollowing ? handleUnfollow(user.id) : handleFollow(user.id);
+          }}
         >
           {user.isFollowing ? "Following" : "Follow"}
         </button>
@@ -116,6 +124,34 @@ export const Explore: React.FC = () => {
         </span>
         <span>
           <strong>{user.followingCount || 0}</strong> following
+        </span>
+      </div>
+    </div>
+  );
+
+  const renderWorkspaceCard = (ws: Workspace) => (
+    <div key={ws.id} className="workspace-card" onClick={() => navigate(`/workspaces/${ws.id}`)}>
+      <div className="workspace-card-header">
+        <div className="ws-icon">
+          <Globe size={24} />
+        </div>
+        <div className="ws-info">
+          <h3 className="ws-name">{ws.name}</h3>
+          <p className="ws-owner">by {ws.owner?.name || ws.owner?.username || "Unknown"}</p>
+        </div>
+        <div className={`ws-badge ${ws.visibility}`}>
+          {ws.visibility === "public" ? <Globe size={12} /> : <Shield size={12} />}
+          {ws.visibility}
+        </div>
+      </div>
+      {ws.description && <p className="ws-description">{ws.description}</p>}
+      <div className="ws-stats">
+        <span>
+          <Star size={14} /> {ws.starsCount || 0}
+        </span>
+        <span className="ws-status">
+          <span className={`status-indicator ${ws.status.toLowerCase()}`}></span>
+          {ws.status}
         </span>
       </div>
     </div>
@@ -147,82 +183,97 @@ export const Explore: React.FC = () => {
         </button>
       </div>
 
-      {activeTab === "users" && (
-        <div className="explore-content">
-          {/* Search Section */}
-          <div className="search-section">
-            <div className="search-box">
-              <Search size={20} />
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
+      <div className="explore-content">
+        {activeTab === "users" ? (
+          <>
+            {/* Search Section */}
+            <div className="search-section">
+              <div className="search-box">
+                <Search size={20} />
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Search Results */}
-          {searchQuery && searchResults.length > 0 && (
+            {/* Search Results */}
+            {searchQuery && searchResults.length > 0 && (
+              <section className="explore-section">
+                <h2>
+                  <Search size={24} /> Search Results
+                </h2>
+                <div className="user-grid">
+                  {searchResults.map(renderUserCard)}
+                </div>
+              </section>
+            )}
+
+            {/* Trending Users */}
+            {!searchQuery && (
+              <>
+                <section className="explore-section">
+                  <h2>
+                    <TrendingUp size={24} /> Trending Developers
+                  </h2>
+                  <p className="section-subtitle">
+                    Most followed developers this week
+                  </p>
+                  {loading ? (
+                    <div className="loading">Loading...</div>
+                  ) : (
+                    <div className="user-grid">
+                      {trendingUsers.map(renderUserCard)}
+                    </div>
+                  )}
+                </section>
+
+                {/* Suggested Users */}
+                <section className="explore-section">
+                  <h2>
+                    <UserPlus size={24} /> Suggested for You
+                  </h2>
+                  <p className="section-subtitle">
+                    Developers you might want to follow
+                  </p>
+                  {loading ? (
+                    <div className="loading">Loading...</div>
+                  ) : (
+                    <div className="user-grid">
+                      {suggestedUsers.map(renderUserCard)}
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="workspace-discovery">
             <section className="explore-section">
               <h2>
-                <Search size={24} /> Search Results
+                <Star size={24} /> Public Workspaces
               </h2>
-              <div className="user-grid">
-                {searchResults.map(renderUserCard)}
-              </div>
+              <p className="section-subtitle">
+                Explore cloud environments and open-source projects
+              </p>
+              {loading ? (
+                <div className="loading">Loading...</div>
+              ) : workspaces.length > 0 ? (
+                <div className="workspace-grid">
+                  {workspaces.map(renderWorkspaceCard)}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <Globe size={48} />
+                  <p>No public workspaces found</p>
+                </div>
+              )}
             </section>
-          )}
-
-          {/* Trending Users */}
-          {!searchQuery && (
-            <>
-              <section className="explore-section">
-                <h2>
-                  <TrendingUp size={24} /> Trending Developers
-                </h2>
-                <p className="section-subtitle">
-                  Most followed developers this week
-                </p>
-                {loading ? (
-                  <div className="loading">Loading...</div>
-                ) : (
-                  <div className="user-grid">
-                    {trendingUsers.map(renderUserCard)}
-                  </div>
-                )}
-              </section>
-
-              {/* Suggested Users */}
-              <section className="explore-section">
-                <h2>
-                  <UserPlus size={24} /> Suggested for You
-                </h2>
-                <p className="section-subtitle">
-                  Developers you might want to follow
-                </p>
-                {loading ? (
-                  <div className="loading">Loading...</div>
-                ) : (
-                  <div className="user-grid">
-                    {suggestedUsers.map(renderUserCard)}
-                  </div>
-                )}
-              </section>
-            </>
-          )}
-        </div>
-      )}
-
-      {activeTab === "workspaces" && (
-        <div className="explore-content">
-          <div className="coming-soon">
-            <Star size={48} />
-            <h2>Workspace Discovery Coming Soon</h2>
-            <p>Explore trending and starred workspaces</p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

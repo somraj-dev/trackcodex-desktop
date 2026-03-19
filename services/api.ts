@@ -222,6 +222,17 @@ export const api = {
     markRead: (id: string) => request<void>(`/notifications/${id}/read`, { method: "POST" }),
     markAllRead: (userId: string) => request<void>("/notifications/read-all", { method: "POST", body: JSON.stringify({ userId }) }),
   },
+  messages: {
+    listConversations: () => request<any[]>("/messages/conversations"),
+    getMessages: (conversationId: string) => request<any[]>(`/messages/conversations/${conversationId}/messages`),
+    sendMessage: (conversationId: string, content: string) => 
+      request<any>(`/messages/conversations/${conversationId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      }),
+    markAsRead: (conversationId: string) =>
+      request<void>(`/messages/conversations/${conversationId}/read`, { method: "PUT" }),
+  },
   pullRequests: {
     list: (repoId: string, status?: string) =>
       request<PullRequest[]>(`/repositories/${repoId}/pulls${status ? `?status=${status}` : ""}`),
@@ -247,6 +258,24 @@ export const api = {
     rerun: (runId: string) => request<{ success: boolean }>(`/runs/${runId}/rerun`, { method: "POST" }),
     dispatch: (repoId: string, workflowId?: string) =>
       request<{ success: boolean }>(`/repos/${repoId}/dispatch`, { method: "POST", body: JSON.stringify({ workflowId }) }),
+  },
+  stats: {
+    getGlobal: () => request<any>("/stats/global"),
+  },
+  community: {
+    trendingRepos: () => request<any[]>("/community/trending-repos"),
+    listJoined: () => request<any[]>("/community/joined"),
+    listPosts: (options?: { type?: string; limit?: number; communityId?: string }) => {
+      const params = new URLSearchParams();
+      if (options?.type) params.append("type", options.type);
+      if (options?.limit) params.append("limit", options.limit.toString());
+      if (options?.communityId) params.append("communityId", options.communityId);
+      return request<any[]>(`/community/posts?${params.toString()}`);
+    },
+  },
+  activity: {
+    getFollowing: (page = 1, limit = 20) => 
+      request<any>(`/activity/following?page=${page}&limit=${limit}`),
   },
 
   sshKeys: {

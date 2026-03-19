@@ -1,53 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 import ContinueWorkspaces from "../components/home/ContinueWorkspaces";
 
-
-interface MockRepoProps {
-  name: string;
-  description: string;
-  lang: string;
-  stars: string;
-}
-
-const MockRepo = ({ name, description, lang, stars }: MockRepoProps) => (
-  <div className="p-4 border-b border-gh-border last:border-0 hover:bg-gh-bg-secondary/50 group cursor-pointer transition-colors">
-    <div className="flex items-start justify-between">
-      <div className="flex items-center gap-2">
-        <img
-          src={`https://ui-avatars.com/api/?name=${name.split("/")[0]}&background=random&color=fff`}
-          alt=""
-          className="size-5 rounded-md"
-        />
-        <h3 className="text-sm font-bold text-gh-text group-hover:text-primary transition-colors">
-          {name}
-        </h3>
-      </div>
-      <button className="flex items-center gap-1 px-3 py-1 text-xs font-bold text-gh-text-secondary bg-gh-bg-secondary border border-gh-border rounded-md hover:bg-gh-border transition-colors">
-        <span className="material-symbols-outlined !text-[14px]">star</span>
-        Star
-      </button>
-    </div>
-    <p className="text-xs text-gh-text-secondary mt-2 mb-3 line-clamp-2">
-      {description}
-    </p>
-    <div className="flex items-center gap-4 text-xs text-gh-text-secondary">
-      <div className="flex items-center gap-1.5">
-        <span className="size-2 rounded-full bg-primary/80"></span>
-        <span>{lang}</span>
-      </div>
-      <div className="flex items-center gap-1 hover:text-primary cursor-pointer transition-colors">
-        <span className="material-symbols-outlined !text-[14px]">star</span>
-        {stars}
-      </div>
-      <div className="text-[10px] text-gh-text-secondary/60 ml-auto">Updated 2h ago</div>
-    </div>
-  </div>
-);
 
 const HomeView = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [trendingRepos, setTrendingRepos] = useState<any[]>([]);
+  const [followingActivity, setFollowingActivity] = useState<any[]>([]);
+  const [loadingTrending, setLoadingTrending] = useState(true);
+  const [loadingFollowing, setLoadingFollowing] = useState(true);
+
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const data = await api.community.trendingRepos();
+        setTrendingRepos(data);
+      } catch (err) {
+        console.error("Failed to fetch trending repos:", err);
+      } finally {
+        setLoadingTrending(false);
+      }
+    };
+
+    const fetchFollowing = async () => {
+      try {
+        const data = await api.activity.getFollowing();
+        setFollowingActivity(data.activities || []);
+      } catch (err) {
+        console.error("Failed to fetch following feed:", err);
+      } finally {
+        setLoadingFollowing(false);
+      }
+    };
+
+    fetchTrending();
+    fetchFollowing();
+  }, []);
 
   return (
     <div className="flex-1 p-8 font-display">
@@ -185,24 +175,65 @@ const HomeView = () => {
             </div>
 
             <div className="divide-y divide-gh-border">
-              <MockRepo
-                name="forrestchang/andrej-karpathy-skills"
-                description="Analysis of Andrej Karpathy's teaching style and technical breakdowns."
-                lang="Python"
-                stars="5.2k"
-              />
-              <MockRepo
-                name="koala73/worldmonitor"
-                description="Real-time global intelligence dashboard — AI-powered news aggregation, geopolitical monitoring, and infrastructure tracking in a unified situational awareness interface."
-                lang="TypeScript"
-                stars="4.6k"
-              />
-              <MockRepo
-                name="facebook/react-strict-dom"
-                description="React Strict DOM (RSD) is an experimental integration of React DOM and StyleX that aims to standardize the development of styled React components for web and native."
-                lang="JavaScript"
-                stars="12.8k"
-              />
+              {loadingFollowing ? (
+                <div className="p-8 text-center text-gh-text-secondary text-sm">Loading feed...</div>
+              ) : followingActivity.length > 0 ? (
+                followingActivity.map((activity) => (
+                  <div key={activity.id} className="p-4 border-b border-gh-border last:border-0 hover:bg-gh-bg-secondary/50 group cursor-pointer transition-colors">
+                    <div className="flex items-center gap-3">
+                      <img src={activity.user?.avatar || ""} alt="" className="size-8 rounded-full border border-gh-border" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gh-text font-bold">
+                          {activity.user?.name || "Someone"} <span className="font-normal text-gh-text-secondary">{activity.action}</span> {activity.repo?.name}
+                        </p>
+                        <p className="text-xs text-gh-text-secondary mt-0.5">
+                          {new Date(activity.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-0">
+                  <div className="p-4 border-b border-gh-border bg-gh-bg-secondary/40">
+                    <div className="flex items-center gap-2 text-xs text-gh-text-secondary">
+                      <span className="material-symbols-outlined !text-[16px]">trending_up</span>
+                      <span className="font-bold text-gh-text">Trending repositories</span>
+                    </div>
+                  </div>
+                  {loadingTrending ? (
+                    <div className="p-8 text-center text-gh-text-secondary text-sm">Loading trending...</div>
+                  ) : trendingRepos.map((repo) => (
+                    <div key={repo.id} className="p-4 border-b border-gh-border last:border-0 hover:bg-gh-bg-secondary/50 group cursor-pointer transition-colors" onClick={() => navigate(`/repository/${repo.id}`)}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={repo.avatar}
+                            alt=""
+                            className="size-5 rounded-md"
+                          />
+                          <h3 className="text-sm font-bold text-gh-text group-hover:text-primary transition-colors">
+                            {repo.name}
+                          </h3>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gh-text-secondary mt-2 mb-3 line-clamp-2">
+                        {repo.description}
+                      </p>
+                      <div className="flex items-center gap-4 text-xs text-gh-text-secondary">
+                        <div className="flex items-center gap-1.5">
+                          <span className="size-2 rounded-full bg-primary/80"></span>
+                          <span>{repo.language}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="material-symbols-outlined !text-[14px]">star</span>
+                          {repo.stars}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

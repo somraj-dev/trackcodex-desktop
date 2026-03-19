@@ -106,6 +106,8 @@ export interface Repository {
   owner?: string;
   open_issues?: number;
   license?: string;
+  licenseName?: string;
+  openIssues?: number;
   updatedAt?: string;
 }
 
@@ -440,4 +442,41 @@ export interface SSHKey {
   key: string;
   fingerprint?: string;
   createdAt?: string;
+}
+
+// --- CI/CD & Workflow Types ---
+export interface WorkflowStep {
+  id: string;
+  name: string;
+  status: string;
+  conclusion?: string;
+  logs?: string[];
+}
+
+export interface WorkflowJob {
+  id: string;
+  name: string;
+  status: string;
+  conclusion?: string;
+  steps: WorkflowStep[];
+}
+
+export interface Deployment {
+  id: string;
+  status: string;
+  environment?: {
+    name: string;
+  };
+}
+
+export interface WorkflowRun {
+  id: string;
+  workflowName: string;
+  status: string;
+  conclusion?: string;
+  commitSha?: string;
+  event: string;
+  createdAt: string;
+  jobs: WorkflowJob[];
+  deployments?: Deployment[];
 }

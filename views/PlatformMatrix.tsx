@@ -1,12 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, Area, ResponsiveContainer, Tooltip } from "recharts";
-import {
-  MOCK_REPOS,
-  MOCK_WORKSPACES,
-  MOCK_JOBS,
-  MOCK_SESSIONS,
-} from "../constants";
+import { api } from "../services/api";
 
 const sparklineData = [
   { v: 30 },
@@ -251,6 +246,59 @@ const PlatformMatrix = () => {
   const [activeTab, setActiveTab] = useState<"matrix" | "metrics" | "activity">(
     "matrix",
   );
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await api.stats.getGlobal();
+        setStats(data);
+      } catch (err) {
+        console.error("Failed to fetch platform stats", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000); // Poll every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const metrics = [
+    {
+      label: "System Uptime",
+      value: "99.98%",
+      trend: "+0.02%",
+      color: "text-emerald-500",
+    },
+    {
+      label: "Compute Load",
+      value: stats?.hardware?.cpuUsage ? `${stats.hardware.cpuUsage}%` : "0%",
+      trend: stats?.hardware?.label || "Stable",
+      color: "text-primary",
+    },
+    {
+      label: "Memory Usage",
+      value: stats?.hardware?.memoryUsage ? `${stats.hardware.memoryUsage}%` : "0%",
+      trend: "Measured",
+      color: "text-cyan-500",
+    },
+    {
+      label: "Global Health",
+      value: stats?.hardware?.status || "HEALTHY",
+      trend: "Live",
+      color: "text-emerald-400",
+    },
+  ];
+
+  if (loading && !stats) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gh-bg">
+        <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar bg-gh-bg p-8 font-display">
@@ -312,7 +360,7 @@ const PlatformMatrix = () => {
                 icon="terminal"
                 to="/workspaces"
                 color="primary"
-                count={MOCK_WORKSPACES.length}
+                count={stats?.counts?.workspaces ?? 0}
                 label="Active Sessions"
               />
               <FeatureCard
@@ -321,7 +369,7 @@ const PlatformMatrix = () => {
                 icon="account_tree"
                 to="/repositories"
                 color="emerald-500"
-                count={MOCK_REPOS.length}
+                count={stats?.counts?.repos ?? 0}
                 label="Indexed Repos"
               />
               <FeatureCard
@@ -330,8 +378,8 @@ const PlatformMatrix = () => {
                 icon="psychology"
                 to="/forge-ai"
                 color="indigo-500"
-                count="12.4k"
-                label="Tokens/Day"
+                count={stats?.counts?.aiTasks ?? 0}
+                label="Tasks Completed"
               />
               <FeatureCard
                 title="Mission Marketplace"
@@ -339,8 +387,8 @@ const PlatformMatrix = () => {
                 icon="work"
                 to="/dashboard/jobs"
                 color="amber-500"
-                count={MOCK_JOBS.filter((j) => j.status === "Open").length}
-                label="Missions Open"
+                count="Live"
+                label="Market Active"
               />
               <FeatureCard
                 title="Live Collaboration"
@@ -348,8 +396,8 @@ const PlatformMatrix = () => {
                 icon="sensors"
                 to="/live-sessions"
                 color="rose-500"
-                count={MOCK_SESSIONS.length}
-                label="Live Channels"
+                count="Active"
+                label="Sync Channels"
               />
               <FeatureCard
                 title="Engineering Library"
@@ -367,32 +415,7 @@ const PlatformMatrix = () => {
         {activeTab === "metrics" && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  label: "System Uptime",
-                  value: "99.98%",
-                  trend: "+0.02%",
-                  color: "text-emerald-500",
-                },
-                {
-                  label: "Compute Load",
-                  value: "42%",
-                  trend: "-5%",
-                  color: "text-primary",
-                },
-                {
-                  label: "API Latency",
-                  value: "14ms",
-                  trend: "-2ms",
-                  color: "text-cyan-500",
-                },
-                {
-                  label: "Global Health",
-                  value: "A+",
-                  trend: "Stable",
-                  color: "text-emerald-400",
-                },
-              ].map((m) => (
+              {metrics.map((m) => (
                 <div
                   key={m.label}
                   className="p-6 bg-gh-bg-secondary border border-gh-border rounded-2xl"
@@ -416,25 +439,39 @@ const PlatformMatrix = () => {
               <div className="p-8 bg-gh-bg-secondary border border-gh-border rounded-3xl">
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-sm font-black text-gh-text uppercase tracking-widest">
-                    Platform Traffic
+                    Platform Activity Flux (7d)
                   </h3>
                   <div className="flex items-center gap-2">
                     <span className="size-2 rounded-full bg-primary"></span>
                     <span className="text-[10px] font-bold text-gh-text-secondary uppercase">
-                      Requests/Sec
+                      Engagement Units
                     </span>
                   </div>
                 </div>
                 <div className="h-[200px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={sparklineData}>
+                    <AreaChart data={stats?.activityFlux || []}>
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#0d1117', border: '1px solid #30363d' }}
+                        itemStyle={{ color: '#58a6ff' }}
+                      />
                       <Area
                         type="monotone"
-                        dataKey="v"
+                        dataKey="commits"
                         stroke="#135bec"
                         fill="#135bec"
                         fillOpacity={0.1}
                         strokeWidth={3}
+                        name="Commits"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="ai"
+                        stroke="#8a63d2"
+                        fill="#8a63d2"
+                        fillOpacity={0.1}
+                        strokeWidth={3}
+                        name="AI Tasks"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -447,23 +484,23 @@ const PlatformMatrix = () => {
                 </h3>
                 <div className="space-y-4">
                   {[
-                    "Core Engine",
-                    "ForgeAI Gateway",
-                    "Git SCM Engine",
-                    "Workspace VPS",
+                    { name: "Core Engine", status: stats?.hardware?.status === "SYNCED" ? "Operational" : "Degraded" },
+                    { name: "ForgeAI Gateway", status: "Operational" },
+                    { name: "Git SCM Engine", status: "Operational" },
+                    { name: "Workspace VPS", status: "Operational" },
                   ].map((service) => (
                     <div
-                      key={service}
+                      key={service.name}
                       className="flex items-center justify-between p-4 bg-gh-bg border border-gh-border rounded-xl group hover:border-primary/30 transition-all"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className={`size-2 rounded-full ${service.status === "Operational" ? "bg-emerald-500" : "bg-amber-500"} animate-pulse`}></span>
                         <span className="text-xs font-bold text-gh-text-secondary">
-                          {service}
+                          {service.name}
                         </span>
                       </div>
-                      <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
-                        Operational
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${service.status === "Operational" ? "text-emerald-500" : "text-amber-500"}`}>
+                        {service.status}
                       </span>
                     </div>
                   ))}
