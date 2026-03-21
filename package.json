@@ -19,14 +19,14 @@
     "build:backend": "node scripts/build-backend.js",
     "start:backend": "node dist-backend/index.js",
     "build:electron": "esbuild electron/main.ts electron/preload.ts --bundle --platform=node --format=cjs --outdir=dist-electron --external:electron --external:axios --external:util --external:path --external:fs --external:child_process --external:net --external:url --out-extension:.js=.cjs",
-    "electron:dev": "npm run build:electron && electron dist-electron/main.cjs",
+    "electron:dev": "npm run build:electron && node launcher.cjs",
     "build:vscode": "node scripts/build-vscode-web.js",
     "watch:vscode": "cd .vscode_engine && npm run watch-web",
     "serve:vscode": "node scripts/serve-code-server.js",
-    "dist": "npm run build && npm run build:backend && npm run build:electron && electron-builder",
-    "dist:win": "npm run build && npm run build:backend && npm run build:electron && electron-builder --win",
-    "dist:mac": "npm run build && npm run build:backend && npm run build:electron && electron-builder --mac",
-    "dist:linux": "npm run build && npm run build:backend && npm run build:electron && electron-builder --linux",
+    "dist": "cross-env ELECTRON_RUN_AS_NODE= npm run build && npm run build:backend && npm run build:electron && electron-builder",
+    "dist:win": "cross-env ELECTRON_RUN_AS_NODE= npm run build && npm run build:backend && npm run build:electron && electron-builder --win",
+    "dist:mac": "cross-env ELECTRON_RUN_AS_NODE= npm run build && npm run build:backend && npm run build:electron && electron-builder --mac",
+    "dist:linux": "cross-env ELECTRON_RUN_AS_NODE= npm run build && npm run build:backend && npm run build:electron && electron-builder --linux",
     "dev:desktop": "concurrently -k \"npm run server\" \"npm run serve:vscode\" \"npm run dev\" \"wait-on tcp:3000 tcp:8080 && npm run electron:dev\""
   },
   "dependencies": {
@@ -195,6 +195,10 @@
       {
         "from": "backend/schema.prisma",
         "to": "backend/schema.prisma"
+      },
+      {
+        "from": "node_modules/prisma/query_engine-windows.dll.node",
+        "to": "query_engine-windows.dll.node"
       },
       {
         "from": ".env",

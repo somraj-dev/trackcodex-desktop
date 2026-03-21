@@ -5,5 +5,8 @@
   "license": "MIT",
   "dependencies": {
     "code-server": "^4.109.2"
+  },
+  "devDependencies": {
+    "@microsoft/1ds-core-js": "^4.3.11"
   }
 }

@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer } from "electron";
-import { authManager } from "./auth-manager";
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -13,10 +12,10 @@ contextBridge.exposeInMainWorld("electron", {
     API_URL: process.env.ELECTRON_API_URL || "",
   },
   auth: {
-    getToken: () => authManager.getToken(),
-    setToken: (token: string) => authManager.setToken(token),
-    clearToken: () => authManager.clearToken(),
-    initiateHandshake: () => authManager.initiateHandshake(),
+    getToken: () => ipcRenderer.sendSync("auth-get-token"),
+    setToken: (token: string) => ipcRenderer.send("auth-set-token", token),
+    clearToken: () => ipcRenderer.send("auth-clear-token"),
+    initiateHandshake: () => ipcRenderer.invoke("auth-initiate-handshake"),
     onAuthSuccess: (callback: (token: string) => void) => {
       ipcRenderer.on("auth-success", (_event: unknown, token: string) => callback(token));
     }

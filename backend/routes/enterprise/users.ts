@@ -717,43 +717,6 @@ export async function userRoutes(fastify: FastifyInstance) {
     }
   });
 
-  // Get User Activity
-  fastify.get("/users/:userId/activity", async (request, reply) => {
-    const { userId } = request.params as { userId: string };
-    const { page, limit } = request.query as { page?: string; limit?: string };
-
-    const pageNum = Math.max(1, parseInt(page || "1"));
-    const limitNum = Math.min(50, parseInt(limit || "20"));
-    const skip = (pageNum - 1) * limitNum;
-
-    try {
-      const [activities, total] = await Promise.all([
-        prisma.activityLog.findMany({
-          where: { userId },
-          orderBy: { createdAt: "desc" },
-          take: limitNum,
-          skip,
-        }),
-        prisma.activityLog.count({ where: { userId } }),
-      ]);
-
-      // Map to frontend expectation
-      // activityService expects { activities: [], total }
-      const mapped = activities.map((a) => ({
-        id: a.id,
-        userId: a.userId,
-        action: a.action,
-        metadata: a.details,
-        createdAt: a.createdAt,
-      }));
-
-      return { activities: mapped, total };
-    } catch (error) {
-      console.error("Activity fetch error:", error);
-      return reply.code(500).send({ message: "Failed to fetch activity" });
-    }
-  });
-
   // Get User Activity Stats
   fastify.get("/users/:userId/activity/stats", async (request, reply) => {
     const { userId } = request.params as { userId: string };

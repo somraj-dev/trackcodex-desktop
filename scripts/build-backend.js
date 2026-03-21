@@ -14,11 +14,36 @@ esbuild
     platform: "node",
     target: "node18",
     outfile: path.join(__dirname, "../dist-backend/index.js"),
-    // Exclude all node_modules from the bundle (keep them as external dependencies)
-    // We will rely on a complete node_modules environment in the container.
-    packages: "external",
+    // Explicitly externalize only native modules or large binary dependencies
+    // Also externalize Node.js built-ins to avoid bundling issues in ESM
+    external: [
+      "@prisma/client",
+      "bcrypt",
+      "fs",
+      "path",
+      "os",
+      "crypto",
+      "events",
+      "http",
+      "https",
+      "net",
+      "stream",
+      "url",
+      "util",
+      "zlib"
+    ],
     sourcemap: true,
     format: "esm",
+    banner: {
+      js: `
+import { createRequire as __topLevelCreateRequire } from 'module';
+import { fileURLToPath as __topLevelFileURLToPath } from 'url';
+import { dirname as __topLevelDirname } from 'path';
+const require = __topLevelCreateRequire(import.meta.url);
+const __filename = __topLevelFileURLToPath(import.meta.url);
+const __dirname = __topLevelDirname(__filename);
+`.trim(),
+    },
   })
   .then(() => {
     console.log("✅ Backend bundled successfully to dist-backend/index.js");

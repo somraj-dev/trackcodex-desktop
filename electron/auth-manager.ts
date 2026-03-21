@@ -2,7 +2,7 @@ import { shell, safeStorage } from "electron";
 import Store from "electron-store";
 import axios from "axios";
 
-const store = new Store();
+const store = new Store({ projectName: "trackcodex" } as any);
 
 export class AuthManager {
   private _sessionToken: string | null = null;

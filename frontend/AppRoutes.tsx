@@ -60,6 +60,7 @@ const ImportRepoView = React.lazy(() => import("./views/repo/ImportRepo"));
 const IssueDetail = React.lazy(() => import("./views/repo/IssueDetail"));
 const SearchResults = React.lazy(() => import("./views/SearchResults"));
 const TrackCoinView = React.lazy(() => import("./views/TrackCoin"));
+import HandshakeView from "./views/auth/HandshakeView";
 
 // Strata
 const StrataIndexView = React.lazy(() => import("./views/organizations/StrataIndexView"));
@@ -143,6 +144,16 @@ import { RoleGuard } from "./components/auth";
 
 const AppRoutes = () => {
   const { isAuthenticated } = useAuth();
+  const isElectron = window.navigator.userAgent.toLowerCase().includes('electron') || 
+                     window.location.protocol === 'file:';
+
+  if (isElectron && !isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="*" element={<HandshakeView />} />
+      </Routes>
+    );
+  }
 
   return (
     <Routes>

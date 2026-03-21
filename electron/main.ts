@@ -1,28 +1,30 @@
-import { app, BrowserWindow } from "electron";
+const { app, BrowserWindow, ipcMain, utilityProcess } = require("electron");
 import path from "path";
-import { spawn, ChildProcess } from "child_process";
-import net from "net";
+import Store from "electron-store";
+
+// Set app name and initialize Store early
+if (app) {
+  app.setName("trackcodex");
+  Store.initRenderer();
+}
+
 import { fileURLToPath } from "url";
 
 import { authManager } from "./auth-manager";
 import { TrayManager } from "./tray-manager";
 import { NotificationManager } from "./notification-manager";
 import { UpdateManager } from "./update-manager";
-import Store from "electron-store";
-
-// Initialize the store
-Store.initRenderer();
 
 // ESM/CJS compatibility shims for _dirname and _filename
 const isESM = typeof import.meta.url !== 'undefined';
-const _filename = isESM ? fileURLToPath(import.meta.url) : (global as any).__filename || '';
+const _filename = isESM ? fileURLToPath(import.meta.url) : path.resolve((global as any).__filename || "");
 const _dirname = path.dirname(_filename);
 
 // Native check for dev environment
 const isDev = !app.isPackaged;
 
 let mainWindow: BrowserWindow | null = null;
-let backendProcess: ChildProcess | null = null;
+let backendProcess: any = null; // utilityProcess.fork returns a UtilityProcess
 let trayManager: TrayManager | null = null;
 let notificationManager: NotificationManager | null = null;
 let updateManager: UpdateManager | null = null;
@@ -41,7 +43,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on("second-instance", (event, commandLine, workingDirectory) => {
+  app.on("second-instance", (event, commandLine) => {
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
@@ -89,7 +91,26 @@ function handleDeepLink(url: string) {
   }
 }
 
+// Auth Manager IPC Handlers
+ipcMain.on("auth-get-token", (event) => {
+  event.returnValue = authManager.getToken();
+});
+
+ipcMain.on("auth-set-token", (event, token) => {
+  authManager.setToken(token);
+});
+
+ipcMain.on("auth-clear-token", () => {
+  authManager.clearToken();
+});
+
+ipcMain.handle("auth-initiate-handshake", async () => {
+  return await authManager.initiateHandshake();
+});
+
 // Function to find a free port
+// UNUSED but kept for potential future dynamic port allocation
+/*
 const getFreePort = (startPort: number): Promise<number> => {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -106,43 +127,51 @@ const getFreePort = (startPort: number): Promise<number> => {
     });
   });
 };
+*/
 
 async function startBackend(): Promise<number> {
   if (isDev) {
-    // eslint-disable-next-line no-console
-    console.log(
-      '🔧 Dev Mode: Assuming Backend running via "npm run server" on port 4000',
-    );
+    console.warn('🔧 Dev Mode: Assuming Backend running via "npm run server" on port 4000');
     return 4000;
   }
 
-  // Prod: Spawn bundled backend
-  // FORCE Port 3000 for OAuth Redirect Logic
+  // Prod: Spawn bundled backend using utilityProcess
   const port = 3000;
 
-  // Use resourcesPath in production
-  const backendPath = path.join(process.resourcesPath, "dist-backend/index.js");
-  // Fallback for local testing of "dist"
-  const localDistPath = path.join(_dirname, "../dist-backend/index.js");
+  // Paths for packaged app
+  const resourcesPath = process.resourcesPath;
+  const backendPath = path.join(resourcesPath, "dist-backend/index.js");
+  const schemaPath = path.join(resourcesPath, "backend/schema.prisma");
+  const enginePath = path.join(resourcesPath, "query_engine-windows.dll.node");
 
+  // Fallback for local testing of "dist" structure outside of .exe
+  const localDistPath = path.join(_dirname, "../dist-backend/index.js");
   const finalBackendPath = app.isPackaged ? backendPath : localDistPath;
 
-  // eslint-disable-next-line no-console
-  console.log(`🚀 Spawning Backend on port ${port}...`);
-  // eslint-disable-next-line no-console
-  console.log(`📂 Path: ${finalBackendPath}`);
+  console.warn(`🚀 Forking Backend on port ${port}...`);
+  console.warn(`📂 Backend Path: ${finalBackendPath}`);
+  console.warn(`📄 Schema Path: ${schemaPath}`);
 
-  backendProcess = spawn("node", [finalBackendPath], {
+  // Use utilityProcess.fork() for robust background execution using Electron's Node runtime
+  backendProcess = (utilityProcess as any).fork(finalBackendPath, [], {
     env: {
       ...process.env,
       PORT: port.toString(),
       NODE_ENV: "production",
+      DATABASE_URL: process.env.DATABASE_URL || "",
+      // PRISMA configuration for production
+      PRISMA_QUERY_ENGINE_LIBRARY: enginePath,
+      PRISMA_SCHEMA_ENGINE_BINARY: schemaPath,
     },
     stdio: "inherit",
   });
 
-  backendProcess.on("error", (err) => {
-    console.error("❌ Failed to start backend:", err);
+  backendProcess.on("exit", (code: number) => {
+    console.warn(`🛑 Backend process exited with code ${code}`);
+  });
+
+  backendProcess.on("error", (err: Error) => {
+    console.error("❌ Backend process error:", err);
   });
 
   return port;
@@ -181,7 +210,7 @@ async function createWindow() {
   }
 
   // Handle minimize to tray
-  mainWindow.on("minimize", (event: any) => {
+  (mainWindow as any).on("minimize", (event: any) => {
     event.preventDefault();
     mainWindow?.hide();
   });
